@@ -48,7 +48,7 @@ Before producing API-shaped code, **open the relevant doc page or source module*
 
 | Platform | Notes |
 |---|---|
-| **Reachy Mini** (Wireless) | Built-in Raspberry Pi 5 + battery; full feature set |
+| **Reachy Mini** (Wireless) | Built-in Raspberry Pi 4 Compute Module (CM4) + LiFePO4 battery; full feature set |
 | **Reachy Mini Lite** | Tethered to a host computer; reduced compute on-robot |
 | **Simulation** | Software-only; same `ReachyMini` API, no real motors |
 

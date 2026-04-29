@@ -26,19 +26,21 @@ Anyone writing skills, behaviors, or agents in this plugin needs a canonical ref
 
 ### Architecture overview
 
-Reachy Mini is a desktop robot from Pollen Robotics / Hugging Face that ships across three platforms: **Reachy Mini** (Wireless, with built-in Raspberry Pi 5 and battery), **Reachy Mini Lite** (tethered to a host computer, less on-robot compute), and **Simulation** (software-only, same `ReachyMini` API without real motors). Software-side control runs through the Python SDK `reachy_mini`; a `ReachyMini` instance is the central entry point and is typically used as a context manager (`with ReachyMini() as mini:`). It exposes motion, sensor, and media functions directly as its own methods and properties (`mini.goto_target(...)`, `mini.imu`, `mini.media`); there are no separate `head` / `antennas` sub-objects.
+Reachy Mini is a desktop robot from Pollen Robotics / Hugging Face that ships across three platforms: **Reachy Mini** (Wireless, with built-in Raspberry Pi 4 Compute Module and LiFePO4 battery), **Reachy Mini Lite** (tethered to a host computer over USB-C, externally powered), and **Simulation** (software-only, same `ReachyMini` API without real motors). Software-side control follows a **client-server model**: a local daemon owns the hardware connection and the safety layer, while the SDK client (the `reachy_mini` Python package) talks to the daemon over REST/WebSocket. A `ReachyMini` instance is the central entry point and is typically used as a context manager (`with ReachyMini() as mini:`). It exposes motion, sensor, and media functions directly as its own methods and properties (`mini.goto_target(...)`, `mini.imu`, `mini.media`); there are **no** separate `head` / `antennas` / `eyes` / `display` sub-objects.
 
-Canonical sources: hosted docs <https://huggingface.co/docs/reachy_mini/>, class source <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py>.
+Motion is expressed in two coordinate systems — **Head Frame** (local to the Stewart platform) and **World Frame** (world-relative, e.g. for `look_at_world(...)`). The SDK ships built-in **safety limits** that prevent self-collision and hardware damage.
+
+Canonical sources: hosted docs <https://huggingface.co/docs/reachy_mini/>, core concepts <https://huggingface.co/docs/reachy_mini/SDK/core-concept>, class source <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py>.
 
 ### Hardware inventory — actuators
 
 Controllable mechanical axes (verified against the `ReachyMini` class API at <https://huggingface.co/docs/reachy_mini/API/reachymini>):
 
-| Subsystem | DoF | Representation | Write API | Read API | Value range | Unit |
-|---|---|---|---|---|---|---|
-| Head | 6 (Stewart platform with translation + rotation) | 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees, mm)` | `goto_target(head=...)`, `set_target(head=...)`, `set_target_head_pose(pose)` | `get_current_head_pose() -> np.ndarray` (4×4) | `> ⚠ TBD` per axis | rad / mm |
-| Antennas (pair) | 2 (1 DoF per antenna) | `List[float]` with two joint angles (left, right) | `goto_target(antennas=...)`, `set_target(antennas=...)`, `set_target_antenna_joint_positions(antennas)` | `get_present_antenna_joint_positions() -> List[float]` | `> ⚠ TBD` | rad |
-| Body yaw | 1 | `float` | `goto_target(body_yaw=...)`, `set_target(body_yaw=...)`, `set_target_body_yaw(value)`, `set_automatic_body_yaw(enabled)` | part of `get_current_joint_positions()` | `> ⚠ TBD` | rad |
+| Subsystem | DoF | Motors | Representation | Write API | Read API | Value range | Unit | Platforms |
+|---|---|---|---|---|---|---|---|---|
+| Head | 6 (Stewart platform: 3 rotation + 3 translation) | 6× Dynamixel XL330-M288-T | 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees, mm)` | `goto_target(head=...)`, `set_target(head=...)`, `set_target_head_pose(pose)` | `get_current_head_pose() -> np.ndarray` (4×4) | `> ⚠ TBD` per axis | rad / mm | all |
+| Antennas (pair) | 2 (1 DoF per antenna) | 2× Dynamixel XL330-M077-T | `List[float]` with two joint angles (left, right) | `goto_target(antennas=...)`, `set_target(antennas=...)`, `set_target_antenna_joint_positions(antennas)` | `get_present_antenna_joint_positions() -> List[float]` | `> ⚠ TBD` | rad | all |
+| Body yaw | 1 (base rotation) | 1× custom Dynamixel XC330-M288-PG | `float` | `goto_target(body_yaw=...)`, `set_target(body_yaw=...)`, `set_target_body_yaw(value)`, `set_automatic_body_yaw(enabled)` | part of `get_current_joint_positions()` | `> ⚠ TBD` | rad | all (Wireless **and** Lite, soft-state in Simulation) |
 
 Concrete write-API docs: <https://huggingface.co/docs/reachy_mini/API/reachymini>. Pose builder: <https://huggingface.co/docs/reachy_mini/API/tools>.
 
@@ -53,22 +55,23 @@ Inventory-maintenance requirements:
 
 | Subsystem | Property | Controllability |
 |---|---|---|
-| Display ("eyes") | mini LCD/AMOLED, resolution `> ⚠ TBD`, programmable content | images, simple animations, eye-expression layer |
-| Speaker | one, power `> ⚠ TBD W` | audio playback (WAV/PCM, further codecs `> ⚠ TBD`) |
-| Status LEDs (optional) | count `> ⚠ TBD` | `> ⚠ TBD` whether SDK-controllable or fixed |
+| Speaker | 5 W @ 4 Ω, single | audio playback via `mini.media.audio.*` ([SDK/media-architecture](https://huggingface.co/docs/reachy_mini/SDK/media-architecture)); concrete codec list `> ⚠ TBD: validate against current SDK media backend` |
+| LED ring on the microphone module | LEDs on the ReSpeaker / mic-array board; registers `LED_EFFECT`, `LED_BRIGHTNESS`, `LED_GAMMIFY`, `LED_SPEED` | via `audio_control_utils` ([source](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/media/audio_control_utils.py)); programmatically writable |
+| ~~Display / eye screen~~ | **Reachy Mini ships no programmable eye display.** The "eyes" are mechanical 3D-printed parts (`pp01079_back_big_eye`, `pp01080_back_small_eye`) on the head shell — not controllable. The Pollen control app's "Expressions" are motion compositions of head pose + antenna positions, not display content. | not controllable |
 
 Requirements:
 
-- **MUST** model the display subsystem at least as an expression-bearing output layer — motion code may trigger eye expression and pose simultaneously
-- **MUST** document whether audio playback blocks the behavior tick or runs asynchronously (`> ⚠ TBD`)
+- **MUST** document whether audio playback blocks the behavior tick or runs asynchronously (`> ⚠ TBD: validate against current SDK media backend`)
 - **SHOULD** include recommendations for audio-latency measurement and compensation patterns once SDK behavior is verified
+- **MUST** model the LED ring as a status / audio-feedback affordance — not as an "eye expression", because it is not located in the eye area of the robot
+- **MUST NOT** assume or simulate an "eye display" as a controllable element — Reachy Mini does not ship one
 
 ### Hardware inventory — sensors / inputs
 
 | Subsystem | Property | Read API | Docs |
 |---|---|---|---|
-| Microphone array | multiple mics, direction-of-arrival possible | via `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), example [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
-| Camera | wide-angle, resolution `> ⚠ TBD`, framerate `> ⚠ TBD` | via `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), example [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
+| Microphone array | 4× PDM MEMS digital, 16 kHz, -26 dB FS, direction-of-arrival capable | via `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), example [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
+| Camera | Raspberry Pi v3 wide angle (Sony IMX708, 12 MP, autofocus); concrete stream parameters `> ⚠ TBD: validate against current backend` | via `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), example [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
 | IMU (present, confirmed) | accelerometer, gyroscope, quaternion, temperature | `mini.imu` (property → `Dict \| None`) | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini), example [`imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
 | Position feedback head | current 4×4 pose | `mini.get_current_head_pose() -> np.ndarray` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
 | Position feedback antennas + joints | joint angles | `mini.get_current_joint_positions()`, `mini.get_present_antenna_joint_positions()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
@@ -84,9 +87,9 @@ Requirements:
 
 Pollen Robotics ships the `ReachyMini` API across three platforms, with the same methods but different compute and actuator profiles:
 
-- **Reachy Mini** (Wireless) — built-in Raspberry Pi 5 and battery; full feature set; the robot's CPU and energy budget are the limit. Docs: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started>
-- **Reachy Mini Lite** — tethered to a host computer; reduced on-robot compute, the host carries heavy lifts; ideal for development and energy-intensive workloads. Docs: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started>
-- **Simulation** — software-only, same `ReachyMini` API without real motors; usable for CI, tests, code shake-out without a device. Docs: <https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started>
+- **Reachy Mini** (Wireless) — built-in Raspberry Pi 4 Compute Module (CM4104016, 4 GB RAM, 16 GB flash), 2.4–5 GHz dual-band patch antenna, LiFePO4 battery (2000 mAh, 6.4 V, 12.8 Wh); fully self-contained. Docs: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started>
+- **Reachy Mini Lite** — tethered to a host computer over USB-C (USB-C does not charge the device), external 6.8–7.6 V power supply; the host carries heavy lifts, same actuator set as Wireless. Docs: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started>
+- **Simulation** — software-only, same `ReachyMini` API without real motors; usable for CI, tests, code shake-out without a device. Constructor argument `use_sim=True`. Docs: <https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started>
 
 Requirements:
 
@@ -137,7 +140,7 @@ Requirements:
 ### Motion latency and update frequency
 
 - **MUST** state the typical end-to-end latency (software command → mechanical reaction) in the skill body once measured (`> ⚠ TBD ms`)
-- **MUST** document update-frequency limits: each hardware variant has a different upper bound (Wireless typically lower than Wired; concrete numbers `> ⚠ TBD`)
+- **MUST** document update-frequency limits: each platform has a different upper bound (Wireless typically lower than Lite, since Lite offloads to the host; concrete numbers `> ⚠ TBD: validate against real hardware`)
 - **MUST NOT** recommend tick frequencies the SDK can't sustain — the visual effect is actuator stutter, not speed
 
 ### Dependencies
@@ -145,8 +148,8 @@ Requirements:
 - **`reachy_mini` SDK version** — pinned in the consuming repo; every motion depends on this version's API shape
 - **Device firmware version** — mismatch between SDK and firmware can cause connect or behavior errors; verify on every first connect (`> ⚠ TBD` whether SDK exposes this)
 - **Python version** — lower bound per SDK requirement (`> ⚠ TBD`)
-- **Hardware variant** — Wired vs. Wireless influences actuator set and CPU budget
-- **Host connectivity** — Wired needs USB, Wireless needs Wi-Fi (for code sync) and local power
+- **Hardware platform** — Wireless / Lite / Simulation influences CPU budget and power supply; the actuator set is identical on Wireless and Lite
+- **Host connectivity** — Lite needs USB-C to a host plus external 6.8–7.6 V; Wireless needs Wi-Fi (for code sync) and runs from the battery; Simulation needs no host outside the Python process
 - **System audio stack** — when the behavior plays audio, it depends on the variant's audio stack (PulseAudio / PipeWire `> ⚠ TBD`)
 
 ### Mechanical and electrical limitations
@@ -182,7 +185,7 @@ The following principles are translated from classical animation onto a 6-DoF he
 7. **Synchronisation antennas + head** — antenna motions coherent with head motion (e.g. "ears pricked up" on a look-at) feel intentional. Incoherent mixing feels noisy.
 8. **Audio synchronicity** — for dance or sound reactions: align motion and audio onset to within a few milliseconds, not offset by an asynchronous audio playback (see `audio-beat-tracking`).
 9. **Timing variation** — fixed tick steps feel machine-like. Vary move-primitive duration by ~5–15 %, so no two identical moves emerge.
-10. **Eye-display synchronicity** — when the display shows eyes: before a look-at motion, let the eyes lead (saccade), then the head follows. Eye motion is much faster than mechanics.
+10. **Body-yaw + head-pose synchronicity** — when `automatic_body_yaw=True` (recommended default), the body follows the head pose via IK and offloads work from the Stewart platform's yaw. When both axes are driven manually, do not let body yaw and head yaw move counter to each other — the resulting twist looks unnatural. Docs: [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) (`set_automatic_body_yaw`).
 
 ### Anti-patterns (what makes motion feel mechanical)
 
@@ -227,7 +230,7 @@ The following principles are translated from classical animation onto a 6-DoF he
 
 ## Acceptance Criteria
 - [ ] Every actuator (head, antennas, body yaw) is listed with DoF, axes, and value range (or TBD)
-- [ ] Every output (display, speaker, optional LEDs) is listed with control modality
+- [ ] Every output (speaker, LED ring on the mic module) is listed with control modality; the absence of a programmable eye display is named explicitly
 - [ ] Every sensor (microphones, camera, IMU, position feedback) is listed with read-API shape
 - [ ] Three platforms (Reachy Mini, Reachy Mini Lite, Simulation) are named; differences in actuator set and CPU budget are listed
 - [ ] The API reference overview links every controllable area to the hosted docs or the source module
