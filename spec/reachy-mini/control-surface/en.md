@@ -36,11 +36,13 @@ Canonical sources: hosted docs <https://huggingface.co/docs/reachy_mini/>, core 
 
 Controllable mechanical axes (verified against the `ReachyMini` class API at <https://huggingface.co/docs/reachy_mini/API/reachymini>):
 
-| Subsystem | DoF | Motors | Representation | Write API | Read API | Value range | Unit | Platforms |
-|---|---|---|---|---|---|---|---|---|
-| Head | 6 (Stewart platform: 3 rotation + 3 translation) | 6× Dynamixel XL330-M288-T | 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees, mm)` | `goto_target(head=...)`, `set_target(head=...)`, `set_target_head_pose(pose)` | `get_current_head_pose() -> np.ndarray` (4×4) | `> ⚠ TBD` per axis | rad / mm | all |
-| Antennas (pair) | 2 (1 DoF per antenna) | 2× Dynamixel XL330-M077-T | `List[float]` with two joint angles (left, right) | `goto_target(antennas=...)`, `set_target(antennas=...)`, `set_target_antenna_joint_positions(antennas)` | `get_present_antenna_joint_positions() -> List[float]` | `> ⚠ TBD` | rad | all |
-| Body yaw | 1 (base rotation) | 1× custom Dynamixel XC330-M288-PG | `float` | `goto_target(body_yaw=...)`, `set_target(body_yaw=...)`, `set_target_body_yaw(value)`, `set_automatic_body_yaw(enabled)` | part of `get_current_joint_positions()` | `> ⚠ TBD` | rad | all (Wireless **and** Lite, soft-state in Simulation) |
+| Subsystem | DoF | Motors | Representation | Write API | Read API | Pose / joint limits (verified) | Platforms |
+|---|---|---|---|---|---|---|---|
+| Head | 6 (Stewart platform: 3 rotation + 3 translation) | 6× Dynamixel XL330-M288-T | 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees, mm)` | `goto_target(head=...)`, `set_target(head=...)`, `set_target_head_pose(pose)` | `get_current_head_pose() -> np.ndarray` (4×4) | pitch and roll: ±90° (upright constraint, [`analytical_kinematics.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/kinematics/analytical_kinematics.py)); yaw relative to body: ±65° max (`max_relative_yaw`); translation x/y/z within the IK-reachable envelope (`head_z_offset` from `kinematics_data.json`) | all |
+| Antennas (pair) | 2 (1 DoF per antenna) | 2× Dynamixel XL330-M077-T | `List[float]` with two joint angles (left, right) | `goto_target(antennas=...)`, `set_target(antennas=...)`, `set_target_antenna_joint_positions(antennas)` | `get_present_antenna_joint_positions() -> List[float]` | per antenna: -π to +π rad (full rotation), velocity limit 8 rad/s, effort limit 10 N·m ([URDF](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf)) | all |
+| Body yaw | 1 (base rotation) | 1× custom Dynamixel XC330-M288-PG | `float` | `goto_target(body_yaw=...)`, `set_target(body_yaw=...)`, `set_target_body_yaw(value)`, `set_automatic_body_yaw(enabled)` | part of `get_current_joint_positions()` | ±160° (`max_body_yaw=np.deg2rad(160)`, [`analytical_kinematics.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/kinematics/analytical_kinematics.py)) | all (Wireless **and** Lite, soft-state in Simulation) |
+
+Stewart-platform joint limits (low-level, abstracted by IK; from [`robot.urdf`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf)): each of the six actuators `stewart_1`..`stewart_6` has a value range roughly between -1.396 rad (-80°) and +1.396 rad (+80°) — asymmetric per joint —, velocity limit 8 rad/s, effort limit 10 N·m. These are the **hardware bound**; the effective head-pose reachability is tighter and enforced by IK.
 
 Concrete write-API docs: <https://huggingface.co/docs/reachy_mini/API/reachymini>. Pose builder: <https://huggingface.co/docs/reachy_mini/API/tools>.
 
@@ -48,20 +50,20 @@ Inventory-maintenance requirements:
 
 - **MUST** document each axis with identifier, value range, unit, and default pose as soon as the SDK docs are available
 - **MUST** indicate per axis whether the SDK API accepts absolute targets, incremental targets, or both
-- **MUST** mark axes that exist only in one hardware variant (e.g. body yaw on Wireless only `> ⚠ TBD`)
-- **SHOULD** state the velocity and acceleration limits per axis that follow from the mechanical build (`> ⚠ TBD`)
+- **MUST** mark axes that exist only on one platform (body yaw is present on Wireless and Lite — Stewart and antennas as well; only the IMU telemetry is Wireless-only)
+- **SHOULD** state per-axis velocity and acceleration limits that follow from the mechanical build (velocity limit 8 rad/s per active joint per URDF; acceleration limit not directly stated — bounded by effort 10 N·m and inertia)
 
 ### Hardware inventory — outputs (non-mechanical)
 
 | Subsystem | Property | Controllability |
 |---|---|---|
-| Speaker | 5 W @ 4 Ω, single | audio playback via `mini.media.audio.*` ([SDK/media-architecture](https://huggingface.co/docs/reachy_mini/SDK/media-architecture)); concrete codec list `> ⚠ TBD: validate against current SDK media backend` |
+| Speaker | 5 W @ 4 Ω, single | audio playback via `mini.media.audio.*` (asynchronous GStreamer pipeline); push API expects `F32LE` samples at 48 kHz, 2 channels (constants: [`AudioBase.SAMPLE_RATE`, `AudioBase.CHANNELS`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/media/audio_base.py)). `play_sound(file=...)` decodes arbitrary formats via GStreamer `playbin` — WAV, MP3, OGG, FLAC are implicitly reachable. Volume 0–100 ([`SetVolumeCmd`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)) |
 | LED ring on the microphone module | LEDs on the ReSpeaker / mic-array board; registers `LED_EFFECT`, `LED_BRIGHTNESS`, `LED_GAMMIFY`, `LED_SPEED` | via `audio_control_utils` ([source](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/media/audio_control_utils.py)); programmatically writable |
 | ~~Display / eye screen~~ | **Reachy Mini ships no programmable eye display.** The "eyes" are mechanical 3D-printed parts (`pp01079_back_big_eye`, `pp01080_back_small_eye`) on the head shell — not controllable. The Pollen control app's "Expressions" are motion compositions of head pose + antenna positions, not display content. | not controllable |
 
 Requirements:
 
-- **MUST** document whether audio playback blocks the behavior tick or runs asynchronously (`> ⚠ TBD: validate against current SDK media backend`)
+- Audio playback runs **asynchronously** through a GStreamer `appsrc` pipeline (verified in [`audio_gstreamer.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/media/audio_gstreamer.py)); the behavior tick is not blocked
 - **SHOULD** include recommendations for audio-latency measurement and compensation patterns once SDK behavior is verified
 - **MUST** model the LED ring as a status / audio-feedback affordance — not as an "eye expression", because it is not located in the eye area of the robot
 - **MUST NOT** assume or simulate an "eye display" as a controllable element — Reachy Mini does not ship one
@@ -70,9 +72,9 @@ Requirements:
 
 | Subsystem | Property | Read API | Docs |
 |---|---|---|---|
-| Microphone array | 4× PDM MEMS digital, 16 kHz, -26 dB FS, direction-of-arrival capable | via `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), example [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
+| Microphone array | 4× PDM MEMS digital, 16 kHz hardware sample rate, -26 dB FS sensitivity, direction-of-arrival capable; mic volume 0–100 ([`SetMicrophoneVolumeCmd`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)) | via `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), example [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
 | Camera | Raspberry Pi v3 wide angle (Sony IMX708, 12 MP, autofocus); concrete stream parameters `> ⚠ TBD: validate against current backend` | via `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), example [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
-| IMU (present, confirmed) | accelerometer, gyroscope, quaternion, temperature | `mini.imu` (property → `Dict \| None`) | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini), example [`imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
+| IMU (**Wireless only**) | `accelerometer: list[float]`, `gyroscope: list[float]`, `quaternion: list[float]`, `temperature: float`; data is published by the daemon at 50 Hz ([`ImuDataMsg`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)). On Lite and Simulation, `mini.imu` returns `None`. | `mini.imu` (property → `Dict \| None`) | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini), example [`imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
 | Position feedback head | current 4×4 pose | `mini.get_current_head_pose() -> np.ndarray` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
 | Position feedback antennas + joints | joint angles | `mini.get_current_joint_positions()`, `mini.get_present_antenna_joint_positions()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
 | Media release / acquire | yield camera/mic to external code | `mini.release_media()`, `mini.acquire_media()`, property `mini.media_released` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
@@ -109,6 +111,7 @@ Four layers, from direct-write (low level) to narrative (high level), with verif
 2. **Goto-target** — smooth goto over a named duration, SDK handles interpolation
    - method: `goto_target(head, antennas, duration, method, body_yaw)` with `method: InterpolationTechnique`
    - pose builder: `create_head_pose(...)` from `reachy_mini.utils`
+   - available interpolation modes (verified in [`utils/interpolation.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/utils/interpolation.py)): `LINEAR` (linear), `MIN_JERK` (minimum-jerk trajectory, **default**), `EASE_IN_OUT` (quadratic ease-in/out), `CARTOON` (elastic overshoot)
    - docs: <https://huggingface.co/docs/reachy_mini/API/reachymini>, source: <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/goto.py>
    - playground: <https://huggingface.co/docs/reachy_mini/examples/goto_interpolation_playground>
    - granularity: one call = one motion. Interrupt model `> ⚠ TBD: validate against real hardware`.
@@ -139,23 +142,25 @@ Requirements:
 
 ### Motion latency and update frequency
 
-- **MUST** state the typical end-to-end latency (software command → mechanical reaction) in the skill body once measured (`> ⚠ TBD ms`)
-- **MUST** document update-frequency limits: each platform has a different upper bound (Wireless typically lower than Lite, since Lite offloads to the host; concrete numbers `> ⚠ TBD: validate against real hardware`)
-- **MUST NOT** recommend tick frequencies the SDK can't sustain — the visual effect is actuator stutter, not speed
+- **MUST** measure typical end-to-end latency (software command → mechanical reaction) against real hardware once available (`> ⚠ TBD: validate against real hardware`)
+- The daemon publishes `JointPositionsMsg`, `HeadPoseMsg`, and (on Wireless) `ImuDataMsg` at **50 Hz** ([`io/protocol.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)). Behavior tick loops should align with that — higher frequencies add no value because state reads only refresh every 20 ms anyway
+- Audio pipeline latency (GStreamer constants from [`audio_gstreamer.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/media/audio_gstreamer.py)): sink buffer 50 ms (`PLAYBACK_SINK_BUFFER_TIME_US = 50000`), sink latency 5 ms (`PLAYBACK_SINK_LATENCY_TIME_US = 5000`), gap reset 200 ms (`PLAYBACK_GAP_RESET_NS = 200_000_000`)
+- **MUST NOT** recommend tick frequencies above 50 Hz — the daemon does not refresh state faster; higher frequencies are waste or cause actuator stutter
+- **SHOULD** align audio-and-motion synchronicity to the ~50 ms audio buffer instead of assuming zero latency
 
 ### Dependencies
 
-- **`reachy_mini` SDK version** — pinned in the consuming repo; every motion depends on this version's API shape
-- **Device firmware version** — mismatch between SDK and firmware can cause connect or behavior errors; verify on every first connect (`> ⚠ TBD` whether SDK exposes this)
-- **Python version** — lower bound per SDK requirement (`> ⚠ TBD`)
+- **`reachy_mini` SDK version** — pinned in the consuming repo; every motion depends on this version's API shape. Currently: `reachy_mini==1.7.0` (verified via [`pyproject.toml`](https://github.com/pollen-robotics/reachy_mini/blob/main/pyproject.toml))
+- **Device firmware version** — mismatch between SDK and firmware can cause connect or behavior errors; verify on every first connect (`DaemonStatus.version` exposes the daemon version)
+- **Python version** — `>=3.10` per SDK requirement (verified via `requires-python` in [`pyproject.toml`](https://github.com/pollen-robotics/reachy_mini/blob/main/pyproject.toml))
 - **Hardware platform** — Wireless / Lite / Simulation influences CPU budget and power supply; the actuator set is identical on Wireless and Lite
 - **Host connectivity** — Lite needs USB-C to a host plus external 6.8–7.6 V; Wireless needs Wi-Fi (for code sync) and runs from the battery; Simulation needs no host outside the Python process
-- **System audio stack** — when the behavior plays audio, it depends on the variant's audio stack (PulseAudio / PipeWire `> ⚠ TBD`)
+- **System audio stack** — audio playback runs over GStreamer with an OS-specific backend (PulseAudio / ALSA on Linux, WASAPI on Windows, CoreAudio on macOS); no Wireless-vs-Lite difference at the SDK level
 
 ### Mechanical and electrical limitations
 
 - **End stops** — every axis has a mechanical end stop; the SDK should protect against damage, but the implementation must not aim into the end stop in the first place
-- **Velocity / acceleration** — linear actuators carry hard velocity and acceleration limits; a command that undercuts them is silently executed slower (`> ⚠ TBD`)
+- **Velocity** — 8 rad/s per active joint per [URDF](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf); a command that would move the joint faster is clamped to the limit by the daemon. **Acceleration** — no direct URDF limit; effectively bounded by 10 N·m effort, Stewart-platform inertia, and servo characteristics (`> ⚠ TBD: measure once hardware is on hand`)
 - **Current draw** — many simultaneous motions (head full + both antennas + body) can briefly drop the voltage on battery operation; depending on battery state the system reacts with brown-out protection
 - **Thermal budget** — sustained motion at high frequency generates heat; the SDK may expose temperature telemetry (`> ⚠ TBD`)
 - **Collisions** — antennas collide with the head at extreme angles; motion must not target such pose combinations (`> ⚠ TBD` which combinations exactly are forbidden)
@@ -168,7 +173,7 @@ Requirements:
 
 ### Safety limits
 
-- **MUST** keep an emergency-stop path reachable that ends every running motion and drives to a rest pose — pose definition `> ⚠ TBD: validate against real hardware`
+- **MUST** keep an emergency-stop path reachable that ends every running motion and drives to a rest pose. Canonical rest pose: `INIT_HEAD_POSE = np.eye(4)` (4×4 identity matrix, head centred) and `INIT_ANTENNAS_JOINT_POSITIONS` (~10° offset per antenna, verified in [`reachy_mini.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py)). `SLEEP_HEAD_POSE` (used by `goto_sleep()`) is an alternative
 - **MUST** put the device into a safe pose after an unexpected disconnect or program abort, instead of leaving a motion "frozen"
 - **MUST NOT** override current, force, or velocity thresholds via SDK parameters without an explicit justification in the behavior
 
@@ -176,7 +181,7 @@ Requirements:
 
 The following principles are translated from classical animation onto a 6-DoF head + 2-antenna system. They are not optional when the result should feel "alive".
 
-1. **Easing (slow-in / slow-out)** — no linear motion. Pose-goto calls without an easing argument are bad because the motion feels mechanical. Default easing of move primitives is `> ⚠ TBD`, but should be at least cubic in/out.
+1. **Easing (slow-in / slow-out)** — no linear motion. `goto_target` accepts a `method` argument; the default is `InterpolationTechnique.MIN_JERK` (minimum-jerk trajectory — already smooth and organic). Available modes: `LINEAR`, `MIN_JERK` (recommended default), `EASE_IN_OUT`, `CARTOON`. Use `LINEAR` only when the motion is meant to feel mechanical.
 2. **Anticipation** — before a large motion, a tiny counter-motion (example: before nodding down, briefly look up by ~80–150 ms). This makes the main move "readable".
 3. **Follow-through and overlapping action** — antennas trail head motion with a small lag (~50–120 ms), not synchronously. When the head stops, antennas may swing slightly afterwards.
 4. **Arcs** — motion paths follow arcs, not straight lines. A look-left → look-right through the geometric centre feels mechanical; a slight arc through a small tilt rise feels organic.
@@ -248,11 +253,13 @@ The following principles are translated from classical animation onto a 6-DoF he
 
 ## Open Questions
 - ~~Does the Reachy Mini head have 3 DoF or 6 DoF?~~ **Answered**: 6 DoF (Stewart platform); pose is a 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, …)` from `reachy_mini.utils`.
-- Which audio codecs does the SDK natively support — PCM/WAV, MP3, OGG? Which codec pipeline is optimal for dance with beat synchronisation? Resolve via [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture).
-- Does the SDK offer a capability-discovery API to distinguish Reachy Mini, Reachy Mini Lite, and Simulation at runtime? The constructor argument `use_sim` is verified; an explicit variant property on the instance `> ⚠ TBD`.
+- ~~Which audio codecs?~~ **Answered**: push API expects `F32LE` at 48 kHz, 2 channels. `play_sound(file=...)` decodes arbitrary formats via GStreamer `playbin`.
+- ~~Update frequency?~~ **Answered**: the daemon publishes at 50 Hz; higher tick frequencies are not useful.
+- ~~Does Reachy Mini have an IMU?~~ **Answered**: yes, **Wireless only**; fields: accelerometer, gyroscope, quaternion, temperature.
+- Does the SDK offer a capability-discovery API to distinguish Reachy Mini, Reachy Mini Lite, and Simulation at runtime? The constructor argument `use_sim` is verified; an explicit variant property on the instance `> ⚠ TBD: read DaemonStatus.no_media / camera_specs_name as proxy`.
 - Does the SDK expose brown-out or current-spike telemetry, or does the behavior have to measure it itself?
-- What is the canonical rest pose for the emergency stop? Proposal: every axis centred, antennas slightly upright, body yaw 0.
-- Which update frequencies are realistic in a behavior tick — 50 Hz, 100 Hz, 200 Hz? Depends on variant and SDK implementation.
+- ~~What is the canonical rest pose for the emergency stop?~~ **Answered**: `INIT_HEAD_POSE = np.eye(4)` plus `INIT_ANTENNAS_JOINT_POSITIONS` (~10° offset). `SLEEP_HEAD_POSE` is an alternative used by `goto_sleep()`.
+- ~~Which tick frequencies are realistic — 50 / 100 / 200 Hz?~~ **Answered**: the daemon publishes at 50 Hz; higher tick frequencies are wasted.
 - Is there an official animation-authoring tool from Pollen Robotics (timeline editor), and is its output format a recommended composition for our move-primitive layer?
 - How does the Stewart-platform head behave mathematically near singularities? Do we need to block singular regions in code?
 - Which latency distribution (P50, P95, P99) is typical per layer? Without this distribution, a realistic dance timing is not plannable.
