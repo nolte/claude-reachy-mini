@@ -52,6 +52,7 @@ Diese Trennung ist Pflicht: Voice-Pipeline-Änderungen (z. B. neuer Wake-Word-En
 - **DARF NICHT [MUST NOT]** den Token in HA-Logs ausgeben — Maskierung Pflicht (`token[:4] + "…"`)
 
 ### HA Entity Surface
+
 | Entity | Typ | Beschreibung |
 |---|---|---|
 | `camera.reachy_mini_head` | Camera | Stream der Kopf-Kamera (Sony IMX708, 12 MP, autofocus); WebRTC-Backend |

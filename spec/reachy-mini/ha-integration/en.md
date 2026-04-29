@@ -52,6 +52,7 @@ This separation is mandatory: voice-pipeline changes (e.g. a new wake-word engin
 - **MUST NOT** print the token in HA logs — masking is mandatory (`token[:4] + "…"`)
 
 ### HA entity surface
+
 | Entity | Type | Description |
 |---|---|---|
 | `camera.reachy_mini_head` | Camera | head camera stream (Sony IMX708, 12 MP, autofocus); WebRTC backend |
