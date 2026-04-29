@@ -11,6 +11,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`claude/reachy-mini-on-device`](claude/reachy-mini-on-device/de.md) | On-Device-Test-Agent für Reachy Mini | On-Device Test Agent for Reachy Mini | draft | unversioned |
 | [`claude/reachy-mini-sdk`](claude/reachy-mini-sdk/de.md) | Reachy-Mini-SDK-Skill | Reachy Mini SDK Skill | draft | unversioned |
 | [`reachy-mini/control-surface`](reachy-mini/control-surface/de.md) | Steuerungs-Oberfläche und Bewegungs-Design des Reachy Mini | Reachy Mini Control Surface and Motion Design | draft | unversioned |
+| [`reachy-mini/ha-integration`](reachy-mini/ha-integration/de.md) | Home-Assistant-Integration: Architektur | Home Assistant Integration: Architecture | draft | unversioned |
 | [`reachy-mini/motions/agreeing-nod`](reachy-mini/motions/agreeing-nod/de.md) | Bewegungsablauf: Zustimmen / Nicken | Motion Sequence: Agreeing / Nod | draft | unversioned |
 | [`reachy-mini/motions/alarm`](reachy-mini/motions/alarm/de.md) | Bewegungsablauf: Alarm | Motion Sequence: Alarm | draft | unversioned |
 | [`reachy-mini/motions/alert-listening`](reachy-mini/motions/alert-listening/de.md) | Bewegungsablauf: Aufmerksam Hörend | Motion Sequence: Alert Listening | draft | unversioned |
