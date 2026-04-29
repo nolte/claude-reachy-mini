@@ -32,7 +32,8 @@ The canonical sources are, in order:
 
 1. The SDK source code: <https://github.com/pollen-robotics/reachy_mini>
 2. The official Pollen Robotics docs linked from that repo
-3. This skill (a curated summary; loses to the source on conflict)
+3. The plugin's own normative reference for what is controllable and how — actuators, axes, value ranges, control layers, dependencies, limitations, motion-design patterns: <https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md>
+4. This skill (a curated summary; loses to the sources above on conflict)
 
 Before producing API-shaped code, **read the relevant module under `pollen-robotics/reachy_mini`** and confirm the exact signature. Do not paste signatures from memory.
 

@@ -59,7 +59,7 @@ All paths relative to `<target_dir>/<name>/`. The exact file names below are bes
 ```
 
 - **Manifest** — required fields: `name`, `description`, `author`, `version`, optional `tags`, optional SDK-compat range. Unknown detail fields are emitted as TBD-marked stubs, not invented.
-- **Behavior module** — class skeleton with `setup`, `step`, `stop` hooks (signatures `> ⚠ TBD: validate against real hardware`); body of each hook is a single `pass` plus an inline comment pointing the developer at `reachy-mini-sdk`.
+- **Behavior module** — class skeleton with `setup`, `step`, `stop` hooks (signatures `> ⚠ TBD: validate against real hardware`); body of each hook is a single `pass` plus an inline comment pointing the developer at `reachy-mini-sdk` and at the canonical control-surface reference (axes, units, default poses, motion-design patterns) at <https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md>.
 - **README / docstring** — quotes the description, lists hardware preconditions, shows a quickstart that imports and instantiates the behavior. Motion examples are out of scope.
 - **Test stub** — imports the behavior, asserts the three hooks exist and accept the documented signatures. Motion-specific assertions are TBD-marked.
 - **Optional Hugging Face Spaces manifest** — emit only when the user explicitly opts in; otherwise omit rather than ship an empty stub.
