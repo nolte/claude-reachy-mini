@@ -1,0 +1,7 @@
+mkdocs>=1.6
+mkdocs-material>=9.5
+mkdocs-static-i18n>=1.2
+mkdocs-gen-files>=0.5
+mkdocs-literate-nav>=0.6
+pymdown-extensions>=10.7
+pyyaml>=6.0

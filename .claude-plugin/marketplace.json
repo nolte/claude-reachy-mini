@@ -1,0 +1,18 @@
+{
+  "name": "claude-reachy-mini",
+  "owner": {
+    "name": "nolte"
+  },
+  "metadata": {
+    "description": "Claude Code skills and agents for efficient development with the Reachy Mini robot.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "claude-reachy-mini",
+      "source": ".",
+      "description": "Claude Code skills and agents for efficient development with the Reachy Mini robot — including dance-to-music behaviors and Home Assistant integration.",
+      "version": "0.1.0"
+    }
+  ]
+}

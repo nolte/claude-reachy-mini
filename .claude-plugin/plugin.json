@@ -1,0 +1,11 @@
+{
+  "name": "claude-reachy-mini",
+  "version": "0.1.0",
+  "description": "Claude Code skills and agents for efficient development with the Reachy Mini robot — including dance-to-music behaviors and Home Assistant integration.",
+  "author": {
+    "name": "nolte",
+    "url": "https://github.com/nolte"
+  },
+  "repository": "https://github.com/nolte/claude-reachy-mini",
+  "homepage": "https://github.com/nolte/claude-reachy-mini"
+}
