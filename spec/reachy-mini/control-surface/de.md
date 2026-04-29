@@ -26,20 +26,21 @@ Wer in diesem Plugin Skills, Behaviors oder Agents schreibt, braucht eine kanoni
 
 ### Architektur-Überblick
 
-Reachy Mini ist ein Desktop-Roboter von Pollen Robotics / Hugging Face, der in zwei Varianten erscheint: **Wired** (kabelgebunden, hängt an einem Host-Rechner) und **Wireless** (mit eingebautem Raspberry Pi 5 und Akku). Die softwareseitige Steuerung läuft über das Python-SDK `reachy_mini`, das eine `ReachyMini`-Instanz als zentralen Einstiegspunkt zur Verfügung stellt. Diese Instanz aggregiert die einzelnen steuerbaren Subsysteme — Kopf, Antennen, Body-Rotation, Audio-Output, Display, Sensorik. Bewegungen werden in mehreren Schichten ausgedrückt; höhere Schichten verwenden niedrigere als Implementierungs-Detail.
+Reachy Mini ist ein Desktop-Roboter von Pollen Robotics / Hugging Face, der in drei Plattformen ausgeliefert wird: **Reachy Mini** (Wireless-Variante mit eingebautem Raspberry Pi 5 und Akku), **Reachy Mini Lite** (an einen Host-Rechner gebunden, weniger On-Robot-Compute) und **Simulation** (rein softwareseitig, gleiche `ReachyMini`-API ohne reale Motoren). Die softwareseitige Steuerung läuft über das Python-SDK `reachy_mini`; eine `ReachyMini`-Instanz ist der zentrale Einstiegspunkt und wird typischerweise als Context Manager (`with ReachyMini() as mini:`) genutzt. Sie aggregiert Bewegungs-, Sensor- und Media-Funktionen direkt als eigene Methoden und Properties (`mini.goto_target(...)`, `mini.imu`, `mini.media`); es gibt keine separaten `head` / `antennas` Sub-Objekte.
 
-> ⚠ TBD: validate against pollen-robotics/reachy_mini — die exakte Aggregation der Subsysteme an der `ReachyMini`-Instanz (Attribut-Pfade, Methoden-Namen) wird beim ersten Gerätekontakt gegen das offizielle SDK abgeglichen.
+Kanonische Quellen: gehostete Doku <https://huggingface.co/docs/reachy_mini/>, Klassen-Source <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py>.
 
 ### Hardware-Inventar — Aktuatoren
 
-Steuerbare mechanische Achsen:
+Steuerbare mechanische Achsen (verifiziert anhand `ReachyMini`-Klassen-API <https://huggingface.co/docs/reachy_mini/API/reachymini>):
 
-| Subsystem | DoF | Achsen | Wertebereich | Einheit | Hardware-Variante |
-|---|---|---|---|---|---|
-| Kopf (Stewart-Plattform) | bis zu 6 | Pan (Yaw), Tilt (Pitch), Roll, optional Translation x/y/z | `> ⚠ TBD` pro Achse | rad bzw. mm `> ⚠ TBD` | Wired + Wireless |
-| Antenne links | 1 | Rotation um Basis-Achse | `> ⚠ TBD` | rad | Wired + Wireless |
-| Antenne rechts | 1 | Rotation um Basis-Achse | `> ⚠ TBD` | rad | Wired + Wireless |
-| Körper-Rotation (Body-Yaw) | 1 | Rotation um vertikale Z-Achse | `> ⚠ TBD` | rad | nur Wireless `> ⚠ TBD` |
+| Subsystem | DoF | Repräsentation | Schreibe-API | Lese-API | Wertebereich | Einheit |
+|---|---|---|---|---|---|---|
+| Kopf | 6 (Stewart-Plattform mit Translation + Rotation) | 4×4-Transform-Matrix; Builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees, mm)` | `goto_target(head=...)`, `set_target(head=...)`, `set_target_head_pose(pose)` | `get_current_head_pose() -> np.ndarray` (4×4) | `> ⚠ TBD` pro Achse | rad / mm |
+| Antennen (Paar) | 2 (1 DoF je Antenne) | `List[float]` mit zwei Joint-Winkeln (links, rechts) | `goto_target(antennas=...)`, `set_target(antennas=...)`, `set_target_antenna_joint_positions(antennas)` | `get_present_antenna_joint_positions() -> List[float]` | `> ⚠ TBD` | rad |
+| Body-Yaw | 1 | `float` | `goto_target(body_yaw=...)`, `set_target(body_yaw=...)`, `set_target_body_yaw(value)`, `set_automatic_body_yaw(enabled)` | als Teil von `get_current_joint_positions()` | `> ⚠ TBD` | rad |
+
+Konkrete Schreibe-API-Doku: <https://huggingface.co/docs/reachy_mini/API/reachymini>. Pose-Builder: <https://huggingface.co/docs/reachy_mini/API/tools>.
 
 Anforderungen an die Inventar-Pflege:
 
@@ -64,12 +65,14 @@ Anforderungen:
 
 ### Hardware-Inventar — Sensoren / Inputs
 
-| Subsystem | Eigenschaft | Lese-API |
-|---|---|---|
-| Mikrofon-Array | 4 Mikrofone `> ⚠ TBD`, Richtungs-Capture möglich | Stream / Frame-Pulls `> ⚠ TBD` |
-| Kamera | 1 Stück, Weitwinkel, Auflösung `> ⚠ TBD`, Framerate `> ⚠ TBD` | Frame-Pull / Stream `> ⚠ TBD` |
-| IMU (falls vorhanden) | `> ⚠ TBD` ob vorhanden und ob über SDK exponiert | `> ⚠ TBD` |
-| Position-Feedback der Aktuatoren | Geometrie-Lese-Endpoints für jede Achse | `reachy.head.pose`, `reachy.antennas.left.angle` etc. — exakte API `> ⚠ TBD` |
+| Subsystem | Eigenschaft | Lese-API | Doku |
+|---|---|---|---|
+| Mikrofon-Array | mehrere Mikrofone, Direction-of-Arrival möglich | über `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), Beispiel [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
+| Kamera | Weitwinkel, Auflösung `> ⚠ TBD`, Framerate `> ⚠ TBD` | über `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), Beispiel [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
+| IMU (vorhanden, bestätigt) | Accelerometer, Gyroscope, Quaternion, Temperatur | `mini.imu` (Property → `Dict \| None`) | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini), Beispiel [`imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
+| Position-Feedback Kopf | aktuelle 4×4-Pose | `mini.get_current_head_pose() -> np.ndarray` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| Position-Feedback Antennen + Joints | Joint-Winkel | `mini.get_current_joint_positions()`, `mini.get_present_antenna_joint_positions()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| Media-Release-/-Acquire | Kamera/Mic an externen Code abgeben | `mini.release_media()`, `mini.acquire_media()`, Property `mini.media_released` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
 
 Anforderungen:
 
@@ -77,45 +80,53 @@ Anforderungen:
 - **MUSS [MUST]** klarstellen, ob Sensor-Streams blockierend oder als Async-Iteratoren bereitgestellt werden
 - **DARF NICHT [MUST NOT]** annehmen, dass eine Sensor-Lesung kostenlos ist — die Lese-Frequenz unterliegt einer Limitation (siehe Latenz-Abschnitt)
 
-### Hardware-Varianten und ihre Konsequenzen
+### Hardware-Plattformen und ihre Konsequenzen
 
-- **Wired** — kabelgebunden, hängt an einem Host-PC; rechenstarker Host, niedrige Latenz auf der USB-Verbindung; ggf. kein Body-Yaw `> ⚠ TBD`
-- **Wireless** — mit eingebautem Raspberry Pi 5 und Akku; CPU-/Speicher-Budget begrenzt, Bewegungs-Code muss schlanker laufen; Body-Yaw verfügbar `> ⚠ TBD`
+Pollen Robotics liefert die `ReachyMini`-API auf drei Plattformen aus, mit denselben Methoden, aber unterschiedlichem Compute- und Aktuator-Profil:
+
+- **Reachy Mini** (Wireless) — eingebauter Raspberry Pi 5 und Akku; vollständiger Feature-Satz; CPU- und Energie-Budget des Roboters sind das Limit. Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started>
+- **Reachy Mini Lite** — an einen Host-Rechner gebunden; reduziertes On-Robot-Compute, der Host übernimmt heavy-lift; ideal für Entwicklung und energieintensive Workloads. Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started>
+- **Simulation** — softwareseitig, gleiche `ReachyMini`-API ohne reale Motoren; nutzbar für CI, Tests, Code-Erprobung ohne Gerät. Doku: <https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started>
 
 Anforderungen:
 
-- **MUSS [MUST]** im Code sichtbar machen, gegen welche Variante eine Bewegung geschrieben ist; eine Wired-Bewegung mit hoher Update-Frequenz darf nicht stillschweigend auf Wireless laufen, wenn dort die CPU nicht reicht
-- **SOLLTE [SHOULD]** einen Weg vorsehen, die Variante zur Laufzeit zu erkennen (Capability-Discovery, `> ⚠ TBD` ob das SDK das anbietet)
-- **DARF NICHT [MUST NOT]** Body-Yaw-Bewegungen ohne Variant-Check auf Wired-Geräten ausführen
+- **MUSS [MUST]** im Code sichtbar machen, gegen welche Plattform eine Bewegung geschrieben ist; eine Bewegung mit hoher Update-Frequenz, die für Wireless ausgelegt ist, darf nicht ungeprüft auf Lite oder Simulation laufen
+- **SOLLTE [SHOULD]** einen Weg vorsehen, die Plattform zur Laufzeit zu erkennen (Capability-Discovery, `> ⚠ TBD` ob das SDK eine direkte Variant-Property exponiert; Konstruktor-Argument `use_sim` ist verifiziert verfügbar)
+- **MUSS [MUST]** Bewegungen, die Hardware-Eigenschaften voraussetzen (z. B. echte Audio-Wiedergabe, IMU-Werte), in der Simulation explizit gegenüber dem Caller signalisieren statt stillschweigend No-Op zu fahren
 
 ### Steuerungs-Schichten
 
-Vier Schichten, von feingranular (low-level) zu narrativ (high-level):
+Vier Schichten, von direkt-schreibend (low-level) zu narrativ (high-level), mit verifizierten Methoden-Namen:
 
-1. **Pose-Goto** — direktes Anfahren einer Ziel-Pose mit Dauer; SDK übernimmt Interpolation und Rampe
-   - Beispiel-API: `reachy.head.goto(pan, tilt, roll, duration)` (`> ⚠ TBD`)
-   - Granularität: ein Aufruf = eine Bewegung
-   - Eigenes Interrupt-Modell: ein neuer Goto während eines laufenden Goto verhält sich `> ⚠ TBD` (Override / Queue / Reject)
+1. **Direct-Set** — Target wird sofort geschrieben, keine Interpolation
+   - Methoden: `set_target(head, antennas, body_yaw)`, `set_target_head_pose(pose)`, `set_target_antenna_joint_positions(antennas)`, `set_target_body_yaw(value)`
+   - Doku: <https://huggingface.co/docs/reachy_mini/API/reachymini>
+   - Anwendung: nur wenn Easing aus einer höheren Schicht oder einer eigenen Trajektorie kommt — sonst mechanisch wirkende Bewegung
 
-2. **Move-Primitive** — komponierbare Bausteine wie Nicken, Schütteln, Look-At, Antennen-Flapping
-   - Liefert Eigenschaften wie Easing-Profil, Dauer, Wiederholung
-   - Hat eine `play()`/`compose()`-Form, die mit anderen Primitives parallel oder sequentiell verkettet wird (`> ⚠ TBD`)
+2. **Goto-Target** — smooth-goto über benannte Dauer, SDK übernimmt Interpolation
+   - Methode: `goto_target(head, antennas, duration, method, body_yaw)` mit `method: InterpolationTechnique`
+   - Pose-Builder: `create_head_pose(...)` aus `reachy_mini.utils`
+   - Doku: <https://huggingface.co/docs/reachy_mini/API/reachymini>, Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/goto.py>
+   - Spielfeld: <https://huggingface.co/docs/reachy_mini/examples/goto_interpolation_playground>
+   - Granularität: ein Aufruf = eine Bewegung. Interrupt-Modell `> ⚠ TBD: validate against real hardware`.
 
-3. **Behavior** — stateful, mit `setup`/`step`/`stop`-Hooks und Tick-Loop
-   - Lese-Schreib-Kreislauf: jeder Tick liest Sensoren, entscheidet Move-Primitives, schreibt Targets
-   - Tick-Frequenz: `> ⚠ TBD` Hz typisch; obergrenze durch CPU/Variante limitiert
-   - Owns Lifecycle, kann Notstopp triggern
+3. **Move-Komposition** — wiederverwendbare Bewegungen als Subklasse der ABC `Move` mit `duration` und `evaluate(t) -> (head_pose | None, antennas | None, body_yaw | None)`
+   - Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/move.py>
+   - Ausführung: `mini.async_play_move(move, play_frequency, initial_goto_duration, sound)` (non-blocking) oder `mini.play_move(...)` (blocking); `mini.cancel_move()` stoppt laufende Wiedergabe
+   - Beispiele: <https://huggingface.co/docs/reachy_mini/examples/recorded_moves>, <https://huggingface.co/docs/reachy_mini/examples/sequence>
+   - Easing / Komposition: keine eingebauten Easing-Primitives in `Move` selbst — Subklassen liefern eigene Trajektorien; sequentielle/parallele Komposition wird durch Konsumenten gebaut
 
-4. **Streaming** — kontinuierliche Pose-Targets bei niedriger Latenz, ohne Move-Primitive-Wrapping
-   - Anwendungsfall: Tanz auf Audio-Stream, externe Mocap-Treiber
-   - Benötigt explizit Backpressure-Handling, sonst Aktuator-Saturation
-   - Verfügbarkeit `> ⚠ TBD`
+4. **High-Level-Behaviors** — fertige, vom SDK gelieferte Methoden, die Pose + Sound + Animation komponieren
+   - Methoden: `wake_up()`, `goto_sleep()`, `look_at_image(u, v, duration, perform_movement)`, `look_at_world(x, y, z, duration, perform_movement)`
+   - Doku: <https://huggingface.co/docs/reachy_mini/API/reachymini>, Beispiel: <https://huggingface.co/docs/reachy_mini/examples/look_at>
+   - Bevorzugen, wenn die Aufgabe semantisch dem Methoden-Namen entspricht — keine eigene Re-Implementierung
 
 Anforderungen:
 
-- **MUSS [MUST]** in jedem geschriebenen Behavior klar entscheiden, welche Schicht der Hauptkanal ist; Mischung Schicht 1 und Schicht 4 ohne Schicht-2-Wrapping verursacht Pose-Sprünge
-- **SOLLTE [SHOULD]** Schicht 2 (Move-Primitive) als Default empfehlen, weil sie Easing und Komposition bereits richtig macht
-- **DARF NICHT [MUST NOT]** Schicht 1 in einer Tick-Loop mit Frequenz > `> ⚠ TBD` Hz aufrufen — das umgeht das Easing der Schicht und erzeugt Ruckler
+- **MUSS [MUST]** in jedem Behavior klar dokumentieren, welche Schicht den Hauptkanal stellt
+- **SOLLTE [SHOULD]** Schicht 4 (High-Level) bevorzugen, wenn die Aufgabe einer der gelieferten Methoden entspricht — keine eigene `look_at`-Implementierung neben der offiziellen
+- **SOLLTE [SHOULD]** für wiederverwendbare Bewegungen Schicht 3 (Move-Subklasse) wählen — sie liefert klare Lifecycle-Semantik (`duration`, `evaluate`) und ist mit Audio-Synchronisation kompatibel
+- **DARF NICHT [MUST NOT]** Schicht 1 (Direct-Set) in einem Tick-Loop ohne eigene Trajektorien-Glättung aufrufen — das erzeugt Ruckler
 
 ### Parameter und Wertebereiche
 
@@ -192,11 +203,34 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 - **SOLLTE [SHOULD]** Telemetrie strukturieren, sodass der Agent `reachy-mini-on-device` daraus ein PASS/FAIL-Urteil bauen kann
 - **KANN [MAY]** ein Trace-Format definieren, das Live-Visualisierung der Bewegung in einem Web-Dashboard erlaubt
 
+### API-Referenz-Übersicht (kanonische Doku-Links)
+
+| Bereich | API-Element | Doku-Link |
+|---|---|---|
+| Konstruktion | `ReachyMini(robot_name, host, port, connection_mode, spawn_daemon, use_sim, timeout, automatic_body_yaw, log_level, media_backend, localhost_only)` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| Pose-Builder | `create_head_pose(...)` aus `reachy_mini.utils` | [`API/tools`](https://huggingface.co/docs/reachy_mini/API/tools) |
+| Smooth-Goto | `goto_target(head, antennas, duration, method, body_yaw)` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| Direct-Set | `set_target(...)`, `set_target_head_pose(...)`, `set_target_antenna_joint_positions(...)`, `set_target_body_yaw(...)`, `set_automatic_body_yaw(...)` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| State-Read | `get_current_head_pose()`, `get_current_joint_positions()`, `get_present_antenna_joint_positions()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| IMU | Property `mini.imu` | [`examples/imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
+| High-Level | `wake_up()`, `goto_sleep()`, `look_at_image(u, v, duration)`, `look_at_world(x, y, z, duration)` | [`examples/look_at`](https://huggingface.co/docs/reachy_mini/examples/look_at) |
+| Move-ABC | `Move` (Source: [`motion/move.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/move.py)), `GotoMove` (Source: [`motion/goto.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/goto.py)), `InterpolationTechnique` | [`API/motion`](https://huggingface.co/docs/reachy_mini/API/motion) |
+| Move-Wiedergabe | `play_move(move, play_frequency, initial_goto_duration, sound)`, `async_play_move(...)`, `cancel_move()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
+| Recording | `start_recording()`, `stop_recording() -> Optional[List[Dict]]` | [`examples/recorded_moves`](https://huggingface.co/docs/reachy_mini/examples/recorded_moves) |
+| Motoren | `enable_motors(ids)`, `disable_motors(ids)`, `enable_gravity_compensation()`, `disable_gravity_compensation()` | [`examples/reachy_compliant_demo`](https://huggingface.co/docs/reachy_mini/examples/reachy_compliant_demo) |
+| Media-Manager | Property `mini.media`, `release_media()`, `acquire_media()`, Property `media_released` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture) |
+| REST / WebSocket | Daemon-API für Nicht-Python-Clients | [`API/rest-api`](https://huggingface.co/docs/reachy_mini/API/rest-api), [`API/daemon`](https://huggingface.co/docs/reachy_mini/API/daemon), [OpenAPI](https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/API/openapi.json) |
+| Audio | `mini.media.audio.*` | [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), [`examples/sound_play`](https://huggingface.co/docs/reachy_mini/examples/sound_play), [`examples/sound_record`](https://huggingface.co/docs/reachy_mini/examples/sound_record), [`examples/sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
+| Kamera | `mini.media.camera.*` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`examples/take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
+| Quickstart | offizieller Einstieg | [`SDK/quickstart`](https://huggingface.co/docs/reachy_mini/SDK/quickstart) |
+| Core-Concepts | übergeordnete Konzepte | [`SDK/core-concept`](https://huggingface.co/docs/reachy_mini/SDK/core-concept) |
+
 ## Akzeptanzkriterien
 - [ ] Jeder Aktuator (Kopf, Antennen, Body-Yaw) ist mit DoF, Achsen und Wertebereich (oder TBD) gelistet
 - [ ] Jeder Output (Display, Lautsprecher, ggf. LEDs) ist mit Steuer-Modalität gelistet
 - [ ] Jeder Sensor (Mikrofone, Kamera, IMU, Position-Feedback) ist mit Lese-API-Form gelistet
-- [ ] Beide Hardware-Varianten (Wired, Wireless) sind benannt; aktuator- und CPU-budgetseitige Unterschiede sind aufgeführt
+- [ ] Drei Plattformen (Reachy Mini, Reachy Mini Lite, Simulation) sind benannt; aktuator- und CPU-budget-seitige Unterschiede sind aufgeführt
+- [ ] API-Referenz-Übersicht enthält für jeden steuerbaren Bereich einen direkten Link auf die hosted Doku oder das Source-Modul
 - [ ] Vier Steuerungs-Schichten sind beschrieben mit Anwendungsfall, API-Form, Interrupt-Modell
 - [ ] Ein einheitliches Einheiten-System (rad, mm, s) ist gesetzt
 - [ ] Latenz und Update-Frequenz sind als Pflichtfelder ausgewiesen, auch wenn die Werte heute TBD sind
@@ -210,9 +244,9 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 - [ ] `behavior-scaffold`-Skill verweist auf diese Spec für Move-Primitives und Default-Easings
 
 ## Offene Fragen
-- Hat der Reachy-Mini-Kopf 3 DoF (rein rotational) oder 6 DoF (Stewart-Plattform mit Translation)? Quellen widersprechen sich; vor erster Implementierung am Datenblatt klären.
-- Welche Audio-Codecs unterstützt das SDK direkt — PCM/WAV, MP3, OGG? Welche Codec-Pipeline ist für Tanz mit Beat-Synchronisation optimal?
-- Bietet das SDK ein Capability-Discovery-API, um zur Laufzeit zwischen Wired und Wireless zu unterscheiden?
+- ~~Hat der Reachy-Mini-Kopf 3 DoF oder 6 DoF?~~ **Beantwortet**: 6 DoF (Stewart-Plattform), Pose ist 4×4-Transform-Matrix; Builder `create_head_pose(x, y, z, roll, pitch, yaw, …)` aus `reachy_mini.utils`.
+- Welche Audio-Codecs unterstützt das SDK direkt — PCM/WAV, MP3, OGG? Welche Codec-Pipeline ist für Tanz mit Beat-Synchronisation optimal? Klären über [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture).
+- Bietet das SDK ein Capability-Discovery-API, um zur Laufzeit zwischen Reachy Mini, Reachy Mini Lite und Simulation zu unterscheiden? Konstruktor-Argument `use_sim` ist verifiziert; explizite Variant-Property auf der Instanz `> ⚠ TBD`.
 - Bietet das SDK eine Brown-out- bzw. Strom-Spitzen-Telemetrie, oder muss das Behavior das selbst messen?
 - Was ist die kanonische Ruhepose ("rest pose") für den Notstopp? Vorschlag: alle Achsen zentriert, Antennen leicht aufgerichtet, Body-Yaw 0.
 - Welche Update-Frequenzen sind realistisch in einem Behavior-Tick — 50 Hz, 100 Hz, 200 Hz? Hängt von Variante und SDK-Implementierung ab.
