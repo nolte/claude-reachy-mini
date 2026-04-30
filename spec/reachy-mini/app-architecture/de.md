@@ -23,7 +23,7 @@ Dieses Repository (`claude-reachy-mini`) liefert Skills, Agents und Specs als To
 ## Anforderungen
 
 ### App-Identität
-- **MUSS [MUST]** den Slug `reachy-mini-show` (oder einen vom Owner gewählten Slug) tragen, durchgehend für Repo-Name, Python-Package-Name und HF-Space-Name
+- **MUSS [MUST]** den Slug `reachy-mini-show` durchgehend für Repo-Name, Python-Package-Name und HF-Space-Name tragen
 - **MUSS [MUST]** als Hugging-Face-Space gepackt sein, mit dem Tag `reachy_mini_python_app` im README-Frontmatter (sonst keine Discovery im Reachy-Dashboard)
 - **MUSS [MUST]** semantische Versionierung nutzen
 - **MUSS [MUST]** den `reachy_mini`-SDK-Pin auf eine konkrete Minor-Version setzen (z. B. `^1.7.0`); SDK-Major-Update ist immer eine bewusste Re-Validierung
@@ -79,26 +79,30 @@ reachy-mini-show/
 
 ### Befehls-Schnittstelle (lokaler WebSocket)
 - **MUSS [MUST]** einen WebSocket-Server auf `127.0.0.1:8765` (Port konfigurierbar via ENV) bereitstellen
+- **MUSS [MUST]** ein **Protokoll-Versions-Feld** `protocol_version` in jedem Command und jedem Event tragen, im Format `<major>.<minor>` (z. B. `"1.0"`); Major-Wechsel kennzeichnen Breaking Changes
+- **MUSS [MUST]** Commands mit nicht-unterstützter **Major**-Version mit einem `error`-Event mit `code: "unsupported_protocol_version"` ablehnen, ohne den Behavior-Worker zu beeinflussen
+- **SOLLTE [SHOULD]** Minor-Version-Differenzen tolerieren (forward-compatible) — neue optionale Felder ignorieren, fehlende neue Felder durch Default ersetzen
 - **MUSS [MUST]** JSON-Messages annehmen mit den folgenden Command-Typen:
 
   ```jsonc
-  {"type": "play_behavior", "slug": "happy", "speed": 1.0}
-  {"type": "cancel"}
-  {"type": "set_idle_mode", "mode": "waiting-idle"}
-  {"type": "set_dance", "block": "groove-bob", "bpm": 110, "beats": 16}
-  {"type": "speak", "text": "...", "behavior_during": "thinking"}
-  {"type": "get_status"}
+  {"type": "play_behavior", "protocol_version": "1.0", "slug": "happy", "speed": 1.0}
+  {"type": "cancel", "protocol_version": "1.0"}
+  {"type": "set_idle_mode", "protocol_version": "1.0", "mode": "waiting-idle"}
+  {"type": "set_dance", "protocol_version": "1.0", "block": "groove-bob", "bpm": 110, "beats": 16}
+  {"type": "speak", "protocol_version": "1.0", "text": "...", "behavior_during": "thinking"}
+  {"type": "get_status", "protocol_version": "1.0"}
   ```
 
-- **MUSS [MUST]** JSON-Events broadcasten:
+- **MUSS [MUST]** JSON-Events broadcasten, jeweils mit `protocol_version`-Feld:
 
   ```jsonc
-  {"type": "behavior_started", "slug": "happy", "started_at": "<iso>"}
-  {"type": "behavior_finished", "slug": "happy", "status": "PASS|FAIL|ABORTED", "duration_s": 2.4}
-  {"type": "low_battery", "percentage": 18}
-  {"type": "error", "message": "..."}
+  {"type": "behavior_started", "protocol_version": "1.0", "slug": "happy", "started_at": "<iso>"}
+  {"type": "behavior_finished", "protocol_version": "1.0", "slug": "happy", "status": "PASS|FAIL|ABORTED", "duration_s": 2.4}
+  {"type": "low_battery", "protocol_version": "1.0", "percentage": 18}
+  {"type": "error", "protocol_version": "1.0", "code": "unsupported_protocol_version|invalid_command|behavior_not_found|...", "message": "..."}
   ```
 
+- **MUSS [MUST]** auf `get_status` eine Antwort liefern, die `supported_protocol_versions: ["1.0", ...]` als Array trägt, sodass Konsumenten ihren eigenen Versions-Match feststellen können
 - **MUSS [MUST]** eine offene Queue verwalten: ein neues `play_behavior` während eines laufenden Behaviors bricht das laufende ab (per Pollen-Konvention läuft nur ein Move zur Zeit)
 - **MUSS [MUST]** mehrere parallele Clients erlauben — alle Clients erhalten alle Events; Commands-Sender ist beliebig
 - **DARF NICHT [MUST NOT]** TLS oder Auth verlangen — `localhost`-only; bei externer Erreichbarkeit ist das Aufgabe einer separaten Reverse-Proxy-Schicht im Konsumenten-Setup
@@ -138,6 +142,8 @@ reachy-mini-show/
 - [ ] App-Repo folgt Pollen-CLI-Layout, mit `reachy_mini_python_app`-Tag im HF-Frontmatter
 - [ ] `main(reachy, stop_event)` startet drei parallele Tasks (WebSocket, Behavior-Worker, Idle-Loop)
 - [ ] Lokaler WebSocket auf `127.0.0.1:8765` nimmt JSON-Commands an und broadcastet JSON-Events
+- [ ] Jedes Command und jedes Event trägt ein `protocol_version`-Feld; `get_status` liefert `supported_protocol_versions`
+- [ ] Commands mit unbekannter Major-Version werden mit `error code: "unsupported_protocol_version"` abgelehnt
 - [ ] Alle 29 Motion-Slugs sind als `Move`-Subklassen implementiert und in der Registry eingetragen
 - [ ] BPM-Tanz-Bausteine akzeptieren konstruktor-parametrisierte BPM und Beat-Anzahl
 - [ ] Lokaler Test mit `ReachyMini(use_sim=True)` läuft ohne Hardware durch
@@ -148,11 +154,11 @@ reachy-mini-show/
 - [ ] Plattform-Profile blenden nicht-vorhandene Sensor-Reads korrekt aus
 
 ## Offene Fragen
-- Heißt der Slug `reachy-mini-show`, oder hast du einen anderen Namen im Sinn?
-- Soll `audio/`-Inhalte aus dem Plugin-Repo gespiegelt werden, oder hat das App-Repo eigene Sound-Files?
-- Wie wird die Pollen-CLI exakt aufgerufen? Vorschlag: über `behavior-scaffold`-Skill kapseln, sodass der Entwickler nur die Hülle füttert.
+- ~~Heißt der Slug `reachy-mini-show`?~~ **Beantwortet**: ja, durchgehend.
+- ~~Audio-Files aus Plugin-Repo gespiegelt oder eigen?~~ **Beantwortet**: das App-Repo hält seine eigenen Audio-Files; keine Spiegelung aus dem Plugin-Repo.
+- ~~Beispiel-App-Skelett im Plugin-Repo unter `examples/`?~~ **Beantwortet**: erstmal kein Example. Wenn `behavior-scaffold` ein konkretes Layout-Vorbild braucht, kann es per Pollen-CLI zur Laufzeit erzeugt werden.
+- ~~WebSocket-Protokoll-Versionierung?~~ **Beantwortet**: `protocol_version`-Feld in jedem Command und Event ist jetzt Anforderung; `get_status` liefert `supported_protocol_versions`.
+- Wie wird die Pollen-CLI exakt aufgerufen? Vorschlag: über den `behavior-scaffold`-Skill kapseln, sodass der Entwickler nur die Hülle füttert.
 - Welcher GitHub-Owner für das App-Repo — `nolte` direkt oder eine Org? Vorschlag: `nolte/reachy-mini-show`.
-- Soll es im Plugin-Repo ein Beispiel-App-Skelett (z. B. unter `examples/`) als Referenz geben, das nicht ausgeliefert wird? Pro: nachvollziehbarer Lebenslauf für `behavior-scaffold`. Contra: zwei Quellen der Wahrheit für das Layout.
-- Wie wird das WebSocket-Protokoll versioniert? Vorschlag: ein `protocol_version`-Feld in jedem Command und Event, plus ein `get_status` der die unterstützten Protokoll-Versionen ausweist.
-- Soll der WebSocket optional auch UNIX-Sockets sprechen (für VM-/Container-isolierte Konsumenten)? Default bleibt TCP.
+- Soll der WebSocket optional auch UNIX-Sockets sprechen (für VM- oder Container-isolierte Konsumenten)? Default bleibt TCP.
 - Wie wird ein Behavior abgebrochen, das in der WebSocket-Queue noch wartet (nicht das aktive)? Vorschlag: `cancel` leert die Queue und stoppt das aktive Behavior; ein zukünftiger `cancel_pending` könnte das später trennen.

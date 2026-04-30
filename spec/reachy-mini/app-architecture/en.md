@@ -23,7 +23,7 @@ This repository (`claude-reachy-mini`) ships skills, agents, and specs as a tool
 ## Requirements
 
 ### App identity
-- **MUST** carry the slug `reachy-mini-show` (or an owner-chosen slug) consistently for repo name, Python package name, and HF Space name
+- **MUST** carry the slug `reachy-mini-show` consistently for repo name, Python package name, and HF Space name
 - **MUST** be packaged as a Hugging Face Space, with the tag `reachy_mini_python_app` in the README frontmatter (otherwise no discovery in the Reachy dashboard)
 - **MUST** use semantic versioning
 - **MUST** pin the `reachy_mini` SDK to a specific minor version (e.g. `^1.7.0`); an SDK major upgrade is always a deliberate re-validation
@@ -79,26 +79,30 @@ reachy-mini-show/
 
 ### Command interface (local WebSocket)
 - **MUST** expose a WebSocket server on `127.0.0.1:8765` (port configurable via ENV)
+- **MUST** carry a **protocol-version field** `protocol_version` in every command and every event, formatted as `<major>.<minor>` (e.g. `"1.0"`); a major change marks a breaking change
+- **MUST** reject commands with an unsupported **major** version with an `error` event carrying `code: "unsupported_protocol_version"`, without affecting the behavior worker
+- **SHOULD** tolerate minor-version differences (forward-compatible) — ignore new optional fields, default missing new fields
 - **MUST** accept JSON messages with the following command types:
 
   ```jsonc
-  {"type": "play_behavior", "slug": "happy", "speed": 1.0}
-  {"type": "cancel"}
-  {"type": "set_idle_mode", "mode": "waiting-idle"}
-  {"type": "set_dance", "block": "groove-bob", "bpm": 110, "beats": 16}
-  {"type": "speak", "text": "...", "behavior_during": "thinking"}
-  {"type": "get_status"}
+  {"type": "play_behavior", "protocol_version": "1.0", "slug": "happy", "speed": 1.0}
+  {"type": "cancel", "protocol_version": "1.0"}
+  {"type": "set_idle_mode", "protocol_version": "1.0", "mode": "waiting-idle"}
+  {"type": "set_dance", "protocol_version": "1.0", "block": "groove-bob", "bpm": 110, "beats": 16}
+  {"type": "speak", "protocol_version": "1.0", "text": "...", "behavior_during": "thinking"}
+  {"type": "get_status", "protocol_version": "1.0"}
   ```
 
-- **MUST** broadcast JSON events:
+- **MUST** broadcast JSON events, each with a `protocol_version` field:
 
   ```jsonc
-  {"type": "behavior_started", "slug": "happy", "started_at": "<iso>"}
-  {"type": "behavior_finished", "slug": "happy", "status": "PASS|FAIL|ABORTED", "duration_s": 2.4}
-  {"type": "low_battery", "percentage": 18}
-  {"type": "error", "message": "..."}
+  {"type": "behavior_started", "protocol_version": "1.0", "slug": "happy", "started_at": "<iso>"}
+  {"type": "behavior_finished", "protocol_version": "1.0", "slug": "happy", "status": "PASS|FAIL|ABORTED", "duration_s": 2.4}
+  {"type": "low_battery", "protocol_version": "1.0", "percentage": 18}
+  {"type": "error", "protocol_version": "1.0", "code": "unsupported_protocol_version|invalid_command|behavior_not_found|...", "message": "..."}
   ```
 
+- **MUST** answer `get_status` with a response carrying `supported_protocol_versions: ["1.0", ...]` as an array, so consumers can perform their own version match
 - **MUST** maintain an open queue: a new `play_behavior` while a behavior is running aborts the running one (per Pollen convention only one move runs at a time)
 - **MUST** allow multiple concurrent clients — every client receives every event; any client may send commands
 - **MUST NOT** require TLS or authentication — `localhost`-only; external reach is the job of a separate reverse-proxy layer in the consumer setup
@@ -138,6 +142,8 @@ reachy-mini-show/
 - [ ] App repo follows the Pollen CLI layout, with the `reachy_mini_python_app` tag in the HF frontmatter
 - [ ] `main(reachy, stop_event)` starts three parallel tasks (WebSocket, behavior worker, idle loop)
 - [ ] The local WebSocket on `127.0.0.1:8765` accepts JSON commands and broadcasts JSON events
+- [ ] Every command and every event carries a `protocol_version` field; `get_status` returns `supported_protocol_versions`
+- [ ] Commands with an unknown major version are rejected with `error code: "unsupported_protocol_version"`
 - [ ] All 29 motion slugs are implemented as `Move` subclasses and registered
 - [ ] BPM dance blocks accept constructor-parametrised BPM and beat count
 - [ ] A local test with `ReachyMini(use_sim=True)` runs without hardware
@@ -148,11 +154,11 @@ reachy-mini-show/
 - [ ] Platform profiles correctly hide unavailable sensor reads
 
 ## Open Questions
-- Is the slug `reachy-mini-show`, or do you have a different name in mind?
-- Should `audio/` content be mirrored from the plugin repo, or does the app repo carry its own sound files?
+- ~~Is the slug `reachy-mini-show`?~~ **Answered**: yes, end-to-end.
+- ~~Audio mirrored from the plugin repo or owned?~~ **Answered**: the app repo carries its own audio; no mirroring from the plugin repo.
+- ~~Example app skeleton in the plugin repo under `examples/`?~~ **Answered**: no example for now. If `behavior-scaffold` needs a concrete layout reference, it can be generated at runtime via the Pollen CLI.
+- ~~WebSocket protocol versioning?~~ **Answered**: a `protocol_version` field on every command and event is now a requirement; `get_status` returns `supported_protocol_versions`.
 - How exactly is the Pollen CLI invoked? Proposal: wrap it via the `behavior-scaffold` skill so the developer only feeds the shell.
 - Which GitHub owner for the app repo — `nolte` directly or an org? Proposal: `nolte/reachy-mini-show`.
-- Should the plugin repo carry an example app skeleton (e.g. under `examples/`) as a non-shipped reference? Pro: legible lifecycle for `behavior-scaffold`. Con: two sources of truth for the layout.
-- How is the WebSocket protocol versioned? Proposal: a `protocol_version` field on every command and event, plus a `get_status` that names the supported protocol versions.
 - Should the WebSocket optionally also speak UNIX sockets (for VM- or container-isolated consumers)? TCP is the default.
 - How is a behavior cancelled that is still pending in the WebSocket queue (not the active one)? Proposal: `cancel` clears the queue and stops the active behavior; a future `cancel_pending` could split that later.
