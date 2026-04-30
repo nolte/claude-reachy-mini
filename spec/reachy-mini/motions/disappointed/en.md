@@ -12,6 +12,10 @@ A milder form of `sad`: Reachy makes a single, medium-strength pitch dip, lets t
 - Body yaw slightly off (-5°) — turned away, not sad-looking-away
 - Medium tempo (~2.6 s); `MIN_JERK` only
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

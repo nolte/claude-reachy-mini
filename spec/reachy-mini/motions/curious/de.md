@@ -12,6 +12,10 @@ Die klassische Neugier-Geste: Reachy neigt den Kopf zur Seite, hält die Pose mu
 - Body-Yaw leicht in die Tilt-Richtung — der Körper „lehnt sich mit"
 - Mini-Yaw-Modulation während der Hold-Phasen — leichte musternde Suchbewegung
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

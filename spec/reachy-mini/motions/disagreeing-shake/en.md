@@ -12,6 +12,10 @@ The canonical disagreement gesture that reads as "no" or "not OK": Reachy shakes
 - Body yaw does **not** track the head — canonically in a head shake the body stays still, only the head negates
 - Short tempo (~1.8 s); `EASE_IN_OUT` for the yaw switches (organic back-and-forth)
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

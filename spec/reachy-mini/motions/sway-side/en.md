@@ -12,6 +12,10 @@ A dance building block for rhythmic side-to-side swaying on the beat: Reachy rol
 - Body yaw tracks roll slightly via IK
 - **Loopable**
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Per 2-beat cycle actuator sequence

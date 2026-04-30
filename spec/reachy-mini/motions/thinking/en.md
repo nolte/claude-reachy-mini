@@ -13,6 +13,10 @@ A cyclic "processing…" behavior that runs as long as a background action lasts
 - Body yaw centred with minimal modulation — the body stays calm, the head thinks
 - Variable length: one loop cycle ≈ 2.5 s, number of loops as a parameter
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

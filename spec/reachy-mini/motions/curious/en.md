@@ -12,6 +12,10 @@ The classic curiosity gesture: Reachy tilts its head to the side, holds the pose
 - Body yaw slightly in the tilt direction — the body "leans along"
 - Mini yaw modulation during the hold phases — small inspecting search motion
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

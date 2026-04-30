@@ -12,6 +12,16 @@ An expressive dance building block for rhythmic strong nodding without crossing 
 - Body yaw centred
 - Lower BPM range than `groove-bob`, because the bang needs more pitch velocity
 
+## Platform profile
+
+| Platform | Pitch vibration | Servo heat protection | BPM range |
+|---|---|---|---|
+| Reachy Mini (Wireless) | full | dynamic via `mini.imu["temperature"]` — cool-down on threshold breach | 60–130 BPM, lowered dynamically if IMU temp escalates |
+| Reachy Mini Lite | full | **static duration cap**: max. 8 consecutive bangs, then a mandatory pause; no IMU telemetry | 60–130 BPM with a hard bangs cap |
+| Simulation | full (pose values) | not relevant — no real servos | 60–180 BPM (no hardware limits) |
+
+Implementation consequence: on Wireless, the IMU temperature is the primary protection signal — implementations must poll `mini.imu` and throttle (downshift to `groove-bob` or pause for cool-down) at `> ⚠ TBD: validate against real hardware` °C. On Lite the temperature is not readable; the static bangs cap is the only protection. In simulation protection is moot.
+
 ## Components
 
 ### Per-beat actuator sequence

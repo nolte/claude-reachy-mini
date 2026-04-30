@@ -13,6 +13,10 @@ A loopable state behavior that signals active attention: Reachy is upright, ante
 - Small yaw idle (search motion) — the head scans subtly
 - Medium tempo on entry/exit (each ~0.4 s); loop body runs continuously
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

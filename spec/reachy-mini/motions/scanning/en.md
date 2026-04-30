@@ -12,6 +12,10 @@ A calm, continuous head sweep from left to right (and back) — like a security-
 - Body yaw tracks the head yaw smoothly (IK-coupled) — the whole body pans
 - Long tempo (~4.1 s); `EASE_IN_OUT` only for the sweeps
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

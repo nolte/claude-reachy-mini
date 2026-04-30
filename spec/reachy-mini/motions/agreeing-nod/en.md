@@ -11,6 +11,10 @@ A short, clear agreement gesture that reads as "yes" or "understood": Reachy nod
 - Body yaw stays strictly centred — the entire affect is pitch-only
 - Short tempo (~1.8 s), `MIN_JERK` for soft transitions, no `CARTOON`
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

@@ -12,6 +12,10 @@ A "did-not-understand" expression that reads as "confused" or "puzzled": Reachy 
 - Medium tempo (~3.2 s); only `EASE_IN_OUT` for the tilts (organic back-and-forth)
 - Ends with an uncertain yaw swing ("huh?")
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

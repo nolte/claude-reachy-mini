@@ -13,6 +13,10 @@ The default idle state between other behaviors: no affective content, only a sub
 - Body yaw stationary
 - Very slow tempo, very small amplitude — the pose must NOT read as an affect
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

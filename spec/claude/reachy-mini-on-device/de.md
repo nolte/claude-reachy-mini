@@ -34,22 +34,45 @@ Diese Aufgabe wird als **Agent** und nicht als Skill modelliert, weil mehrere Be
 
 ### Eingaben
 - **MUSS [MUST]** den Ziel-Behavior-Pfad annehmen (lokales Verzeichnis im konsumierenden App-Repo)
-- **MUSS [MUST]** die Geräte-Adresse annehmen — entweder einen SSH-Host (`user@host` plus optionalem Identitäts-Pfad) oder ein USB-Device-Identifier; der konkrete Adress-Typ ist `> ⚠ TBD: validate against real hardware`
-- **MUSS [MUST]** ein hartes Timeout pro Lauf annehmen (Default `> ⚠ TBD: validate against real hardware`); nach Timeout wird der Notstopp-Pfad ausgelöst
+- **MUSS [MUST]** die Plattform annehmen — `wireless` / `lite` / `simulation` —, weil sich Deploy-Pfad, Telemetrie-Verfügbarkeit und Notstopp-Mechanik plattform-spezifisch unterscheiden (siehe Plattform-Profile-Sektion)
+- **MUSS [MUST]** plattform-passend die Verbindungs-Adresse annehmen: für `wireless` einen SSH-Host (`user@host` plus optionaler Identitäts-Pfad) zur Roboter-IP; für `lite` einen SSH-Host zum **Host-PC**, der den Reachy via USB-C hält; für `simulation` keinen Host (das Behavior läuft im selben Python-Prozess)
+- **MUSS [MUST]** ein hartes Timeout pro Lauf annehmen; nach Timeout wird der Notstopp-Pfad ausgelöst
 - **SOLLTE [SHOULD]** einen Trigger-Modus annehmen: `autonomous` (Behavior läuft ohne externe Trigger) vs. `interactive` (HA-Event löst Step aus, optional über `home-assistant-bridge`-Patterns)
 - **KANN [MAY]** zusätzliche Optionen annehmen: Trockenlauf (Deploy ohne Run), nur-Watch (kein Deploy), Verbosity der Zusammenfassung
 
+### Plattform-Profile
+
+Der Agent unterscheidet zwischen den drei Reachy-Mini-Plattformen, weil sich Deploy-Pfad, Telemetrie-Verfügbarkeit und Sicherheits-Schwellen materiell unterscheiden:
+
+- **Reachy Mini** (Wireless) — autark mit RPi 4 CM4 + LiFePO4-Akku. Deploy direkt zur Roboter-IP via SSH oder über die Daemon-REST-API. Volle Telemetrie: IMU (Accelerometer, Gyroscope, Quaternion, Temperatur), Battery-Polling, daemon-publizierte Joint-Positions/Head-Pose mit 50 Hz. Notstopp-Trigger können Strom-Spike, IMU-Temperatur-Schwelle und Battery-Brown-out einschließen.
+- **Reachy Mini Lite** — am Host-PC via USB-C, externe 6,8–7,6 V-Versorgung. Deploy primär über den Host-PC: SSH zum Host, dort den Pollen-Daemon ansprechen — **nicht** SSH zum Reachy direkt. Aktuator-Set ist identisch zu Wireless, aber **keine IMU-Telemetrie** und **kein Battery-Sensor** — Sicherheits-Schwellen kommen aus Stewart-Joint-Limits (URDF) und vom Daemon publizierten Effort/Strom-Daten, falls verfügbar. IMU-Daten sind kein FAIL-Kriterium.
+- **Simulation** — `ReachyMini(use_sim=True)` im selben Python-Prozess. **Kein Deploy nötig**, kein SSH, keine USB-Verbindung. Voll deterministisch. Keine reale Sensor-Telemetrie (außer Pose-Read), keine Audio-Wiedergabe, keine LED-Effekte. PASS/FAIL-Kriterien fokussieren sich auf Pose-Erreichbarkeit, Move-Lifecycle und Logik — nicht auf physische Welt-Effekte.
+
+Anforderungen:
+
+- **MUSS [MUST]** beim Behavior-Start die Plattform aus Eingabe und (zur Verifikation) aus dem `DaemonStatus` lesen — Mismatch zwischen Eingabe und tatsächlicher Plattform ist ein FAIL
+- **MUSS [MUST]** plattform-spezifische PASS/FAIL-Kriterien anwenden: „IMU-Telemetrie fehlt" ist auf Lite und Simulation **kein** FAIL; auf Wireless ist es eines
+- **MUSS [MUST]** den Deploy-Pfad in der Output-Zusammenfassung explizit ausweisen: `via_ssh_direct` (Wireless), `via_host_usb` (Lite), `in_process` (Simulation)
+- **MUSS [MUST]** auf Simulation explizit kennzeichnen, welche Akzeptanzkriterien _nicht_ geprüft werden konnten (z. B. echte Pose-Erreichung, Audio-Sync, Servo-Wärme) und das im Output-Protokoll als `not_applicable_in_simulation`-Liste ausgeben
+- **DARF NICHT [MUST NOT]** Lite-Telemetrie-Lücken (fehlende IMU-/Battery-Daten) als „Sensoren offline" werten — das ist die Norm, kein Defekt
+
 ### Lifecycle
 - **MUSS [MUST]** den Lifecycle in dieser Reihenfolge ausführen: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
+- **MUSS [MUST]** den `connect`-Schritt plattform-spezifisch ausführen: für `wireless` SSH zur Roboter-IP, für `lite` SSH zum Host-PC + Daemon-API-Probe, für `simulation` ein No-Op (`use_sim=True`-Konstruktor liefert die Verbindung im selben Prozess)
+- **MUSS [MUST]** den `sync code`- und `install deps`-Schritt auf Simulation überspringen (kein Deploy nötig)
 - **MUSS [MUST]** in jeder Phase das beobachtete Ergebnis strukturiert protokollieren (Phase, Status, Dauer, Fehler-Klasse falls vorhanden)
 - **MUSS [MUST]** bei Disconnect oder unerwartetem Behavior-Exit kontrolliert enden — keine hängenden SSH-Sessions, keine offen gelassenen Behavior-Prozesse
-- **SOLLTE [SHOULD]** zwischen den Phasen einen Health-Check einschieben (CPU-/Spannungs-/Temperatur-Werte, falls das SDK sie bereitstellt — `> ⚠ TBD: validate against real hardware`)
+- **SOLLTE [SHOULD]** zwischen den Phasen einen Health-Check einschieben — auf Wireless mit IMU-Temperatur und Battery-Stand; auf Lite mit Daemon-Effort-/Strom-Daten falls verfügbar; in Simulation entfällt der Check
 
 ### Notstopp
-- **MUSS [MUST]** einen Notstopp-Pfad bereitstellen, der den Behavior-Prozess sicher beendet und das Gerät in eine definierte Ruhepose bringt — Pose-Definition `> ⚠ TBD: validate against real hardware`
-- **MUSS [MUST]** den Notstopp ohne Nutzer-Bestätigung auslösen, wenn ein konfigurierter Sicherheits-Threshold reißt (z. B. ungewöhnlich hohe Stromaufnahme, Bewegungs-Limits überschritten)
-- **MUSS [MUST]** den Notstopp im Output-Protokoll als gesondertes Ereignis ausweisen
-- **DARF NICHT [MUST NOT]** den Notstopp auf eine reine Log-Notiz reduzieren — die physische Konsequenz hat Vorrang
+- **MUSS [MUST]** einen Notstopp-Pfad bereitstellen, der den Behavior-Prozess sicher beendet und das Gerät in `INIT_HEAD_POSE` (4×4-Identitäts-Matrix, Kopf zentriert) plus `INIT_ANTENNAS_JOINT_POSITIONS` bringt — Pose-Konstanten verifiziert in `reachy_mini.py`
+- **MUSS [MUST]** plattform-spezifische Trigger-Quellen für den Notstopp zulassen:
+  - **Wireless**: IMU-Temperatur-Schwelle (`mini.imu["temperature"]`), Battery-Brown-out, Strom-Spike (vom Daemon publiziert), Bewegungs-Limit-Verstoß
+  - **Lite**: Daemon-publizierte Effort-/Strom-Daten falls verfügbar, Bewegungs-Limit-Verstoß; **keine** IMU- oder Battery-Trigger
+  - **Simulation**: nur Logik-Trigger (Pose außerhalb URDF-Grenze, Hook-Exception, Timeout); kein physischer Notstopp nötig, aber Pose-Reset trotzdem ausführen für Konsistenz
+- **MUSS [MUST]** den Notstopp ohne Nutzer-Bestätigung auslösen, wenn ein plattform-passender Sicherheits-Threshold reißt
+- **MUSS [MUST]** den Notstopp im Output-Protokoll als gesondertes Ereignis ausweisen, mit Trigger-Quelle und Plattform
+- **DARF NICHT [MUST NOT]** den Notstopp auf Wireless oder Lite auf eine reine Log-Notiz reduzieren — die physische Konsequenz hat Vorrang
 
 ### Ausgabe / Output-Format
 - **MUSS [MUST]** in den Hauptthread nur eine strukturierte Zusammenfassung zurückgeben: Gesamt-Status (`PASS` / `FAIL` / `ABORTED`), Hooks-Statistik (welche Hooks aufgerufen, wie oft, mit welcher mittleren Latenz), Anomalien-Liste, Dauer
@@ -61,6 +84,10 @@ Diese Aufgabe wird als **Agent** und nicht als Skill modelliert, weil mehrere Be
 - **MUSS [MUST]** SSH-/Geräte-Credentials aus der Umgebung oder aus einer ssh-config lesen, niemals als Argument im Klartext
 - **DARF NICHT [MUST NOT]** Credentials in den Output-Log oder in die Zusammenfassung schreiben — Maskierung Pflicht, falls eine Identifier-Notation nötig ist
 - **SOLLTE [SHOULD]** SSH-Host-Key-Verifikation aktivieren; bei einer Erst-Verbindung den Fingerprint im Output ausweisen, statt automatisch zu akzeptieren
+- **MUSS [MUST]** plattform-bewusste Auth-Modelle anwenden:
+  - **Wireless**: SSH zum Reachy direkt (Pi-OS-User), Daemon-Token im selben Pfad
+  - **Lite**: SSH zum Host-PC (User des Operators), zusätzlich der Pollen-Daemon-Token, der vom Host an den Daemon weitergereicht wird
+  - **Simulation**: keine SSH-Auth, keine Daemon-Token — alle Operationen laufen im selben Python-Prozess
 
 ### Boundaries
 - **SOLLTE [SHOULD]** auf `reachy-mini-sdk` verweisen, sobald der Hauptthread Bewegungs-Idiomatik nach dem Test anpassen soll
@@ -69,6 +96,11 @@ Diese Aufgabe wird als **Agent** und nicht als Skill modelliert, weil mehrere Be
 - **DARF NICHT [MUST NOT]** Inhalte aus diesen Skills duplizieren — der Agent ist Beobachter und Orchestrator, nicht Wissensbasis
 
 ## Akzeptanzkriterien
+- [ ] Der Agent erkennt die Plattform (`wireless` / `lite` / `simulation`) aus Eingabe und verifiziert sie gegen `DaemonStatus`
+- [ ] Der Output-Bericht weist den Deploy-Pfad explizit aus (`via_ssh_direct` / `via_host_usb` / `in_process`)
+- [ ] Auf Simulation-Läufen erscheint eine `not_applicable_in_simulation`-Liste mit übersprungenen Kriterien
+- [ ] Notstopp-Trigger sind plattform-spezifisch konfiguriert (IMU/Battery nur Wireless, Effort-Daten Lite, Logik-Trigger überall)
+- [ ] Lite-Telemetrie-Lücken (IMU/Battery fehlen) erzeugen kein FAIL
 - [ ] Der Agent ist unter `agents/reachy-mini-on-device.md` mit gültiger Frontmatter angelegt — `name: reachy-mini-on-device`, `description`, `distribution: plugin`, optional Tags
 - [ ] Die `description` aktiviert auf Phrasings wie „test the behavior on the device", „deploy and run X on Reachy Mini", „live-trial behavior <name>"
 - [ ] Eine Skill-vs-Agent-Begründung ist im Agent-Body sichtbar (mindestens Tool-Session-Länge, Kontext-Volumen, Orchestrierung)

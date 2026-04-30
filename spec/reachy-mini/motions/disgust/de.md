@@ -14,6 +14,10 @@ Die sechste Ekman-Basisemotion: ein abwehrendes Wegdrehen mit kleinem Schauer. R
 - Mini-Schauer in Phase 4 — vibration auf roll
 - Schnelles Tempo (~1,5 s)
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

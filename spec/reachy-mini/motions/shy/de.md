@@ -12,6 +12,10 @@ Eine zurückhaltende Geste, die als „verlegen" oder „peinlich berührt" gele
 - Mini-Lugen-zurück: kurzes Zurückblicken in Phase 3, dann erneutes Wegdrehen
 - Mittleres Tempo (~2,1 s); ausschließlich `MIN_JERK` und `EASE_IN_OUT`
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

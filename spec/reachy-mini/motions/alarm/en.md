@@ -12,6 +12,16 @@ A hard warning signal with pulsing pose and LED pulses on the microphone module.
 - Body yaw centred
 - Fast tempo (~2.0 s); a hard `LINEAR` snap
 
+## Platform profile
+
+| Platform | Head vibration | LED pulses | Audio | Current-spike emergency stop |
+|---|---|---|---|---|
+| Reachy Mini (Wireless) | full | full, synchronised via `audio_control_utils` | full, high (volume 80) | yes, via IMU / daemon data |
+| Reachy Mini Lite | full | full, synchronised | full | only daemon-published effort data (no IMU) |
+| Simulation | full (pose values) | not available | not available | not available — emergency stop only via logic triggers (timeout, pose out-of-range) |
+
+Implementation consequence: in simulation the behavior must **not** fail due to missing LED or audio subsystems — those channels are optional. On Wireless the multi-channel cue (motion + LED + audio) is **diagnostic** and mandatory because it preserves alarm legibility under stress. On Lite the same applies except for IMU-based emergency-stop triggers.
+
 ## Components
 
 ### Actuator sequence

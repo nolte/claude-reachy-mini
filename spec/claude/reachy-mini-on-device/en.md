@@ -34,22 +34,45 @@ This concern is modelled as an **agent** rather than a skill because several rat
 
 ### Inputs
 - **MUST** accept a target behavior path (a local directory in the consuming app repo)
-- **MUST** accept a device address — either an SSH host (`user@host` plus optional identity path) or a USB device identifier; the concrete address type is `> ⚠ TBD: validate against real hardware`
-- **MUST** accept a hard timeout per run (default `> ⚠ TBD: validate against real hardware`); on timeout the emergency-stop path triggers
+- **MUST** accept the platform — `wireless` / `lite` / `simulation` — because deploy path, telemetry availability, and emergency-stop mechanics differ materially across platforms (see Platform profiles)
+- **MUST** accept a platform-aware connection address: for `wireless` an SSH host (`user@host` plus optional identity path) to the robot's IP; for `lite` an SSH host to the **host PC** that holds the Reachy via USB-C; for `simulation` no host (the behavior runs in the same Python process)
+- **MUST** accept a hard timeout per run; on timeout the emergency-stop path triggers
 - **SHOULD** accept a trigger mode: `autonomous` (behavior runs without external triggers) vs. `interactive` (HA event drives steps, optionally via `home-assistant-bridge` patterns)
 - **MAY** accept additional options: dry-run (deploy without run), watch-only (no deploy), verbosity of the summary
 
+### Platform profiles
+
+The agent distinguishes the three Reachy Mini platforms because deploy path, telemetry availability, and safety thresholds differ materially:
+
+- **Reachy Mini** (Wireless) — self-contained with RPi 4 CM4 + LiFePO4 battery. Deploy directly to the robot's IP via SSH or via the daemon REST API. Full telemetry: IMU (accelerometer, gyroscope, quaternion, temperature), battery polling, daemon-published joint positions / head pose at 50 Hz. Emergency-stop triggers may include current spike, IMU temperature threshold, and battery brown-out.
+- **Reachy Mini Lite** — tethered to a host PC via USB-C, external 6.8–7.6 V supply. Deploy primarily through the host PC: SSH to the host, talk to the Pollen daemon there — **not** SSH directly to the Reachy. The actuator set is identical to Wireless, but **no IMU telemetry** and **no battery sensor** — safety thresholds come from Stewart joint limits (URDF) and from daemon-published effort / current data when available. Missing IMU data is not a FAIL criterion.
+- **Simulation** — `ReachyMini(use_sim=True)` in the same Python process. **No deploy needed**, no SSH, no USB. Fully deterministic. No real sensor telemetry (apart from pose read), no audio playback, no LED effects. PASS/FAIL focuses on pose reachability, move lifecycle, and logic — not on physical-world effects.
+
+Requirements:
+
+- **MUST** read the platform from the input on behavior start and verify it against `DaemonStatus` — a mismatch between input and observed platform is a FAIL
+- **MUST** apply platform-specific PASS/FAIL criteria: "IMU telemetry missing" is **not** a FAIL on Lite or Simulation; on Wireless it is
+- **MUST** state the deploy path explicitly in the output summary: `via_ssh_direct` (Wireless), `via_host_usb` (Lite), `in_process` (Simulation)
+- **MUST** mark on simulation runs which acceptance criteria could **not** be checked (e.g. real pose reach, audio sync, servo heat) and emit a `not_applicable_in_simulation` list in the output protocol
+- **MUST NOT** treat Lite telemetry gaps (missing IMU / battery data) as "sensors offline" — that is the norm, not a defect
+
 ### Lifecycle
 - **MUST** run the lifecycle in this order: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
+- **MUST** execute the `connect` step platform-specifically: `wireless` SSH to the robot's IP, `lite` SSH to the host PC plus a daemon API probe, `simulation` is a no-op (the `use_sim=True` constructor provides the connection in-process)
+- **MUST** skip the `sync code` and `install deps` steps in simulation (no deploy needed)
 - **MUST** record per-phase outcomes structurally (phase, status, duration, error class if any)
 - **MUST** terminate cleanly on disconnect or unexpected behavior exit — no hanging SSH sessions, no orphaned behavior processes
-- **SHOULD** insert a health check between phases (CPU / voltage / temperature, if the SDK exposes them — `> ⚠ TBD: validate against real hardware`)
+- **SHOULD** insert a health check between phases — Wireless with IMU temperature and battery state; Lite with daemon effort / current data when available; in simulation the check is omitted
 
 ### Emergency stop
-- **MUST** offer an emergency-stop path that cleanly terminates the behavior process and brings the device into a defined rest pose — pose definition `> ⚠ TBD: validate against real hardware`
-- **MUST** trigger emergency stop without user confirmation when a configured safety threshold is hit (e.g. unusually high current draw, motion limits exceeded)
-- **MUST** call out the emergency stop as a distinct event in the output protocol
-- **MUST NOT** reduce the emergency stop to a log note — physical consequence trumps logging
+- **MUST** offer an emergency-stop path that cleanly terminates the behavior process and brings the device into `INIT_HEAD_POSE` (4×4 identity matrix, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` — pose constants verified in `reachy_mini.py`
+- **MUST** allow platform-specific trigger sources for emergency stop:
+  - **Wireless**: IMU temperature threshold (`mini.imu["temperature"]`), battery brown-out, current spike (daemon-published), motion-limit violation
+  - **Lite**: daemon-published effort / current data when available, motion-limit violation; **no** IMU or battery triggers
+  - **Simulation**: only logic triggers (pose outside URDF range, hook exception, timeout); no physical emergency stop needed, but execute the pose reset anyway for consistency
+- **MUST** trigger emergency stop without user confirmation when a platform-appropriate safety threshold is hit
+- **MUST** call out the emergency stop as a distinct event in the output protocol, including trigger source and platform
+- **MUST NOT** reduce the emergency stop to a log note on Wireless or Lite — physical consequence trumps logging
 
 ### Output / output format
 - **MUST** return only a structured summary into the main thread: overall status (`PASS` / `FAIL` / `ABORTED`), hook statistics (which hooks ran, how often, mean latency), anomaly list, duration
@@ -61,6 +84,10 @@ This concern is modelled as an **agent** rather than a skill because several rat
 - **MUST** read SSH / device credentials from the environment or from `ssh_config`, never from a plaintext argument
 - **MUST NOT** write credentials into the output log or summary — masking is mandatory if an identifier notation is needed
 - **SHOULD** keep SSH host-key verification on; on first connect, surface the fingerprint in the output rather than auto-accept
+- **MUST** apply platform-aware auth models:
+  - **Wireless**: SSH directly to the Reachy (Pi OS user); daemon token over the same path
+  - **Lite**: SSH to the host PC (operator user); plus the Pollen daemon token, forwarded from the host to the daemon
+  - **Simulation**: no SSH auth, no daemon token — everything runs in the same Python process
 
 ### Boundaries
 - **SHOULD** point at `reachy-mini-sdk` whenever the main thread needs to adjust motion idioms after the test
@@ -69,6 +96,11 @@ This concern is modelled as an **agent** rather than a skill because several rat
 - **MUST NOT** duplicate content from those skills — the agent is observer and orchestrator, not knowledge base
 
 ## Acceptance Criteria
+- [ ] The agent reads the platform (`wireless` / `lite` / `simulation`) from input and verifies it against `DaemonStatus`
+- [ ] The output report names the deploy path explicitly (`via_ssh_direct` / `via_host_usb` / `in_process`)
+- [ ] Simulation runs include a `not_applicable_in_simulation` list of skipped criteria
+- [ ] Emergency-stop triggers are configured platform-specifically (IMU/battery only Wireless, effort data on Lite, logic triggers everywhere)
+- [ ] Lite telemetry gaps (missing IMU / battery) do not produce a FAIL
 - [ ] The agent exists at `agents/reachy-mini-on-device.md` with valid frontmatter — `name: reachy-mini-on-device`, `description`, `distribution: plugin`, optional tags
 - [ ] The `description` activates on phrasings like "test the behavior on the device", "deploy and run X on Reachy Mini", "live-trial behavior <name>"
 - [ ] A skill-vs-agent rationale is visible in the agent body (at least tool-session length, context volume, orchestration)

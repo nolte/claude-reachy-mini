@@ -11,6 +11,10 @@ An open, friendly greeting expressed as an antenna wave: Reachy leans slightly t
 - Final shallow up-nod — a polite micro-bow
 - Medium tempo (~2.0 s); `EASE_IN_OUT` for the wave, `MIN_JERK` for the lean
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

@@ -12,6 +12,10 @@ Eine schnelle Geste des „Verstehens", die als „aha" oder „jetzt habe ich's
 - Body-Yaw zentriert
 - Schnelles Tempo (~1,5 s); `EASE_IN_OUT` für Snap, `MIN_JERK` für Nicker
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

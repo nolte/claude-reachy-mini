@@ -12,6 +12,10 @@ An expression of joy that reads as "happy" without explanation: Reachy straighte
 - Body yaw stays mostly centred; only a small wobble between springs
 - Overall tempo: fast enough to read as energetic (2.5–3 s), not frantic
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

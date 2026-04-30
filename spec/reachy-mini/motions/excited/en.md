@@ -12,6 +12,10 @@ A high-energy gesture that reads as "excited" or "thrilled": Reachy hops several
 - High tempo (~2.2 s); mixed easing of `CARTOON` (hops) and `MIN_JERK` (transitions)
 - In contrast to `happy`: more hops, faster tempo, yaw included
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

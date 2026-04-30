@@ -12,6 +12,16 @@ Ein expressiver Tanz-Baustein für rhythmisches starkes Nicken, ohne in unsicher
 - Body-Yaw zentriert
 - BPM-Bereich tiefer als bei `groove-bob`, weil der Bang mehr Pitch-Velocity braucht
 
+## Plattform-Profil
+
+| Plattform | Pitch-Vibration | Servo-Wärme-Schutz | BPM-Range |
+|---|---|---|---|
+| Reachy Mini (Wireless) | voll | dynamisch via `mini.imu["temperature"]` — bei Schwellen-Überschreitung Cool-down | 60–130 BPM, dynamisch herabgesetzt wenn IMU-Temp eskaliert |
+| Reachy Mini Lite | voll | **statisches Dauer-Limit**: max. 8 aufeinanderfolgende Bangs, danach Pflicht-Pause; keine IMU-Telemetrie | 60–130 BPM, mit hartem Bangs-Limit |
+| Simulation | voll (Pose-Werte) | nicht relevant — keine echten Servos | 60–180 BPM (ohne Hardware-Limits) |
+
+Implementierungs-Konsequenz: auf Wireless ist die IMU-Temperatur das primäre Schutz-Signal — Implementierung muss `mini.imu` polen und bei `> ⚠ TBD: validate against real hardware` °C herunterregeln (auf `groove-bob` zurückstufen oder Cool-down einlegen). Auf Lite ist die Temperatur nicht lesbar; das statische Bangs-Limit ist der einzige Schutz. In Simulation entfällt der Schutz vollständig.
+
 ## Komponenten
 
 ### Aktuator-Sequenz pro Beat

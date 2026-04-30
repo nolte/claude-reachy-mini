@@ -61,7 +61,8 @@ All paths relative to `<target_dir>/<name>/`. The exact file names below are bes
 - **Manifest** — required fields: `name`, `description`, `author`, `version`, optional `tags`, optional SDK-compat range. Unknown detail fields are emitted as TBD-marked stubs, not invented.
 - **Behavior module** — for a reusable motion, prefer a subclass of the SDK's `Move` ABC with `duration` and `evaluate(t)` (source: <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/motion/move.py>, docs: <https://huggingface.co/docs/reachy_mini/API/motion>). For a stateful long-running app, the SDK's apps surface (<https://huggingface.co/docs/reachy_mini/SDK/apps>, [`API/apps`](https://huggingface.co/docs/reachy_mini/API/apps)) is the right base; pull the actual hook signatures from there and **do not invent** `setup` / `step` / `stop` shapes that do not match the SDK. Each generated hook body is a single `pass` plus a pointer comment to `reachy-mini-sdk` and to the canonical control-surface reference at <https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md>.
 - **README / docstring** — quotes the description, lists hardware preconditions, shows a quickstart that imports and instantiates the behavior. Motion examples are out of scope.
-- **Test stub** — imports the behavior, asserts the three hooks exist and accept the documented signatures. Motion-specific assertions are TBD-marked.
+- **Test stub** — runs against `ReachyMini(use_sim=True)` so it works without hardware and lands in CI. Imports the behavior, asserts the three hooks exist and accept the documented signatures, ticks the move loop once, asserts a clean shutdown. Annotates aspects simulation cannot check (audio, IMU, LED, real pose reach) — pointer to the `reachy-mini-on-device` agent for the on-hardware path. Motion-specific on-hardware assertions are TBD-marked.
+- **README — platform table** — the generated README carries a small table that names Wireless / Lite / Simulation with the applicability per platform. Wireless / Lite share the actuator set; Simulation skips audio, IMU, LED.
 - **Optional Hugging Face Spaces manifest** — emit only when the user explicitly opts in; otherwise omit rather than ship an empty stub.
 
 Authoritative source for the exact shape: <https://github.com/pollen-robotics/reachy_mini>.
@@ -74,6 +75,7 @@ Authoritative source for the exact shape: <https://github.com/pollen-robotics/re
 - **MUST** mark every unverified layout / signature / limit with `> ⚠ TBD: validate against pollen-robotics/reachy_mini`.
 - **MUST** emit files that pass `pre-commit run --all-files` without auto-fix changes (LF newlines, no trailing whitespace, valid YAML / JSON).
 - **MUST** delegate concerns owned by neighbouring skills (see below) instead of growing this skill into them.
+- **MUST NOT** hard-code platform-specific assumptions in the test stub (e.g. an IMU read that fails on Lite). Platform-specific verification belongs to the `reachy-mini-on-device` agent.
 
 ## Boundaries to neighbouring skills
 

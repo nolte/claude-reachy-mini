@@ -13,6 +13,10 @@ An extremely fast startle reaction: Reachy snaps back, freezes briefly, and reco
 - Frozen hold immediately after the snap — shock
 - `LINEAR` snap for hardness
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

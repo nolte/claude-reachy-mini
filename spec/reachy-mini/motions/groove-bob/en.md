@@ -13,6 +13,10 @@ A dance building block for rhythmic up-and-down on the music's beat: Reachy "bob
 - Body yaw centred
 - **Loopable**: runs as long as the music (n beats), then the outro
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Per-beat actuator sequence

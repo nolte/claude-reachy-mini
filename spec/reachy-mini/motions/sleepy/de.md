@@ -13,6 +13,16 @@ Eine Mimik wachsender Müdigkeit, die als „schläfrig" oder „eingenickt" gel
 - Lange Hold-Phasen mit deutlicher Atem-Modulation
 - Audio extrem leise oder kein Audio
 
+## Plattform-Profil
+
+| Plattform | Atem-Modulation | Schaukel-Modulation | Wärme-Aware Idle-Anpassung |
+|---|---|---|---|
+| Reachy Mini (Wireless) | voll | voll | optional via `mini.imu["temperature"]` — bei wärmerem Servo flachere Modulation |
+| Reachy Mini Lite | voll | voll | nicht verfügbar (keine IMU) — feste Modulations-Amplituden laut Tabelle |
+| Simulation | voll (Pose-Werte) | voll | nicht relevant |
+
+Implementierungs-Konsequenz: das Behavior ist auf allen Plattformen voll funktional, weil es nur Pose- und Antennen-Werte schreibt. Die Wärme-Aware-Anpassung ist nur ein Wireless-Nice-to-have — auf Lite und Simulation gelten die in den Phasen-Tabellen gelisteten festen Amplituden. In Simulation entfällt die Audio-Wiedergabe (siehe Audio-Block).
+
 ## Komponenten
 
 ### Aktuator-Sequenz

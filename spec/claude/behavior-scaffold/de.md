@@ -38,9 +38,15 @@ Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home As
 - **MUSS [MUST]** das Behavior-Manifest mit allen Pflicht-Feldern erzeugen (Name, Description, Author, ggf. Version, ggf. SDK-Compat-Range); bei unbekannten Feldern lieber TBD-Stub als raten
 - **MUSS [MUST]** das Behavior-Modul (Python) mit den Lifecycle-Hooks anlegen, die der SDK-Vertrag fordert (z. B. `setup`, `step`, `stop` — exakte Signaturen TBD bis verifiziert)
 - **MUSS [MUST]** ein README- bzw. Docstring-Stub erzeugen, der Beschreibung, beabsichtigte Hardware-Voraussetzungen und einen Quickstart-Block enthält
-- **MUSS [MUST]** einen Test-Stub anlegen, der mindestens das Behavior importiert und die Hook-Signaturen instanziiert; eigentliche Bewegungs-Tests dürfen `> ⚠ TBD: validate against real hardware` sein
+- **MUSS [MUST]** einen Test-Stub anlegen, der gegen `ReachyMini(use_sim=True)` läuft und damit den **plattform-unabhängigen Sanity-Check** abdeckt — mindestens Import des Behaviors, Instanziierung der Hook-Signaturen, ein Tick durch die Move-Loop, sauberer Shutdown; bewegungs-spezifische On-Hardware-Tests dürfen `> ⚠ TBD: validate against real hardware` sein
 - **SOLLTE [SHOULD]** einen `.gitignore`-konformen Ordner-Footprint hinterlassen (keine Cache-, Egg-Info-, IDE-Dateien einchecken)
 - **KANN [MAY]** ein optionales Hugging-Face-Spaces-Manifest mit erzeugen, wenn Publishing absehbar ist; sonst auslassen, statt einen leeren Stub mit zu schreiben
+
+### Plattform-Profile
+- **MUSS [MUST]** den Test-Stub gegen `ReachyMini(use_sim=True)` als Default-Pfad laufen lassen — Simulation ist das einzige Profil, das auch ohne Hardware funktioniert und gehört in jeden CI-Lauf
+- **SOLLTE [SHOULD]** im Test-Stub deutlich kommentieren, welche Aspekte in Simulation _nicht_ geprüft werden können (Audio-Wiedergabe, IMU-Telemetrie, LED-Sync, echte Pose-Erreichung) — Verweis auf `reachy-mini-on-device`-Agent für die On-Hardware-Validierung gegen Wireless oder Lite
+- **MUSS [MUST]** im README-Stub des Behaviors eine Plattform-Tabelle vorgeben, die Wireless / Lite / Simulation und je Plattform die Anwendbarkeit nennt
+- **DARF NICHT [MUST NOT]** im Test-Stub Plattform-spezifische Annahmen hart-codieren (z. B. ein IMU-Lesezugriff, der auf Lite scheitert) — solche Tests sind dem `reachy-mini-on-device`-Agent vorbehalten
 
 ### Validierung vor dem Schreiben
 - **MUSS [MUST]** prüfen, ob ein Behavior mit demselben Namen bereits existiert; bei Kollision abbrechen und den Konflikt-Pfad benennen, statt zu überschreiben
@@ -64,6 +70,9 @@ Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home As
 - [ ] Behavior-Modul enthält die Lifecycle-Hooks (Signaturen TBD-markiert wo unverifiziert) und ist syntaktisch valide
 - [ ] Test-Stub importiert das Behavior und prüft das Vorhandensein der Hooks; bewegungs-spezifische Tests sind TBD-markiert
 - [ ] Bei Namens-Kollision bricht der Skill ab und benennt den existierenden Pfad
+- [ ] Test-Stub läuft gegen `ReachyMini(use_sim=True)` ohne Hardware durch
+- [ ] Test-Stub kommentiert, welche Aspekte Simulation nicht prüfen kann
+- [ ] README-Stub trägt eine Plattform-Tabelle (Wireless / Lite / Simulation)
 - [ ] Behavior-Name wird auf kebab-case und Längen-Grenze validiert; Verstöße brechen mit klarer Fehlermeldung ab
 - [ ] `pre-commit run --all-files` läuft auf den generierten Dateien grün, ohne Auto-Fix-Modifikationen
 - [ ] Generierte Dateien folgen dem offiziellen Pollen-Robotics-Behavior-Layout (sobald verifiziert) bzw. einem klar TBD-markierten Best-Effort-Layout, wenn das Layout im Quellbaum noch nicht final bestätigt ist

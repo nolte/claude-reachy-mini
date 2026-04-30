@@ -12,6 +12,10 @@ A formal single bow: Reachy lowers the head in a dignified, slow motion, holds t
 - Z translation -5 mm during the bow — the whole head lowers, not just the pitch
 - Medium tempo (~2.4 s); `MIN_JERK` only, for the dignity
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

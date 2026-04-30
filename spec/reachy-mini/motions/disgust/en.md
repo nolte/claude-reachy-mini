@@ -14,6 +14,10 @@ The sixth Ekman basal emotion: an aversive turn-away with a small shudder. Reach
 - Small shudder in phase 4 — vibration on roll
 - Fast tempo (~1.5 s)
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

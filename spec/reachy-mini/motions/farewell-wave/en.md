@@ -11,6 +11,10 @@ An open, slightly wistful farewell gesture: like `greeting-wave`, but ends not u
 - **Difference to `greeting-wave`**: after the third wave the pitch lowers instead of going into an up-nod — the pose ends looking-away instead of smiling-at
 - Medium tempo (~2.2 s), slightly longer than `greeting-wave` due to the hold
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

@@ -12,6 +12,10 @@ Eine hochenergetische Geste, die als „aufgeregt" oder „begeistert" gelesen w
 - Hohes Tempo (~2,2 s); Misch-Easing aus `CARTOON` (Hüpfer) und `MIN_JERK` (Übergänge)
 - Im Gegensatz zu `happy`: mehr Hüpfer, schnelleres Tempo, Yaw mit dabei
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

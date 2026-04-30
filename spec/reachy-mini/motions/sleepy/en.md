@@ -13,6 +13,16 @@ A growing-tiredness expression that reads as "sleepy" or "drowsy": Reachy breath
 - Long hold phases with clearly visible breath modulation
 - Audio extremely quiet or no audio
 
+## Platform profile
+
+| Platform | Breath modulation | Sway modulation | Heat-aware idle tuning |
+|---|---|---|---|
+| Reachy Mini (Wireless) | full | full | optional via `mini.imu["temperature"]` — flatter modulation when servos heat up |
+| Reachy Mini Lite | full | full | not available (no IMU) — fixed modulation amplitudes per the tables |
+| Simulation | full (pose values) | full | not relevant |
+
+Implementation consequence: the behavior is fully functional on every platform because it only writes pose and antenna values. Heat-aware tuning is a Wireless-only nice-to-have — on Lite and Simulation the fixed amplitudes from the phase tables apply. Simulation skips audio (see audio block).
+
 ## Components
 
 ### Actuator sequence

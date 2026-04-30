@@ -12,6 +12,10 @@ A small playful gesture: Reachy peeks sideways — body and head turn slightly t
 - Mini yaw search motion during the hold — small left-right within the chosen direction
 - Medium tempo (~2.0 s)
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

@@ -13,6 +13,10 @@ A sudden reaction that reads as "surprised" or "startled": Reachy makes a tiny p
 - Following yaw orientation — "where was it?"
 - Very fast tempo (~1.8 s); a hard `LINEAR` snap for the shock moment
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

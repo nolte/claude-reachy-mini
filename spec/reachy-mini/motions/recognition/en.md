@@ -12,6 +12,10 @@ A quick "I see now" gesture: Reachy makes a brief upward `surprised`-like snap a
 - Body yaw centred
 - Fast tempo (~1.5 s); `EASE_IN_OUT` for the snap, `MIN_JERK` for the nods
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

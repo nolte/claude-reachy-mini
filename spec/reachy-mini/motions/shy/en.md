@@ -12,6 +12,10 @@ A reserved gesture that reads as "embarrassed" or "self-conscious": Reachy turns
 - Small peek-back: a brief glance in phase 3, then turn away again
 - Medium tempo (~2.1 s); `MIN_JERK` and `EASE_IN_OUT` only
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence

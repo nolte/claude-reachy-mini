@@ -56,33 +56,49 @@ You **don't**:
 ## Inputs (required)
 
 - `behavior_path` — local directory of the behavior in the consuming app repo
-- `device` — SSH host (`user@host`, optionally with identity path) or USB device id; format `> ⚠ TBD: validate against real hardware`
+- `platform` — `wireless` / `lite` / `simulation`; chooses the deploy mechanism and the safety-threshold profile
+- `device` — required for `wireless` (SSH host to the robot's IP) and `lite` (SSH host to the **host PC** that holds the Reachy via USB-C); ignored for `simulation`
 - `timeout` — hard wall-clock limit for the trial; on expiry trigger the emergency-stop path
 - `trigger_mode` — `autonomous` (run free) or `interactive` (HA event drives steps via `home-assistant-bridge` patterns)
 
 Optional: `dry_run` (deploy without run), `watch_only` (no deploy), `verbosity` for the summary.
 
+## Platform profiles
+
+| Platform | Deploy path | Telemetry | Safety triggers | Notes |
+|---|---|---|---|---|
+| `wireless` | SSH directly to the robot (Pi OS) or daemon REST | full: IMU (accel, gyro, quat, temp), battery, joint positions @ 50 Hz | IMU temp threshold, battery brown-out, current spike, motion-limit violation | autonomous, can run anywhere on Wi-Fi |
+| `lite` | SSH to the host PC, then daemon REST via the host | no IMU, no battery; daemon-published joint positions and effort/current when available | daemon effort / current, motion-limit violation; **no** IMU/battery triggers | tethered via USB-C; treats missing IMU as norm |
+| `simulation` | no deploy; `ReachyMini(use_sim=True)` in-process | no real sensors (apart from pose read); no audio; no LED | logic triggers only (pose out of URDF range, hook exception, timeout) | fully deterministic; physical-world checks are skipped and listed as `not_applicable_in_simulation` |
+
+Verify the input platform against `DaemonStatus` on connect — a mismatch is a FAIL.
+
 ## Lifecycle (in order)
 
-1. **connect** — read SSH config / env for credentials. Show the host fingerprint on first contact; never auto-accept silently.
-2. **sync code** — `rsync` / `scp` the behavior path to the device. `> ⚠ TBD: pin the canonical deploy protocol against the SDK.`
-3. **install deps** — install pinned dependencies on the device. Skip when unchanged.
+1. **connect** — for `wireless` SSH to the robot; for `lite` SSH to the host PC plus a daemon API probe; for `simulation` no-op (the `use_sim=True` constructor delivers the connection in-process). Show host fingerprint on first contact for `wireless` / `lite`; never auto-accept silently.
+2. **sync code** — `rsync` / `scp` the behavior path to the platform's deploy target (robot for `wireless`, host PC for `lite`); **skipped on `simulation`**.
+3. **install deps** — install pinned dependencies; skip when unchanged; **skipped on `simulation`**.
 4. **start behavior** — launch the behavior in the chosen trigger mode.
-5. **watch & sample** — collect logs and telemetry under timeout; insert health checks (CPU, voltage, temperature when available — `> ⚠ TBD`).
+5. **watch & sample** — collect logs and telemetry under timeout; insert platform-aware health checks (Wireless: IMU temp + battery; Lite: daemon effort/current; Simulation: omit).
 6. **stop** — signal the behavior to wind down cleanly; if it doesn't, escalate to emergency stop.
-7. **disconnect** — close session; never leave dangling SSH connections or orphaned processes.
+7. **disconnect** — close session; never leave dangling SSH connections or orphaned processes; on `simulation` close the SDK context manager.
 
 ## Emergency stop
 
-- Trigger automatically on: timeout exceeded, safety threshold breach (current draw, motion limits, temperature — `> ⚠ TBD: validate thresholds against real hardware`), unrecoverable behavior crash, lost device link with active behavior.
-- Bring the device into a defined rest pose (all joints centred, antennas neutral) — final pose `> ⚠ TBD: validate against real hardware`.
-- Mark the emergency stop as a distinct event in the report.
-- Never reduce it to a log note — physical safety wins.
+- Trigger automatically on (platform-specific):
+  - `wireless` — timeout exceeded, IMU temperature threshold, battery brown-out, current spike, motion-limit violation, unrecoverable behavior crash, lost device link
+  - `lite` — timeout exceeded, daemon effort/current threshold (when available), motion-limit violation, unrecoverable behavior crash, lost USB / SSH link
+  - `simulation` — timeout exceeded, pose outside URDF range, hook exception
+- Bring the device into `INIT_HEAD_POSE` (4×4 identity, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` (verified pose constants in `reachy_mini.py`). Execute the pose reset on `simulation` too for consistency.
+- Mark the emergency stop as a distinct event in the report, including the trigger source and the platform.
+- Never reduce it to a log note on `wireless` or `lite` — physical safety wins.
 
 ## Output schema (returned to caller)
 
 ```
 status: PASS | FAIL | ABORTED
+platform: wireless | lite | simulation
+deploy_path: via_ssh_direct | via_host_usb | in_process
 duration_s: <number>
 hooks:
   setup: { calls: N, mean_ms: M }
@@ -90,6 +106,8 @@ hooks:
   stop:  { calls: N, mean_ms: M }
 anomalies:
   - <one-line per event, e.g. "emergency_stop: current_draw_threshold">
+not_applicable_in_simulation:
+  - <list of skipped checks; only present for platform=simulation>
 log_artifact: .audits/on-device/<timestamp>-<behavior>.log
 ```
 

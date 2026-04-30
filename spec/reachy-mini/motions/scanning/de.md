@@ -12,6 +12,10 @@ Eine ruhige, kontinuierliche Such-Bewegung des Kopfes von links nach rechts (und
 - Body-Yaw folgt dem Head-Yaw weich (IK-gekoppelt) — der ganze Körper schwenkt
 - Langes Tempo (~4,1 s); ausschließlich `EASE_IN_OUT` für die Sweeps
 
+## Plattform-Profil
+
+Bewegungs-Spezifikation gilt auf allen drei Plattformen — **Reachy Mini** (Wireless), **Reachy Mini Lite** und **Simulation**. Aktuator-Set (Stewart-Plattform-Kopf, zwei Antennen, Body-Yaw) ist auf Wireless und Lite identisch. In Simulation laufen alle Pose- und Antennen-Befehle ohne reale Motoren; etwaige Audio-Anteile dieser Sequenz werden auf Simulation übersprungen, ohne das Behavior als Ganzes scheitern zu lassen.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

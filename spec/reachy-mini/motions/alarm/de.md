@@ -12,6 +12,16 @@ Eine harte Warn-Signalisierung mit pulsierender Pose und LED-Pulsen am Mikrofon-
 - Body-Yaw zentriert
 - Schnelles Tempo (~2,0 s); harter `LINEAR`-Snap
 
+## Plattform-Profil
+
+| Plattform | Kopf-Vibration | LED-Pulse | Audio | Strom-Spike-Notstopp |
+|---|---|---|---|---|
+| Reachy Mini (Wireless) | voll | voll, synchron via `audio_control_utils` | voll, hoch (Volume 80) | ja, via IMU- / Daemon-Daten |
+| Reachy Mini Lite | voll | voll, synchron | voll | nur Daemon-publizierte Effort-Daten (kein IMU) |
+| Simulation | voll (Pose-Werte) | nicht verfügbar | nicht verfügbar | nicht verfügbar — Notstopp nur durch Logik-Trigger (Timeout, Pose-Out-of-Range) |
+
+Implementierungs-Konsequenz: in Simulation darf das Behavior **nicht** wegen fehlender LED- oder Audio-Subsysteme fehlschlagen — diese Kanäle sind als optional zu modellieren. Auf Wireless ist die mehrkanalige Anzeige (Bewegung + LED + Audio) **diagnostisch** und Pflicht, weil sie die Erkennbarkeit des Alarms unter Stress sicherstellt. Auf Lite gilt dasselbe wie Wireless mit Ausnahme der IMU-basierten Notstopp-Trigger.
+
 ## Komponenten
 
 ### Aktuator-Sequenz

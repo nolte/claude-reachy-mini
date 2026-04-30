@@ -12,6 +12,10 @@ A confident, presenting gesture: Reachy leans slightly back (X negative), straig
 - Body yaw initially centred; a single yaw swing during the hold "presents" the pose
 - Medium tempo (~2.6 s); `MIN_JERK` with a small `CARTOON` bounce for the rise
 
+## Platform profile
+
+Motion specification applies on all three platforms — **Reachy Mini** (Wireless), **Reachy Mini Lite**, and **Simulation**. The actuator set (Stewart-platform head, two antennas, body yaw) is identical on Wireless and Lite. In simulation every pose and antenna command runs without real motors; any audio portion of this sequence is skipped in simulation without failing the behavior as a whole.
+
 ## Components
 
 ### Actuator sequence
