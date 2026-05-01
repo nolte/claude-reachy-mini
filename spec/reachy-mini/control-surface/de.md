@@ -44,6 +44,38 @@ Steuerbare mechanische Achsen (verifiziert anhand `ReachyMini`-Klassen-API <http
 
 Stewart-Plattform-Joint-Limits (low-level, vom IK abstrahiert; aus [`robot.urdf`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf)): jeder der sechs Aktuatoren `stewart_1`..`stewart_6` hat einen Wertebereich zwischen ungefähr -1,396 rad (-80°) und +1,396 rad (+80°) — asymmetrisch je Joint —, Velocity-Limit 8 rad/s, Effort-Limit 10 N·m. Diese Werte sind die **Hardware-Grenze**; die effektive Head-Pose-Erreichbarkeit ist enger und wird vom IK durchgesetzt.
 
+**Nominal-Operations-Range** (offizielles Hardware-Datasheet, Bild `dof_table.png` auf [`platforms/reachy_mini/hardware`](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/hardware)): die hier genannten Bereiche sind die *empfohlene* Operations-Range, gegen die Behaviors komponiert werden sollten. Sie sind enger als die obigen kinematischen Maxima und stellen sicher, dass das Gerät die Pose zuverlässig erreicht.
+
+| Achse | Min | Max |
+|---|---|---|
+| Tx (Kopf) | −1,5 cm | +2,5 cm |
+| Ty (Kopf) | −4 cm | +4 cm |
+| Tz (Kopf) | −4 cm | +2,5 cm |
+| Rx (Head-Roll) | −40° | +40° |
+| Ry (Head-Pitch) | −40° | +40° |
+| Rz (Head-Yaw) | −60° | +60° |
+| Rz (Body-Yaw) | −155° | +155° |
+| R (Antenne rechts) | −180° | +180° |
+| R (Antenne links) | −180° | +180° |
+
+**Motor-IDs am Dynamixel-Bus** (aus `motors_detail.png` derselben Hardware-Seite) — direkt verwendbar mit `enable_motors(ids)` / `disable_motors(ids)`:
+
+| Subsystem | Bezeichner | ID |
+|---|---|---|
+| Body-Yaw | Motor F | 10 |
+| Stewart 1 | Motor 1 | 11 |
+| Stewart 2 | Motor 2 | 12 |
+| Stewart 3 | Motor 3 | 13 |
+| Stewart 4 | Motor 4 | 14 |
+| Stewart 5 | Motor 5 | 15 |
+| Stewart 6 | Motor 6 | 16 |
+| Antenne rechts | — | 17 |
+| Antenne links | — | 18 |
+
+> **Hinweis zur Quellen-Konsistenz**: Die offizielle Hardware-Seite enthält zwei textuell-bildliche Inkonsistenzen, bei denen wir dem Begleittext folgen — nicht den Bild-Beschriftungen:
+> 1. `motors_detail.png` beschriftet die Antennen-Motoren mit „XL330 M288-T" und den Body-Motor mit „XL330 M288PG-T". Der Begleittext nennt korrekt **XL330-M077-T** (Antennen) bzw. **custom XC330-M288-PG** (Body) und verlinkt jeweils das Robotis-Datasheet.
+> 2. Im Bild `electronics.png` heißt die Wireless-Steuerelektronik „Wireless Control Board"; im Begleittext heißt sie „CM4 Controller Board" — beide bezeichnen dasselbe Bauteil.
+
 Konkrete Schreibe-API-Doku: <https://huggingface.co/docs/reachy_mini/API/reachymini>. Pose-Builder: <https://huggingface.co/docs/reachy_mini/API/tools>.
 
 Anforderungen an die Inventar-Pflege:
@@ -72,8 +104,8 @@ Anforderungen:
 
 | Subsystem | Eigenschaft | Lese-API | Doku |
 |---|---|---|---|
-| Mikrofon-Array | 4× PDM MEMS digital, 16 kHz Samplerate (Hardware), -26 dB FS Empfindlichkeit, Direction-of-Arrival; Mic-Lautstärke 0–100 ([`SetMicrophoneVolumeCmd`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)) | über `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), Beispiel [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
-| Kamera | Raspberry Pi v3 Wide Angle (Sony IMX708, 12 MP, Autofokus); konkrete Stream-Parameter `> ⚠ TBD: validate against current backend` | über `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), Beispiel [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
+| Mikrofon-Array | 4× PDM MEMS digital, 16 kHz Samplerate (Hardware), -26 dB FS Empfindlichkeit, 64 dBA SNR, Direction-of-Arrival; basiert auf dem Seeed-Studio reSpeaker XMOS XVF3800; Mic-Lautstärke 0–100 ([`SetMicrophoneVolumeCmd`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)) | über `mini.media` (`MediaManager`) | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), [`SDK/media-architecture`](https://huggingface.co/docs/reachy_mini/SDK/media-architecture), Beispiel [`sound_doa`](https://huggingface.co/docs/reachy_mini/examples/sound_doa) |
+| Kamera | Raspberry Pi v3 Wide Angle (Sony IMX708, 12 MP, Autofokus, 120° Sichtfeld); montiert in der zentralen Brückenlinse zwischen den (rein dekorativen) Augen — das u/v-Frame in `look_at_image(u, v, …)` bezieht sich auf diese Position, nicht auf die Augen; konkrete Stream-Parameter `> ⚠ TBD: validate against current backend` | über `mini.media.camera` | [`API/media`](https://huggingface.co/docs/reachy_mini/API/media), Beispiel [`take_picture`](https://huggingface.co/docs/reachy_mini/examples/take_picture) |
 | IMU (**nur Wireless**) | Accelerometer (`accelerometer: list[float]`), Gyroscope (`gyroscope: list[float]`), Quaternion (`quaternion: list[float]`), Temperatur (`temperature: float`); Daten werden vom Daemon mit 50 Hz publiziert ([`ImuDataMsg`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py)). Auf Lite und Simulation gibt `mini.imu` `None` zurück. | `mini.imu` (Property → `Dict \| None`) | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini), Beispiel [`imu`](https://huggingface.co/docs/reachy_mini/examples/imu) |
 | Position-Feedback Kopf | aktuelle 4×4-Pose | `mini.get_current_head_pose() -> np.ndarray` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
 | Position-Feedback Antennen + Joints | Joint-Winkel | `mini.get_current_joint_positions()`, `mini.get_present_antenna_joint_positions()` | [`API/reachymini`](https://huggingface.co/docs/reachy_mini/API/reachymini) |
@@ -89,8 +121,8 @@ Anforderungen:
 
 Pollen Robotics liefert die `ReachyMini`-API auf drei Plattformen aus, mit denselben Methoden, aber unterschiedlichem Compute- und Aktuator-Profil:
 
-- **Reachy Mini** (Wireless) — eingebauter Raspberry Pi 4 Compute Module (CM4104016, 4 GB RAM, 16 GB Flash), 2,4–5 GHz Dual-Band-Patch-Antenne, LiFePO4-Akku 2000 mAh / 6,4 V / 12,8 Wh; vollständiger Feature-Satz, autark. Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started>
-- **Reachy Mini Lite** — an einen Host-Rechner per USB-C gebunden (USB-C lädt nicht), externe Spannungsversorgung 6,8–7,6 V; Host übernimmt heavy-lift, gleiche Aktuator-Ausstattung wie Wireless. Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started>
+- **Reachy Mini** (Wireless) — eigene Wireless Control Board (Raspberry Pi 4 Compute Module CM4104016, 4 GB RAM, 16 GB Flash) und Wireless Power Board, LiFePO4-Akku 2000 mAh / 6,4 V / 12,8 Wh mit Schutzfunktionen (Over-Charge, Over-Discharge, Over-Current, Short, Temperatur-Sensor), 2,4–5 GHz Dual-Band-Patch-Antenne (2,79 dBi, omnidirektional); vollständiger Feature-Satz, autark. Rückseiten-Bedienelemente siehe Abschnitt „Rückseiten-Interface". Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started>
+- **Reachy Mini Lite** — eigene Lite Control Board und Lite Power Board (kein CM4, kein Akku), USB-C zum Host-Rechner als Daten- und High-Level-Compute-Verbindung, externe 6,8–7,6 V Spannungsversorgung (separater Versorgungs-Anschluss, **nicht** über USB-C); gleiche Aktuator-Ausstattung wie Wireless (Stewart, Antennen, Body-Yaw, Mic-Array, Kamera, Lautsprecher) — nur die IMU-Telemetrie ist Wireless-only. Doku: <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started>
 - **Simulation** — softwareseitig, gleiche `ReachyMini`-API ohne reale Motoren; nutzbar für CI, Tests, Code-Erprobung ohne Gerät. Konstruktor-Argument `use_sim=True`. Doku: <https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started>
 
 Anforderungen:
@@ -98,6 +130,40 @@ Anforderungen:
 - **MUSS [MUST]** im Code sichtbar machen, gegen welche Plattform eine Bewegung geschrieben ist; eine Bewegung mit hoher Update-Frequenz, die für Wireless ausgelegt ist, darf nicht ungeprüft auf Lite oder Simulation laufen
 - **SOLLTE [SHOULD]** einen Weg vorsehen, die Plattform zur Laufzeit zu erkennen (Capability-Discovery, `> ⚠ TBD` ob das SDK eine direkte Variant-Property exponiert; Konstruktor-Argument `use_sim` ist verifiziert verfügbar)
 - **MUSS [MUST]** Bewegungen, die Hardware-Eigenschaften voraussetzen (z. B. echte Audio-Wiedergabe, IMU-Werte), in der Simulation explizit gegenüber dem Caller signalisieren statt stillschweigend No-Op zu fahren
+
+### Mechanisches Profil
+
+Aus dem offiziellen Hardware-Datasheet (Bild `reachy_mini_dimensions.png` auf [`platforms/reachy_mini/hardware`](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/hardware)):
+
+- Maße (extended, Antennen aufrecht): **30 cm Höhe × 20 cm Tiefe × 15,5 cm Breite**
+- Body-Höhe in Nominal Position (ohne Antennen): 27,5 cm
+- Antennen-Höhe (allein): 14 cm
+- Sleeping pos: kompakte Silhouette, Höhe ~15,5 cm (Antennen klappen seitlich an)
+- Masse: **1,475 kg**
+- Materialien: ABS, PC, Aluminium, Stahl
+
+Behavior-Implikationen:
+
+- **MUSS [MUST]** Look-Targets in `look_at_world(x, y, z, …)` so wählen, dass das Sichtfeld der Brücken-Kamera (120°, in Nominal-Höhe ca. 27,5 cm über Standfläche) das Ziel umfasst — die Augen sind dekorativ, die Kamera liegt zwischen ihnen
+- **MUSS [MUST]** Stell-Vorbedingungen auf 20 × 15,5 cm Footprint plus zusätzlichen Bewegungs-Freiraum für die Antennen berechnen
+- **SOLLTE [SHOULD]** `goto_sleep()` für Transport- und Aufbewahrungs-Befehle nutzen — das Gerät nimmt dabei die kompakte Sleeping pos an
+
+### Rückseiten-Interface (Wireless)
+
+An der Rückseite des Gehäuses sitzen vier Bedienelemente (Bild `back_interface.png` auf [`platforms/reachy_mini/hardware`](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/hardware)):
+
+| Element | Funktion | Behavior-Relevanz |
+|---|---|---|
+| **USB-C** | Peripherie-**Output** (z. B. USB-Stick, USB-Audio-Device); CM4 als USB-Host | **lädt das Gerät nicht** — separater Anschluss für Versorgung |
+| **Power supply** | Eigener Lade- / Versorgungs-Anschluss, 6,8–7,6 V | hier kommt der Strom rein, nicht über USB-C |
+| **On/Off-Schalter** | Physischer Hardware-Schalter | Hard-Off umgeht den SDK-Notstopp-Pfad — Gerät kann in einer ungesicherten Pose stehen bleiben, wenn vor `goto_sleep()` ausgeschaltet wird |
+| **LED Indicator** | Status-LED (Power / Boot / Ready) | einziger Power-/Boot-Status ohne API-Lese-Zugriff — nicht programmatisch abfragbar |
+
+Anforderungen:
+
+- **MUSS [MUST]** Lade-/Versorgungs-Logik vom USB-C-Output trennen — beides sind separate physische Anschlüsse mit unterschiedlicher Funktion
+- **MUSS [MUST]** vor einem geplanten Hard-Off `goto_sleep()` aufrufen, um Aktuatoren in eine sichere Pose zu bringen
+- **SOLLTE [SHOULD]** im Behavior-Tutorial den On/Off-Schalter und die Status-LED als nicht-API-Pfad benennen, damit konsumierende Skills sie nicht als Lese-Quelle modellieren
 
 ### Steuerungs-Schichten
 
@@ -235,9 +301,14 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 
 ## Akzeptanzkriterien
 - [ ] Jeder Aktuator (Kopf, Antennen, Body-Yaw) ist mit DoF, Achsen und Wertebereich (oder TBD) gelistet
+- [ ] Nominal-Operations-Range aus dem offiziellen Hardware-Datasheet ist zusätzlich zur kinematischen Maximalrange ausgewiesen
+- [ ] Motor-IDs (Body, Stewart 1–6, Antennen) sind tabelliert und der API `enable_motors` / `disable_motors` zugeordnet
+- [ ] Mechanisches Profil (Maße extended + sleeping pos, Masse, Materialien) ist gelistet
+- [ ] Rückseiten-Interface (USB-C, Power supply, On/Off-Schalter, Status-LED) ist als eigene Tabelle dokumentiert
 - [ ] Jeder Output (Lautsprecher, LED-Ring am Mic-Modul) ist mit Steuer-Modalität gelistet; das Fehlen eines programmierbaren Augen-Displays ist explizit benannt
-- [ ] Jeder Sensor (Mikrofone, Kamera, IMU, Position-Feedback) ist mit Lese-API-Form gelistet
-- [ ] Drei Plattformen (Reachy Mini, Reachy Mini Lite, Simulation) sind benannt; aktuator- und CPU-budget-seitige Unterschiede sind aufgeführt
+- [ ] Jeder Sensor (Mikrofone mit SNR + Chip-Bezeichnung, Kamera mit FoV + Position, IMU, Position-Feedback) ist mit Lese-API-Form gelistet
+- [ ] Drei Plattformen (Reachy Mini, Reachy Mini Lite, Simulation) sind benannt; aktuator- und CPU-budget-seitige Unterschiede sind aufgeführt; Lite hat eigene Lite Control + Lite Power Board (kein „dummes Kabel zum Host")
+- [ ] Drift-Risiko zwischen offiziellem Begleittext und Bildern ist als Quellen-Hinweis festgehalten
 - [ ] API-Referenz-Übersicht enthält für jeden steuerbaren Bereich einen direkten Link auf die hosted Doku oder das Source-Modul
 - [ ] Vier Steuerungs-Schichten sind beschrieben mit Anwendungsfall, API-Form, Interrupt-Modell
 - [ ] Ein einheitliches Einheiten-System (rad, mm, s) ist gesetzt
@@ -247,7 +318,7 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 - [ ] Mindestens 10 Patterns für natürliche, flüssige Bewegung sind dokumentiert
 - [ ] Mindestens 9 Anti-Patterns sind dokumentiert
 - [ ] Beobachtbarkeit (Position-Read, Latenz-Trace, Telemetrie) ist als Anforderung geführt
-- [ ] Alle hardware-spezifischen Zahlen tragen einen `⚠ TBD`-Hinweis
+- [ ] Hardware-Zahlen, die nicht aus offizieller Doku oder SDK-Source verifiziert sind, tragen einen `⚠ TBD`-Hinweis
 - [ ] `reachy-mini-sdk`-Skill verweist auf diese Spec als kanonische Wissensbasis
 - [ ] `behavior-scaffold`-Skill verweist auf diese Spec für Move-Primitives und Default-Easings
 
