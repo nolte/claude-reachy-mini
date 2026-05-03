@@ -44,6 +44,7 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - **MUST** verify every planned slug against that directory before writing; a missing slug aborts the skill and names the conflict
 - **MUST** treat the dance blocks as the **primary channel**: `groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`
 - **SHOULD** use emotion blocks (`happy`, `excited`, `proud`, `surprised`, `shy`, `confused`, `curious`, `sad`, `angry`, `disappointed`, `disgust`, `sleepy`) as **accent inserts** between dance sections or at section transitions, not as the rhythmic main channel
+- **SHOULD** also allow social blocks (`bow`, `agreeing-nod`, `disagreeing-shake`, `recognition`, `peek`, `greeting-wave`, `farewell-wave`) as **accent inserts** when the semantics of the song call for it — `bow` for dignified / historical / political tracks, `agreeing-nod` for affirmative hooks, `recognition` for an "aha" moment in a bridge, `greeting-wave` / `farewell-wave` as opening or closing gesture. Selection heuristic: emotion accents carry the *mood*, social accents carry the *gesture* — both may appear in the same choreography, but per section at most one `accent_slug` still holds
 - **SHOULD** use state blocks (`waiting-idle`, `alert-listening`, `thinking`) for the outro idle phase after the song or for a calm bridge
 - **MUST NOT** include defensive blocks (`flinch`, `alarm`, `scanning`) in any choreography — they are semantically unrelated to dancing
 - **MAY** raise an "Open Questions" hint at the end of the choreography about a missing block as a future motion spec — never invent a slug and use it
@@ -145,7 +146,8 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - [ ] The skill lives under `skills/dance-choreography/SKILL.md` with valid frontmatter (`name: dance-choreography`, `description`, optional tags) and is accepted by the catalog generator
 - [ ] A test invocation with name, BPM, and duration produces a choreography file with YAML frontmatter and Markdown body
 - [ ] Every section slug in the generated file exists as a folder under `spec/reachy-mini/motions/`
-- [ ] Dance blocks (`groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`) are the primary slugs in dance sections; emotion blocks appear at most as `accent_slug`
+- [ ] Dance blocks (`groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`) are the primary slugs in dance sections; emotion and social blocks appear at most as `accent_slug`, never as the rhythmic main channel
+- [ ] Per section, at most one `accent_slug` is set — no mixing of emotion and social accents in the same section
 - [ ] BPM values per section sit inside the range defined by the motion spec
 - [ ] On platform `wireless` or `lite`, a choreography using `headbang-soft` schedules a cool-down section between bursts of ≥ 8 bangs
 - [ ] On platform `simulation`, the Markdown body explicitly names which aspects are not validated (audio, IMU, servo heat)
