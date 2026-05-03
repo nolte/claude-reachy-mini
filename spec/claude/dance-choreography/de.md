@@ -44,6 +44,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - **MUSS [MUST]** vor dem Schreiben jeden geplanten Slug gegen das Verzeichnis verifizieren; ein fehlender Slug bricht den Skill ab und nennt den Konflikt
 - **MUSS [MUST]** die Tanz-Bausteine als **Primärkanal** behandeln: `groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`
 - **SOLLTE [SHOULD]** Emotion-Bausteine (`happy`, `excited`, `proud`, `surprised`, `shy`, `confused`, `curious`, `sad`, `angry`, `disappointed`, `disgust`, `sleepy`) als **Akzent-Inserts** zwischen Tanz-Sektionen oder am Sektions-Übergang vorsehen, nicht als rhythmischen Hauptkanal
+- **SOLLTE [SHOULD]** Social-Bausteine (`bow`, `agreeing-nod`, `disagreeing-shake`, `recognition`, `peek`, `greeting-wave`, `farewell-wave`) ebenfalls als **Akzent-Inserts** erlauben, wenn die Semantik des Lieds danach verlangt — `bow` für würdevolle / historische / politische Stücke, `agreeing-nod` für affirmative Hooks, `recognition` für „Aha"-Momente in einer Bridge, `greeting-wave` / `farewell-wave` als Eröffnungs- bzw. Schluss-Geste. Auswahl-Heuristik: Emotion-Akzente tragen die *Stimmung*, Social-Akzente tragen die *Geste* — beides darf in derselben Choreographie vorkommen, aber pro Sektion gilt weiterhin höchstens ein `accent_slug`
 - **SOLLTE [SHOULD]** State-Bausteine (`waiting-idle`, `alert-listening`, `thinking`) für die Outro-Idle-Phase nach dem Lied bzw. für eine ruhige Bridge nutzen
 - **DARF NICHT [MUST NOT]** Defensive-Bausteine (`flinch`, `alarm`, `scanning`) in einer Choreographie führen — sie haben semantisch nichts mit Tanz zu tun
 - **KANN [MAY]** in einer „Open Questions"-Sektion am Ende der Choreographie einen Hinweis auf einen fehlenden Baustein als zukünftige Motion-Spec aufwerfen — niemals selbst einen Slug erfinden und einsetzen
@@ -145,7 +146,8 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - [ ] Der Skill ist unter `skills/dance-choreography/SKILL.md` mit gültiger Frontmatter (`name: dance-choreography`, `description`, optionale Tags) angelegt und wird vom Katalog-Generator akzeptiert
 - [ ] Ein Test-Aufruf mit Name, BPM und Dauer erzeugt eine Choreographie-Datei mit YAML-Frontmatter und Markdown-Body
 - [ ] Alle Sektions-Slugs in der erzeugten Datei existieren als Ordner unter `spec/reachy-mini/motions/`
-- [ ] Tanz-Bausteine (`groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`) sind die Primär-Slugs in den Tanz-Sektionen; Emotion-Bausteine erscheinen höchstens als `accent_slug`
+- [ ] Tanz-Bausteine (`groove-bob`, `sway-side`, `headbang-soft`, `spin-look-around`) sind die Primär-Slugs in den Tanz-Sektionen; Emotion- und Social-Bausteine erscheinen höchstens als `accent_slug`, niemals als rhythmischer Hauptkanal
+- [ ] Pro Sektion ist höchstens ein `accent_slug` gesetzt — kein Mischen von Emotion- und Social-Akzent in derselben Sektion
 - [ ] BPM-Werte je Sektion liegen innerhalb der in der Motion-Spec definierten Range
 - [ ] Bei Plattform `wireless` oder `lite` setzt eine Choreographie mit `headbang-soft` eine Cool-down-Sektion zwischen ≥ 8-Bang-Bursts
 - [ ] Bei Plattform `simulation` ist im Markdown-Body explizit benannt, welche Aspekte nicht geprüft sind (Audio, IMU, Servo-Wärme)

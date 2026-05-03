@@ -150,7 +150,7 @@ The exact block selection per section follows the section heuristic from the spe
 - `outro`: soft fade back to `groove-bob` or `sway-side` at low BPM
 - `outro-idle`: `waiting-idle` with `loop_count: null` (unbounded, until external stop)
 
-Emotion blocks (`happy`, `excited`, `proud`, `surprised`, `shy`, `confused`, `curious`, `sad`, `angry`, `disappointed`, `disgust`, `sleepy`) are allowed only as `accent_slug` between dance sections — never as the rhythmic main slug. State blocks (`waiting-idle`, `alert-listening`, `thinking`) are allowed for `intro` / `bridge` / `outro-idle`. Defensive blocks (`flinch`, `alarm`, `scanning`) are forbidden in any choreography.
+Emotion blocks (`happy`, `excited`, `proud`, `surprised`, `shy`, `confused`, `curious`, `sad`, `angry`, `disappointed`, `disgust`, `sleepy`) are allowed only as `accent_slug` between dance sections — never as the rhythmic main slug. Social blocks (`bow`, `agreeing-nod`, `disagreeing-shake`, `recognition`, `peek`, `greeting-wave`, `farewell-wave`) are also allowed as `accent_slug` when the song's semantics call for a *gesture* rather than a *mood* — `bow` for dignified / historical / political tracks, `agreeing-nod` for affirmative hooks, `recognition` for an "aha" moment in a bridge, `greeting-wave` / `farewell-wave` as opening or closing gesture. Per section, at most one `accent_slug` is set — emotion and social accents never mix in the same section. State blocks (`waiting-idle`, `alert-listening`, `thinking`) are allowed for `intro` / `bridge` / `outro-idle`. Defensive blocks (`flinch`, `alarm`, `scanning`) are forbidden in any choreography.
 
 ## Hard rules / out of scope
 
