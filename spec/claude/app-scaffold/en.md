@@ -3,79 +3,92 @@
 Status: draft
 
 ## Context
-Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") are the primary deliverable of app development built around this plugin. Pollen Robotics / Hugging Face define a canonical repository and module shape that keeps behaviors loadable and publishable. Hand-rolled scaffolds tend to drift on detail conventions — manifest fields, hook signatures, test layout — and that drift only surfaces on the first load or publish attempt. The `app-scaffold` skill produces the complete, valid skeleton of a new behavior so the developer only has to fill in the motion logic. It complements the `reachy-mini-sdk` skill (knowledge base) on the writing path and delegates everything beyond the skeleton to specialised skills.
+A **Reachy Mini app** in Pollen's sense (a Hugging-Face-Space-publishable Python package with the `reachy_mini_python_app` tag, an entry point in the `reachy_mini_apps` group, and a `ReachyMiniApp` subclass with `run(self, reachy_mini, stop_event)`) is the primary deliverable of app development built around this plugin. Pollen ships an official CLI tool — `reachy-mini-app-assistant create` — that scaffolds the skeleton 1:1 to the Pollen convention (`pyproject.toml` with the entry point, `README.md` with the HF frontmatter tag, `index.html` / `style.css` for the HF Space landing page, `<pkg>/main.py` with the `ReachyMiniApp` class, optional `<pkg>/static/` for a web UI). Pollen's own docs are explicit: "**Never create app folders manually.** Manual creation leads to subtle issues that are hard to debug." This `app-scaffold` skill is therefore a **thin wrapper** around `reachy-mini-app-assistant create`, augments the result with provenance markers (a pointer back to this plugin), and creates a `plan.md` stub with a user-approval gate so Claude Code sessions align on requirements with the user before the first code commit. The skill complements the `reachy-mini-sdk` skill (knowledge base) on the writing path and delegates everything beyond the skeleton to specialised skills.
+
+Terminology: "app" and "behavior" are sometimes used interchangeably in this plugin. Strictly speaking, this skill scaffolds a **Pollen app** (the Hugging-Face-publishable package); inside it, one or more **behaviors** (Move subclasses, motion logic) can live. The neighbouring spec [`reachy-mini/app-architecture`](../../reachy-mini/app-architecture/en.md) describes the relationship in detail.
 
 ## Goals
-- A new behavior is structurally complete after a single skill invocation — manifest, module, hooks, test stub, docs stub
-- The skeleton follows the official Pollen Robotics behavior convention and is Hugging Face compatible if a future publish is wanted
-- Name collisions with existing behaviors are caught before any file is written
-- Generated files are syntactically valid out of the box and pass the repo's lint / pre-commit standards
-- The skill stays narrow: it ships the skeleton, not the logic, and delegates neighbouring concerns to the relevant skills
+- A new Reachy Mini app is structurally complete after a single skill invocation — through Pollen's official `reachy-mini-app-assistant create`, augmented with provenance markers and a `plan.md` stub
+- The skeleton follows the official Pollen Robotics app convention and is Hugging Face compatible, with `--publish` as the default
+- Name collisions with existing app names are caught before anything is written
+- Before the first code commit the skill enforces a user gate via `plan.md` (Pollen's AGENTS.md convention)
+- The skill stays narrow: it calls the official CLI, augments provenance, and delegates neighbouring concerns to the relevant skills
 
 ## Non-Goals
 - Concrete motion or dance logic (the developer's job; SDK knowledge lives in `reachy-mini-sdk`)
-- Publishing the behavior to Hugging Face Spaces / Hub (separate skill `behavior-publish-hf` planned)
+- Re-implementing the Pollen CLI layout — the skill **must** call `reachy-mini-app-assistant create`, never write the manifest, `pyproject.toml`, `main.py`, or `README.md` itself
+- JS-only / web-only apps (Pollen docs: "JS-only apps are not yet supported for discovery/sharing"); this skill scaffolds Python apps with an optional `static/` web UI only
+- Publishing the app to Hugging Face beyond what the CLI does (`reachy-mini-app-assistant publish` is a separate step; a dedicated `behavior-publish-hf` skill is planned for custom workflows)
 - Audio analysis, beat / tempo detection (separate skill `audio-beat-tracking` planned)
-- Home Assistant wiring of the behavior (separate skill `home-assistant-bridge`)
+- Home Assistant wiring of the app (separate skill `home-assistant-bridge`)
 - Live deployment / on-device testing (separate agent `reachy-mini-on-device`)
-- Behavior refactoring or migration to a new SDK major version
+- App refactoring or migration to a new SDK major version
 
 ## Requirements
 
 ### Triggering and activation
-- **MUST** ship a `description` tight enough for Claude Code to activate on phrasings like "scaffold a new Reachy behavior", "create reachy mini behavior", "start a new dance behavior"
-- **MUST** include the key terms in the `description`: behavior, scaffold, Reachy Mini, new
-- **SHOULD** state explicitly when _not_ to activate (e.g. when an existing behavior is only being edited or published)
+- **MUST** ship a `description` tight enough for Claude Code to activate on phrasings like "scaffold a new Reachy Mini app", "scaffold a new Reachy behavior", "create reachy mini app", "start a new dance app", "new behavior skeleton for Reachy Mini"
+- **MUST** include the key terms in the `description`: app, scaffold, Reachy Mini, new (plus `behavior` as a synonym)
+- **SHOULD** state explicitly when _not_ to activate (e.g. when an existing app is only being edited or published)
 
 ### Input parameters
-- **MUST** require at least the behavior name, normalised to ASCII kebab-case
-- **MUST** accept a short description (1–3 sentences) for the behavior manifest and the docs stub
-- **SHOULD** optionally accept author (default from `git config user.name`/`user.email`) and tags (kebab-case, ≤5)
-- **SHOULD** make the target path configurable (default: the consuming repo's standard behaviors directory, discovered by convention or configuration)
+- **MUST** require the app name as a mandatory parameter, ASCII kebab-case (`reachy-mini-show`); the CLI normalises internally to snake_case (`reachy_mini_show`) for the Python package name
+- **MUST** require the target path (the parent directory under which the CLI creates the app folder)
+- **MUST** accept a short description (1–3 sentences) for `pyproject.toml` / `README.md`
+- **SHOULD** accept a **`template` parameter** (`default` | `conversation`) — for LLM / speech apps mandatory `conversation` (forked from the official conversation app template, including audio pipeline and FastAPI settings UI), otherwise `default`. Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/create-app.md> § Choose a Template
+- **SHOULD** accept a **`publish` flag** (`true` | `false`) — default `true` (Pollen convention: "**Always use `--publish` unless the user explicitly requests a local-only app**"); on `true` the Hugging Face Space is created with a git remote
+- **SHOULD** optionally accept author (default from `git config user.name`/`user.email`) and tags if the Pollen CLI takes them as flags; otherwise post-process the generated `pyproject.toml`
 
-### Generated artifacts
-- **MUST** create a behavior folder whose layout matches the official Pollen Robotics convention — the exact layout is `> ⚠ TBD: validate against pollen-robotics/reachy_mini` (source: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>) and is confirmed before the skill is implemented
-- **MUST** emit the behavior manifest with all required fields (name, description, author, optional version, optional SDK-compat range); for unknown detail fields, prefer a TBD stub over guessing
-- **MUST** emit the behavior module (Python) with the lifecycle hooks the SDK contract requires (e.g. `setup`, `step`, `stop` — exact signatures TBD until verified)
-- **MUST** emit a README / docstring stub containing description, intended hardware preconditions, and a quickstart block
-- **MUST** emit a test stub that runs against `ReachyMini(spawn_daemon=True, use_sim=True)` and thereby covers the **platform-independent sanity check** — at minimum import the behavior, instantiate the hook signatures, run one tick through the move loop, clean shutdown; motion-specific on-hardware tests may be `> ⚠ TBD: validate against real hardware`
-- **SHOULD** leave a `.gitignore`-friendly footprint (no caches, egg-info, IDE files committed)
-- **MAY** also emit an optional Hugging Face Spaces manifest when publishing is foreseeable; otherwise omit rather than ship an empty stub
+### Pre-flight obligations (before any write)
+- **MUST** verify before the CLI call that `reachy-mini-app-assistant` is on PATH; if absent, abort with clear instructions (`uv tool install reachy-mini` or `uv pip install reachy-mini` in the active venv)
+- **MUST** on `publish=true` verify `hf auth whoami` upfront; without a valid login abort with instructions (`uv pip install --upgrade huggingface_hub && hf auth login`, token with **Write** permission). Never silently fall back to `publish=false`.
+- **MUST** check the target directory `<target_dir>/<name>/` for existence; on collision abort and name the conflicting path rather than overwrite
+
+### Generated artifacts (via the official CLI)
+- **MUST** create the skeleton via `reachy-mini-app-assistant create <name> <target_dir> [--publish] [--template default|conversation]`; **MUST NOT** write the manifest, `pyproject.toml`, `main.py`, `README.md`, `index.html`, `style.css`, or the entry-point declaration itself — Pollen's docs are explicit: "**Never create app folders manually**. Manual creation leads to subtle issues that are hard to debug." If the CLI is missing or fails, abort, do not reconstruct the skeleton by hand.
+- **MUST** verify the result after the CLI run via `reachy-mini-app-assistant check <path>`; a failing check aborts the skill
+- **MUST** post-process provenance markers afterwards:
+  - in `pyproject.toml` add a `[project.urls]` block with `Plugin = "https://github.com/nolte/claude-reachy-mini"`, `SDK = "https://github.com/pollen-robotics/reachy_mini"`, `Specs = "https://github.com/nolte/claude-reachy-mini/tree/develop/spec/reachy-mini/"`
+  - create a `CLAUDE.md` at the app repo root that names the recommended plugin skills (`reachy-mini-sdk`, `app-scaffold`, agent `reachy-mini-on-device`) and links the plugin repo
+  - inject a provenance block into `README.md` directly after the HF frontmatter
+- **MUST** create a `plan.md` stub in the app directory with the four required sections: (1) Understanding (what the app should do, in own words), (2) Technical approach (which SDK methods, which platform profiles), (3) Open questions (with empty answer fields), (4) User-approval gate. Source: Pollen's AGENTS.md, <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+- **MUST** add a smoke-test stub (`tests/test_smoke.py`) that runs against `ReachyMini(spawn_daemon=True, use_sim=True)` and at minimum verifies import + class instantiation + one `set_target` tick; guard the runtime test on GStreamer availability via a skip condition
+- **MUST NOT** scaffold a JS-only / web-only skeleton — Pollen docs: "JS-only apps are not yet supported for discovery/sharing." Discovery via Hugging Face requires a Python app; web UI lives (optionally) as a `static/` subfolder inside the Python package.
+
+### User-approval gate before first code commit (AGENTS.md convention)
+- **MUST** after creating `plan.md` and before any first code commit, explicitly wait for user approval; the next-steps checklist must list this gate as the first step
+- **MUST NOT** make the first code commit (behavior logic, Move subclasses, etc.) without user confirmation of `plan.md` — the plan is Pollen's mechanism for catching approach drift early
 
 ### Platform profiles
 - **MUST** run the test stub against `ReachyMini(spawn_daemon=True, use_sim=True)` as the default path — Simulation is the only profile that works without hardware and belongs in every CI run
 - **SHOULD** annotate clearly in the test stub which aspects can **not** be checked in simulation (audio playback, IMU telemetry, LED sync, real pose reach) — pointer to the `reachy-mini-on-device` agent for on-hardware validation against Wireless or Lite
-- **MUST** include in the behavior README stub a platform table that names Wireless / Lite / Simulation and the applicability per platform
+- **MUST** include in the app's README stub a platform table that names Wireless / Lite / Simulation and the applicability per platform
 - **MUST NOT** hard-code platform-specific assumptions in the test stub (e.g. an IMU read that fails on Lite) — those checks are the `reachy-mini-on-device` agent's territory
 
-### Pre-write validation
-- **MUST** check whether a behavior with the same name already exists; on collision, abort and name the conflicting path rather than overwrite
-- **MUST** validate the behavior name against the SDK and Hugging Face naming rules (kebab-case, ASCII, ≤<TBD> chars) — exact limits confirmed before the skill is implemented
-- **SHOULD** read the `reachy_mini` SDK pin to use from the consuming repo's configuration (not guessed in the skill body); if the consuming repo lacks an SDK pin, abort with a clear error
-
 ### Consistency with repo standards
-- **MUST** emit files such that `pre-commit run --all-files` passes without auto-fix changes (correct newlines, no trailing whitespace, valid YAML / JSON)
-- **MUST** mark every hardware-dependent assumption with `> ⚠ TBD: validate against real hardware` rather than stating it as fact
-- **SHOULD** return a short next-steps checklist after the scaffold (e.g. "set the SDK pin in the manifest, fill the hooks, run the on-device agent X")
+- **MUST** ensure that the CLI-generated files plus the provenance post-processing edits together pass `pre-commit run --all-files` without auto-fix changes
+- **SHOULD** return a short next-steps checklist after the scaffold (e.g. "1. fill plan.md and get user approval, 2. confirm SDK pin, 3. fill `ReachyMiniApp.run()`, 4. on-device test with agent X")
 
 ### Out-of-scope clarification
-- **MUST NOT** pre-implement motion logic in the behavior module beyond a clearly marked example stub; that is the developer's job
-- **MUST NOT** auto-publish the behavior to Hugging Face or expect credentials for it; publishing belongs to `behavior-publish-hf`
+- **MUST NOT** pre-implement motion logic in `main.py` beyond what the CLI ships as a demo; that is the developer's job
+- **MUST NOT** silently override `reachy-mini-app-assistant` defaults the user did not explicitly waive (e.g. silently disable `--publish` because HF auth is missing — instead abort with instructions)
 - **SHOULD** point at the neighbouring skills (`reachy-mini-sdk`, `home-assistant-bridge`, `audio-beat-tracking`, agent `reachy-mini-on-device`) instead of duplicating their concerns
 
 ## Acceptance Criteria
 - [ ] The skill exists at `skills/app-scaffold/SKILL.md` with valid frontmatter (`name: app-scaffold`, `description`, optional tags) and is accepted by the catalog generator
-- [ ] A test invocation with name, description, and (optional) author/tags produces a behavior folder containing manifest, module, README / docstring, and test stub
-- [ ] The manifest contains the required fields; unknown detail fields are TBD-marked
-- [ ] The behavior module contains the lifecycle hooks (signatures TBD-marked where unverified) and is syntactically valid
-- [ ] The test stub imports the behavior and asserts the presence of the hooks; motion-specific tests are TBD-marked
-- [ ] On a name collision the skill aborts and names the existing path
-- [ ] Test stub runs against `ReachyMini(spawn_daemon=True, use_sim=True)` without hardware
+- [ ] The skill calls `reachy-mini-app-assistant create` internally — not a single manifest or layout file is written by the skill itself (only provenance post-processing)
+- [ ] Default is `--publish=true`; without `hf auth whoami` the skill aborts with clear instructions and **does not** silently fall back to a local-only run
+- [ ] On `template=conversation` the Pollen conversation template is selected; default is `default`
+- [ ] After the CLI run, `reachy-mini-app-assistant check <path>` passes without findings
+- [ ] Provenance post-processing adds `pyproject.toml` `[project.urls]`, a `CLAUDE.md` at the app repo root, and a provenance block in `README.md`
+- [ ] A `plan.md` is created in the app directory with the four required sections (Understanding, Approach, Open questions, Approval gate)
+- [ ] The next-steps checklist names the user approval on `plan.md` as the first step, before any code commit
+- [ ] Test stub `tests/test_smoke.py` runs against `ReachyMini(spawn_daemon=True, use_sim=True)` without hardware and skips gracefully when GStreamer is missing
 - [ ] Test stub annotates which aspects simulation cannot check
-- [ ] Behavior README stub carries a platform table (Wireless / Lite / Simulation)
-- [ ] The behavior name is validated for kebab-case and length; violations abort with a clear error
-- [ ] `pre-commit run --all-files` passes on the generated files without auto-fix modifications
-- [ ] Generated files follow the official Pollen Robotics behavior layout (once verified) or a clearly TBD-marked best-effort layout when the layout in the source tree is not yet finally confirmed
+- [ ] README stub carries a platform table (Wireless / Lite / Simulation)
+- [ ] The app name is validated for kebab-case; violations abort with a clear error; `reachy-mini-app-assistant` normalises internally to snake_case for the Python package name — that normalisation is surfaced in the skill output
+- [ ] On a name collision (target path exists), the skill aborts and names the existing path
+- [ ] `pre-commit run --all-files` passes on the generated files
 - [ ] References to `reachy-mini-sdk`, `behavior-publish-hf`, `home-assistant-bridge`, `audio-beat-tracking`, and `reachy-mini-on-device` are visible in the skill body
 - [ ] The post-scaffold next-steps checklist is documented as a convention in the skill
 

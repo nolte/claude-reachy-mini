@@ -57,22 +57,25 @@ Requirements:
 - **MUST NOT** treat Lite telemetry gaps (missing IMU / battery data) as "sensors offline" — that is the norm, not a defect
 
 ### Lifecycle
-- **MUST** run the lifecycle in this order: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
+- **MUST** run the lifecycle in this order: connect → **robot-busy check** → sync code → install deps → start behavior → watch & sample → stop → disconnect
 - **MUST** execute the `connect` step platform-specifically: `wireless` SSH to the robot's IP, `lite` SSH to the host PC plus a daemon API probe, `simulation` is a no-op (the `spawn_daemon=True, use_sim=True` constructor provides the connection in-process; plain `use_sim=True` without `spawn_daemon=True` would fail with `ConnectionError`)
+- **MUST** before `start behavior`, run a **robot-busy check**: `GET http://<host>:8000/api/apps/current-app-status` and `GET /api/daemon/robot-app-lock-status`. If another app already holds the lock (`state != "free"` or `current-app-status != null`), abort with a clear error — name the `holder_name` / `current_app` and explicitly note that Pollen allows only one app at a time. Never force a second session.
 - **MUST** skip the `sync code` and `install deps` steps in simulation (no deploy needed)
 - **MUST** record per-phase outcomes structurally (phase, status, duration, error class if any)
 - **MUST** terminate cleanly on disconnect or unexpected behavior exit — no hanging SSH sessions, no orphaned behavior processes
 - **SHOULD** insert a health check between phases — Wireless with IMU temperature and battery state; Lite with daemon effort / current data when available; in simulation the check is omitted
 
 ### Emergency stop
-- **MUST** offer an emergency-stop path that cleanly terminates the behavior process and brings the device into `INIT_HEAD_POSE` (4×4 identity matrix, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` — pose constants verified in `reachy_mini.py`
+- **MUST** signal the emergency stop **primarily via `stop_event`** (Pollen's app-lifecycle contract, `src/reachy_mini/apps/manager.py`): `stop_event.set()` plus a wait for graceful cleanup; on the REST surface `POST /api/apps/stop-current-app`. The behavior gets a configurable **cleanup timeout** (default 2 s) to finish its `run()` itself
+- **MUST** escalate hard after the cleanup timeout: `SIGTERM` → wait 1 s → `SIGKILL` if still alive; then trigger the pose reset to `INIT_HEAD_POSE` (4×4 identity matrix, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` itself — pose constants verified in `src/reachy_mini/reachy_mini.py`
 - **MUST** allow platform-specific trigger sources for emergency stop:
   - **Wireless**: IMU temperature threshold (`mini.imu["temperature"]`), battery brown-out, current spike (daemon-published), motion-limit violation
   - **Lite**: daemon-published effort / current data when available, motion-limit violation; **no** IMU or battery triggers
   - **Simulation**: only logic triggers (pose outside URDF range, hook exception, timeout); no physical emergency stop needed, but execute the pose reset anyway for consistency
 - **MUST** trigger emergency stop without user confirmation when a platform-appropriate safety threshold is hit
-- **MUST** call out the emergency stop as a distinct event in the output protocol, including trigger source and platform
+- **MUST** call out the emergency stop as a distinct event in the output protocol, including trigger source, platform, and whether graceful cleanup succeeded before escalation
 - **MUST NOT** reduce the emergency stop to a log note on Wireless or Lite — physical consequence trumps logging
+- **MUST NOT** escalate directly to SIGKILL without a graceful phase — `stop_event` is the contractual emergency exit; only escalate hard if it doesn't take effect
 
 ### Output / output format
 - **MUST** return only a structured summary into the main thread: overall status (`PASS` / `FAIL` / `ABORTED`), hook statistics (which hooks ran, how often, mean latency), anomaly list, duration

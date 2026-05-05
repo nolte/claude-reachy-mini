@@ -57,22 +57,25 @@ Anforderungen:
 - **DARF NICHT [MUST NOT]** Lite-Telemetrie-Lücken (fehlende IMU-/Battery-Daten) als „Sensoren offline" werten — das ist die Norm, kein Defekt
 
 ### Lifecycle
-- **MUSS [MUST]** den Lifecycle in dieser Reihenfolge ausführen: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
+- **MUSS [MUST]** den Lifecycle in dieser Reihenfolge ausführen: connect → **robot-busy check** → sync code → install deps → start behavior → watch & sample → stop → disconnect
 - **MUSS [MUST]** den `connect`-Schritt plattform-spezifisch ausführen: für `wireless` SSH zur Roboter-IP, für `lite` SSH zum Host-PC + Daemon-API-Probe, für `simulation` ein No-Op (`spawn_daemon=True, use_sim=True`-Konstruktor liefert die Verbindung im selben Prozess; reines `use_sim=True` ohne `spawn_daemon=True` würde mit `ConnectionError` scheitern)
+- **MUSS [MUST]** vor `start behavior` einen **Robot-Busy-Check** durchführen: `GET http://<host>:8000/api/apps/current-app-status` und `GET /api/daemon/robot-app-lock-status`. Hält bereits eine andere App das Lock (`state != "free"` oder `current-app-status != null`), mit klarer Fehlermeldung abbrechen — `holder_name`/`current_app` benennen, plus den expliziten Hinweis, dass Pollen nur eine App zur Zeit erlaubt. Niemals eine zweite Session erzwingen.
 - **MUSS [MUST]** den `sync code`- und `install deps`-Schritt auf Simulation überspringen (kein Deploy nötig)
 - **MUSS [MUST]** in jeder Phase das beobachtete Ergebnis strukturiert protokollieren (Phase, Status, Dauer, Fehler-Klasse falls vorhanden)
 - **MUSS [MUST]** bei Disconnect oder unerwartetem Behavior-Exit kontrolliert enden — keine hängenden SSH-Sessions, keine offen gelassenen Behavior-Prozesse
 - **SOLLTE [SHOULD]** zwischen den Phasen einen Health-Check einschieben — auf Wireless mit IMU-Temperatur und Battery-Stand; auf Lite mit Daemon-Effort-/Strom-Daten falls verfügbar; in Simulation entfällt der Check
 
 ### Notstopp
-- **MUSS [MUST]** einen Notstopp-Pfad bereitstellen, der den Behavior-Prozess sicher beendet und das Gerät in `INIT_HEAD_POSE` (4×4-Identitäts-Matrix, Kopf zentriert) plus `INIT_ANTENNAS_JOINT_POSITIONS` bringt — Pose-Konstanten verifiziert in `reachy_mini.py`
+- **MUSS [MUST]** den Notstopp **primär über `stop_event`** signalisieren (Pollens App-Lifecycle-Vertrag, `src/reachy_mini/apps/manager.py`): `stop_event.set()` + Wartezeit für graceful Cleanup; auf REST-Ebene `POST /api/apps/stop-current-app`. Dem Behavior wird ein konfigurierbares **Cleanup-Timeout** (Default 2 s) eingeräumt, in dem es seinen `run()` selbst zu Ende fährt
+- **MUSS [MUST]** nach Ablauf des Cleanup-Timeouts hart eskalieren: `SIGTERM` → 1 s warten → `SIGKILL` falls noch lebend; danach den Pose-Reset auf `INIT_HEAD_POSE` (4×4-Identitäts-Matrix, Kopf zentriert) plus `INIT_ANTENNAS_JOINT_POSITIONS` selbst auslösen — Pose-Konstanten verifiziert in `src/reachy_mini/reachy_mini.py`
 - **MUSS [MUST]** plattform-spezifische Trigger-Quellen für den Notstopp zulassen:
   - **Wireless**: IMU-Temperatur-Schwelle (`mini.imu["temperature"]`), Battery-Brown-out, Strom-Spike (vom Daemon publiziert), Bewegungs-Limit-Verstoß
   - **Lite**: Daemon-publizierte Effort-/Strom-Daten falls verfügbar, Bewegungs-Limit-Verstoß; **keine** IMU- oder Battery-Trigger
   - **Simulation**: nur Logik-Trigger (Pose außerhalb URDF-Grenze, Hook-Exception, Timeout); kein physischer Notstopp nötig, aber Pose-Reset trotzdem ausführen für Konsistenz
 - **MUSS [MUST]** den Notstopp ohne Nutzer-Bestätigung auslösen, wenn ein plattform-passender Sicherheits-Threshold reißt
-- **MUSS [MUST]** den Notstopp im Output-Protokoll als gesondertes Ereignis ausweisen, mit Trigger-Quelle und Plattform
+- **MUSS [MUST]** den Notstopp im Output-Protokoll als gesondertes Ereignis ausweisen, mit Trigger-Quelle, Plattform, und ob Graceful-Cleanup vor Eskalation gegriffen hat
 - **DARF NICHT [MUST NOT]** den Notstopp auf Wireless oder Lite auf eine reine Log-Notiz reduzieren — die physische Konsequenz hat Vorrang
+- **DARF NICHT [MUST NOT]** ohne Graceful-Phase direkt SIGKILL eskalieren — das `stop_event` ist der vertragliche Notausstieg; nur wenn es nicht greift, wird hart abgebrochen
 
 ### Ausgabe / Output-Format
 - **MUSS [MUST]** in den Hauptthread nur eine strukturierte Zusammenfassung zurückgeben: Gesamt-Status (`PASS` / `FAIL` / `ABORTED`), Hooks-Statistik (welche Hooks aufgerufen, wie oft, mit welcher mittleren Latenz), Anomalien-Liste, Dauer

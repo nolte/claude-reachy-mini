@@ -30,15 +30,25 @@ Das `reachy_mini`-Python-SDK von Pollen Robotics / Hugging Face ist die primäre
 
 ### Wissensbasis-Inhalt
 - **MUSS [MUST]** die folgenden API-Bausteine des SDKs dokumentieren:
-  - Konstruktion und Connection-Management der `ReachyMini`-Instanz inklusive Lifecycle (Open/Close, Context-Manager, Sync- vs. Async-Variante)
-  - Kopf-Bewegung: Pan/Tilt/Roll, absolute vs. inkrementelle Ziele, Wertebereiche, Default-Pose
-  - Antennen-Steuerung: links/rechts, Winkel, Geschwindigkeit, Synchronisation mit Kopf-Moves
-  - Behavior-Lifecycle: Setup, Update-Loop, Tick-Frequenz, sauberes Stoppen, Exception-Handling
-  - Standard-Move-Primitives: Easing, Dauer, Interpolation, Komposition mehrerer Moves
+  - Konstruktion und Connection-Management der `ReachyMini`-Instanz inklusive Lifecycle (Open/Close, Context-Manager, Sync- vs. Async-Variante, `spawn_daemon=True, use_sim=True` für Sim)
+  - **Wake-/Sleep-Lifecycle**: `wake_up()` vor jeder Bewegung — sonst werden Pose-Befehle stillschweigend ignoriert; `goto_sleep()` für Idle/Shutdown; Pose-Konstanten `SLEEP_HEAD_POSE`, `INIT_HEAD_POSE`, `INIT_ANTENNAS_JOINT_POSITIONS` aus `src/reachy_mini/reachy_mini.py`
+  - **Bewegungs-API mit Methoden-Wahl**: explizit beide Pfade dokumentieren —
+    - `goto_target(head=<4×4>, antennas=[r, l] in rad, body_yaw, duration, method)` als **Default für choreographierte Bewegungen ≥ 0,5 s**; `method` aus `InterpolationTechnique`-Enum: `MIN_JERK` (Default), `LINEAR`, `EASE_IN_OUT`, `CARTOON`
+    - `set_target(head, antennas, body_yaw)` als **Real-Time-Pfad für High-Frequency-Loops** (50–100 Hz Tick-Frequenz, **Single-Owner-Loop**); nicht mit `goto_target` mischen, sonst überschreiben sie sich gegenseitig
+    - Quelle: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+  - Kopf-Bewegung: 6 DoF Stewart-Plattform, 4×4-Pose-Matrix, Builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees=True)`; Wertebereiche siehe [`reachy-mini/control-surface`](../../reachy-mini/control-surface/de.md) (Head pitch/roll ±40°, Head yaw ±60°, Body yaw ±155°, Yaw-Delta ≤ 65°)
+  - Antennen-Steuerung: 2× XL330-M077-T, **Reihenfolge `[right, left]` in Radiant** (nicht in Grad!), Winkel, Geschwindigkeit, Synchronisation mit Kopf-Moves
+  - **`Move`-ABC und `play_move()`/`async_play_move()`**: für wiederverwendbare Bewegungen eigene `Move`-Subklasse mit `duration`-Property und `evaluate(t) → (head, antennas, body_yaw)`-Methode (Quelle: `src/reachy_mini/motion/move.py`)
+  - **App-Lifecycle**: `ReachyMiniApp`-Subklasse mit `run(self, reachy_mini, stop_event)`; `wrapped_run()` im `__main__`; Tick-Frequenz, sauberes Stoppen via `stop_event`, Exception-Handling
+  - **Safe-Torque-Anti-Jerk-Pattern** (Pflicht beim Motor-Toggle, sonst springt der Kopf):
+    1. Vor `disable_motors()`: zu `SLEEP_HEAD_POSE` fahren
+    2. Vor `enable_motors()`: das Goal auf die aktuelle Pose setzen (kurzes `goto_target` mit `duration ≈ 0.05`), erst dann enablen
+    3. Bei Mixed-Motor-Zustand (manche an, manche aus): erst voll `disable_motors()` aller IDs, dann sequenziell wieder enablen
+    Quelle: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
 - **MUSS [MUST]** mindestens ein lauffähiges, minimales Code-Beispiel pro dokumentiertem Bereich enthalten
 - **MUSS [MUST]** für jedes Beispiel die SDK-Version benennen, gegen die es verifiziert wurde, und auf die offizielle Quelle verweisen (Pollen-Robotics-Doku oder offizielles GitHub-Repo)
 - **SOLLTE [SHOULD]** Async-Patterns abdecken (Tasks, Cancellation, Cleanup bei Exceptions), wenn das SDK eine Async-Oberfläche bietet
-- **SOLLTE [SHOULD]** typische Fehlerbedingungen benennen (Hardware nicht angeschlossen, USB-/Serial-Fehler, Protokoll-Mismatch zwischen SDK und Firmware)
+- **SOLLTE [SHOULD]** typische Fehlerbedingungen benennen (Hardware nicht angeschlossen, USB-/Serial-Fehler, Protokoll-Mismatch zwischen SDK und Firmware, fehlender Daemon)
 - **KANN [MAY]** Hinweise zu Update-Frequenz, Latenz und Performance von Behaviors aufnehmen
 
 ### Code-Beispiel-Konventionen

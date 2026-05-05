@@ -30,15 +30,25 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 
 ### Knowledge-base content
 - **MUST** document the following SDK building blocks:
-  - Construction and connection management of the `ReachyMini` instance, including lifecycle (open/close, context manager, sync vs. async variant)
-  - Head motion: pan/tilt/roll, absolute vs. incremental targets, value ranges, default pose
-  - Antenna control: left/right, angle, speed, synchronisation with head moves
-  - Behavior lifecycle: setup, update loop, tick frequency, clean stop, exception handling
-  - Standard Move primitives: easing, duration, interpolation, composing multiple moves
+  - Construction and connection management of the `ReachyMini` instance, including lifecycle (open/close, context manager, sync vs. async variant, `spawn_daemon=True, use_sim=True` for sim)
+  - **Wake/sleep lifecycle**: `wake_up()` before any motion — otherwise pose commands are silently ignored; `goto_sleep()` for idle / shutdown; pose constants `SLEEP_HEAD_POSE`, `INIT_HEAD_POSE`, `INIT_ANTENNAS_JOINT_POSITIONS` from `src/reachy_mini/reachy_mini.py`
+  - **Motion API with method choice**: explicitly document both paths —
+    - `goto_target(head=<4×4>, antennas=[r, l] in rad, body_yaw, duration, method)` as the **default for choreographed motions ≥ 0.5 s**; `method` from the `InterpolationTechnique` enum: `MIN_JERK` (default), `LINEAR`, `EASE_IN_OUT`, `CARTOON`
+    - `set_target(head, antennas, body_yaw)` as the **real-time path for high-frequency loops** (50–100 Hz tick rate, **single-owner loop**); do not mix with `goto_target`, they will overwrite each other
+    - Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+  - Head motion: 6 DoF Stewart platform, 4×4 pose matrix, builder `create_head_pose(x, y, z, roll, pitch, yaw, degrees=True)`; value ranges per [`reachy-mini/control-surface`](../../reachy-mini/control-surface/en.md) (head pitch/roll ±40°, head yaw ±60°, body yaw ±155°, yaw delta ≤ 65°)
+  - Antenna control: 2× XL330-M077-T, **order `[right, left]` in radians** (not degrees!), angle, speed, synchronisation with head moves
+  - **`Move` ABC and `play_move()` / `async_play_move()`**: for reusable motion, define a `Move` subclass with a `duration` property and an `evaluate(t) → (head, antennas, body_yaw)` method (source: `src/reachy_mini/motion/move.py`)
+  - **App lifecycle**: `ReachyMiniApp` subclass with `run(self, reachy_mini, stop_event)`; `wrapped_run()` in `__main__`; tick frequency, clean stop via `stop_event`, exception handling
+  - **Safe-torque anti-jerk pattern** (mandatory on motor toggle, otherwise the head jerks):
+    1. Before `disable_motors()`: drive to `SLEEP_HEAD_POSE`
+    2. Before `enable_motors()`: set the goal to the current pose (short `goto_target` with `duration ≈ 0.05`), only then enable
+    3. On a mixed-motor state (some on, some off): first `disable_motors()` on all IDs, then enable sequentially
+    Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
 - **MUST** include at least one runnable, minimal code example per documented area
 - **MUST** name the SDK version each example was verified against and link the official source (Pollen Robotics docs or the official GitHub repo)
 - **SHOULD** cover async patterns (tasks, cancellation, cleanup on exceptions) when the SDK exposes an async surface
-- **SHOULD** name typical failure conditions (hardware unplugged, USB / serial errors, protocol mismatch between SDK and firmware)
+- **SHOULD** name typical failure conditions (hardware unplugged, USB / serial errors, protocol mismatch between SDK and firmware, missing daemon)
 - **MAY** include hints on update frequency, latency, and behavior performance
 
 ### Code-example conventions
