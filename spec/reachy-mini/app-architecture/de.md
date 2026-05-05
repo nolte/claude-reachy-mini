@@ -186,19 +186,42 @@ Wer ohne GStreamer entwickelt, nutzt `--mockup-sim --no-media --headless` plus `
 Drei kanonische Deploy-Pfade nach Wireless:
 
 1. **Hugging-Face-Space (Standard, mit Internet)** — `git push <hf-remote>` aus dem App-Repo. Sobald der Tag `reachy_mini_python_app` im README-Frontmatter steht, erscheint die App im Reachy-Dashboard und ist mit einem Klick installierbar.
-2. **Daemon-REST-API direkt** — funktioniert gegen jeden erreichbaren Daemon (Wireless via `reachy-mini.local:8000`, Lite via Host-PC, Sim via `localhost:8000`):
+2. **Daemon-REST-API direkt** — funktioniert gegen jeden erreichbaren Daemon (Wireless via `reachy-mini.local:8000`, Lite via Host-PC, Sim via `localhost:8000`). Die in Pollens `docs/source/SDK/apps.md` genannten Endpoint-Namen sind teilweise veraltet — das **autoritative** Schema ist immer `http://<daemon-host>:8000/openapi.json` (live abrufbar). Stand v1.7.1, verifiziert gegen einen laufenden Wireless:
 
    ```bash
-   # aus HF installieren
+   # aus HF installieren (öffentlicher Space)
    curl -X POST http://reachy-mini.local:8000/api/apps/install \
      -H "Content-Type: application/json" \
      -d '{"url": "https://huggingface.co/spaces/<user>/reachy-mini-show"}'
+   # für private Spaces: POST /api/apps/install-private-space (HF-Token im Body)
 
-   # starten / stoppen / listen
-   curl -X POST http://reachy-mini.local:8000/api/apps/start-app/reachy-mini-show
+   # Verzeichnis: HF-Spaces + lokal installierte Apps
+   curl       http://reachy-mini.local:8000/api/apps/list-available
+   curl       http://reachy-mini.local:8000/api/apps/list-available/installed   # nur installierte
+
+   # Lifecycle
+   curl       http://reachy-mini.local:8000/api/apps/current-app-status
+   curl -X POST http://reachy-mini.local:8000/api/apps/start-app/reachy_mini_show
+   curl -X POST http://reachy-mini.local:8000/api/apps/restart-current-app
    curl -X POST http://reachy-mini.local:8000/api/apps/stop-current-app
-   curl       http://reachy-mini.local:8000/api/apps/list
+
+   # Wartung
+   curl       http://reachy-mini.local:8000/api/apps/check-updates
+   curl -X POST http://reachy-mini.local:8000/api/apps/update/reachy_mini_show
+   curl -X POST http://reachy-mini.local:8000/api/apps/remove/reachy_mini_show
+
+   # Async-Jobs (Install/Update geben job_id zurück)
+   curl       http://reachy-mini.local:8000/api/apps/job-status/<job_id>
+
+   # Robot-Lock (welche App hält Hardware-Zugriff)
+   curl       http://reachy-mini.local:8000/api/daemon/robot-app-lock-status
+   curl       http://reachy-mini.local:8000/api/daemon/status
    ```
+
+   Wichtige Drifts gegenüber Pollens `apps.md`:
+   - `/api/apps/list` aus der Doku **existiert nicht** — korrekter Endpoint ist `/api/apps/list-available`
+   - Der App-Name im Pfad ist der **Python-Package-Name** (snake_case `reachy_mini_show`), nicht der Repo-/HF-Slug (`reachy-mini-show`)
+   - Async-Operationen (Install, Update) liefern eine `job_id`; den Fortschritt holt man mit `GET /api/apps/job-status/<job_id>`
 
 3. **Offline / manuell (kein Internet, z. B. Konferenz)** — direkt ins Shared-venv des Wireless installieren:
 
@@ -249,7 +272,8 @@ Anforderungen:
 - [ ] Lokaler Test mit `ReachyMini(spawn_daemon=True, use_sim=True)` läuft ohne Hardware durch
 - [ ] App-Provenienz ist sichtbar: README, CLAUDE.md und `pyproject.toml [project.urls]` verweisen auf das `claude-reachy-mini`-Plugin
 - [ ] Push an HF-Remote installiert die App im Reachy-Dashboard ohne manuellen Eingriff
-- [ ] Die drei Deploy-Pfade (HF-Push, REST-`/api/apps/install`, Offline `scp` + `pip install` ins `/venvs/apps_venv/`) sind in der Doku des App-Repos dokumentiert
+- [ ] Die drei Deploy-Pfade (HF-Push, REST `POST /api/apps/install`, Offline `scp` + `pip install` ins `/venvs/apps_venv/`) sind in der Doku des App-Repos dokumentiert
+- [ ] Die in der Doku verwendeten REST-Endpoints sind verifiziert gegen `http://<daemon-host>:8000/openapi.json`, nicht aus Pollens `apps.md` abgeschrieben
 - [ ] Auf Wireless sind App-Logs über `sudo journalctl -u reachy-mini-daemon` sichtbar
 - [ ] `stop_event` führt zur Ruhepose ohne Aktuator-Klemmen oder hängende Verbindungen
 - [ ] Eine Task-Exception bricht alle anderen Tasks sauber ab und fährt in Sicherheitspose

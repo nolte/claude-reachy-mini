@@ -186,19 +186,42 @@ When developing without GStreamer, use `--mockup-sim --no-media --headless` plus
 Three canonical deploy paths to Wireless:
 
 1. **Hugging Face Space (default, with internet)** — `git push <hf-remote>` from the app repo. As soon as the `reachy_mini_python_app` tag is in the README frontmatter, the app appears in the Reachy dashboard and is installable in one click.
-2. **Daemon REST API direct** — works against any reachable daemon (Wireless via `reachy-mini.local:8000`, Lite via the host PC, Sim via `localhost:8000`):
+2. **Daemon REST API direct** — works against any reachable daemon (Wireless via `reachy-mini.local:8000`, Lite via the host PC, Sim via `localhost:8000`). The endpoint names in Pollen's `docs/source/SDK/apps.md` are partly stale — the **authoritative** schema is always `http://<daemon-host>:8000/openapi.json` (live). As of v1.7.1, verified against a running Wireless:
 
    ```bash
-   # install from HF
+   # install from HF (public space)
    curl -X POST http://reachy-mini.local:8000/api/apps/install \
      -H "Content-Type: application/json" \
      -d '{"url": "https://huggingface.co/spaces/<user>/reachy-mini-show"}'
+   # for private spaces: POST /api/apps/install-private-space (HF token in body)
 
-   # start / stop / list
-   curl -X POST http://reachy-mini.local:8000/api/apps/start-app/reachy-mini-show
+   # directory: HF spaces + locally installed apps
+   curl       http://reachy-mini.local:8000/api/apps/list-available
+   curl       http://reachy-mini.local:8000/api/apps/list-available/installed   # installed only
+
+   # lifecycle
+   curl       http://reachy-mini.local:8000/api/apps/current-app-status
+   curl -X POST http://reachy-mini.local:8000/api/apps/start-app/reachy_mini_show
+   curl -X POST http://reachy-mini.local:8000/api/apps/restart-current-app
    curl -X POST http://reachy-mini.local:8000/api/apps/stop-current-app
-   curl       http://reachy-mini.local:8000/api/apps/list
+
+   # maintenance
+   curl       http://reachy-mini.local:8000/api/apps/check-updates
+   curl -X POST http://reachy-mini.local:8000/api/apps/update/reachy_mini_show
+   curl -X POST http://reachy-mini.local:8000/api/apps/remove/reachy_mini_show
+
+   # async jobs (install / update return a job_id)
+   curl       http://reachy-mini.local:8000/api/apps/job-status/<job_id>
+
+   # robot lock (which app holds hardware access)
+   curl       http://reachy-mini.local:8000/api/daemon/robot-app-lock-status
+   curl       http://reachy-mini.local:8000/api/daemon/status
    ```
+
+   Important drifts vs. Pollen's `apps.md`:
+   - `/api/apps/list` from the doc **does not exist** — the correct endpoint is `/api/apps/list-available`
+   - The app name in the path is the **Python package name** (snake_case `reachy_mini_show`), not the repo / HF slug (`reachy-mini-show`)
+   - Async operations (install, update) return a `job_id`; poll progress via `GET /api/apps/job-status/<job_id>`
 
 3. **Offline / manual (no internet, e.g. at a conference)** — install directly into the Wireless shared venv:
 
@@ -249,7 +272,8 @@ Requirements:
 - [ ] A local test with `ReachyMini(spawn_daemon=True, use_sim=True)` runs without hardware
 - [ ] App provenance is visible: README, CLAUDE.md, and `pyproject.toml [project.urls]` reference the `claude-reachy-mini` plugin
 - [ ] A push to the HF remote installs the app in the Reachy dashboard without manual intervention
-- [ ] The three deploy paths (HF push, REST `/api/apps/install`, offline `scp` + `pip install` into `/venvs/apps_venv/`) are documented in the app repo
+- [ ] The three deploy paths (HF push, REST `POST /api/apps/install`, offline `scp` + `pip install` into `/venvs/apps_venv/`) are documented in the app repo
+- [ ] Every REST endpoint cited in the docs is verified against `http://<daemon-host>:8000/openapi.json`, not copied from Pollen's `apps.md`
 - [ ] On Wireless, app logs are visible via `sudo journalctl -u reachy-mini-daemon`
 - [ ] `stop_event` drives to the rest pose without actuator clamping or dangling connections
 - [ ] A task exception aborts every other task cleanly and drives to a safe pose
