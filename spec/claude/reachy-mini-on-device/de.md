@@ -46,7 +46,7 @@ Der Agent unterscheidet zwischen den drei Reachy-Mini-Plattformen, weil sich Dep
 
 - **Reachy Mini** (Wireless) — autark mit RPi 4 CM4 + LiFePO4-Akku. Deploy direkt zur Roboter-IP via SSH oder über die Daemon-REST-API. Volle Telemetrie: IMU (Accelerometer, Gyroscope, Quaternion, Temperatur), Battery-Polling, daemon-publizierte Joint-Positions/Head-Pose mit 50 Hz. Notstopp-Trigger können Strom-Spike, IMU-Temperatur-Schwelle und Battery-Brown-out einschließen.
 - **Reachy Mini Lite** — am Host-PC via USB-C, externe 6,8–7,6 V-Versorgung. Deploy primär über den Host-PC: SSH zum Host, dort den Pollen-Daemon ansprechen — **nicht** SSH zum Reachy direkt. Aktuator-Set ist identisch zu Wireless, aber **keine IMU-Telemetrie** und **kein Battery-Sensor** — Sicherheits-Schwellen kommen aus Stewart-Joint-Limits (URDF) und vom Daemon publizierten Effort/Strom-Daten, falls verfügbar. IMU-Daten sind kein FAIL-Kriterium.
-- **Simulation** — `ReachyMini(use_sim=True)` im selben Python-Prozess. **Kein Deploy nötig**, kein SSH, keine USB-Verbindung. Voll deterministisch. Keine reale Sensor-Telemetrie (außer Pose-Read), keine Audio-Wiedergabe, keine LED-Effekte. PASS/FAIL-Kriterien fokussieren sich auf Pose-Erreichbarkeit, Move-Lifecycle und Logik — nicht auf physische Welt-Effekte.
+- **Simulation** — `ReachyMini(spawn_daemon=True, use_sim=True)` im selben Python-Prozess. **Kein Deploy nötig**, kein SSH, keine USB-Verbindung. Voll deterministisch. Keine reale Sensor-Telemetrie (außer Pose-Read), keine Audio-Wiedergabe, keine LED-Effekte. PASS/FAIL-Kriterien fokussieren sich auf Pose-Erreichbarkeit, Move-Lifecycle und Logik — nicht auf physische Welt-Effekte.
 
 Anforderungen:
 
@@ -58,7 +58,7 @@ Anforderungen:
 
 ### Lifecycle
 - **MUSS [MUST]** den Lifecycle in dieser Reihenfolge ausführen: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
-- **MUSS [MUST]** den `connect`-Schritt plattform-spezifisch ausführen: für `wireless` SSH zur Roboter-IP, für `lite` SSH zum Host-PC + Daemon-API-Probe, für `simulation` ein No-Op (`use_sim=True`-Konstruktor liefert die Verbindung im selben Prozess)
+- **MUSS [MUST]** den `connect`-Schritt plattform-spezifisch ausführen: für `wireless` SSH zur Roboter-IP, für `lite` SSH zum Host-PC + Daemon-API-Probe, für `simulation` ein No-Op (`spawn_daemon=True, use_sim=True`-Konstruktor liefert die Verbindung im selben Prozess; reines `use_sim=True` ohne `spawn_daemon=True` würde mit `ConnectionError` scheitern)
 - **MUSS [MUST]** den `sync code`- und `install deps`-Schritt auf Simulation überspringen (kein Deploy nötig)
 - **MUSS [MUST]** in jeder Phase das beobachtete Ergebnis strukturiert protokollieren (Phase, Status, Dauer, Fehler-Klasse falls vorhanden)
 - **MUSS [MUST]** bei Disconnect oder unerwartetem Behavior-Exit kontrolliert enden — keine hängenden SSH-Sessions, keine offen gelassenen Behavior-Prozesse

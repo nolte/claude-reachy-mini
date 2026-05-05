@@ -46,7 +46,7 @@ The agent distinguishes the three Reachy Mini platforms because deploy path, tel
 
 - **Reachy Mini** (Wireless) — self-contained with RPi 4 CM4 + LiFePO4 battery. Deploy directly to the robot's IP via SSH or via the daemon REST API. Full telemetry: IMU (accelerometer, gyroscope, quaternion, temperature), battery polling, daemon-published joint positions / head pose at 50 Hz. Emergency-stop triggers may include current spike, IMU temperature threshold, and battery brown-out.
 - **Reachy Mini Lite** — tethered to a host PC via USB-C, external 6.8–7.6 V supply. Deploy primarily through the host PC: SSH to the host, talk to the Pollen daemon there — **not** SSH directly to the Reachy. The actuator set is identical to Wireless, but **no IMU telemetry** and **no battery sensor** — safety thresholds come from Stewart joint limits (URDF) and from daemon-published effort / current data when available. Missing IMU data is not a FAIL criterion.
-- **Simulation** — `ReachyMini(use_sim=True)` in the same Python process. **No deploy needed**, no SSH, no USB. Fully deterministic. No real sensor telemetry (apart from pose read), no audio playback, no LED effects. PASS/FAIL focuses on pose reachability, move lifecycle, and logic — not on physical-world effects.
+- **Simulation** — `ReachyMini(spawn_daemon=True, use_sim=True)` in the same Python process. **No deploy needed**, no SSH, no USB. Fully deterministic. No real sensor telemetry (apart from pose read), no audio playback, no LED effects. PASS/FAIL focuses on pose reachability, move lifecycle, and logic — not on physical-world effects.
 
 Requirements:
 
@@ -58,7 +58,7 @@ Requirements:
 
 ### Lifecycle
 - **MUST** run the lifecycle in this order: connect → sync code → install deps → start behavior → watch & sample → stop → disconnect
-- **MUST** execute the `connect` step platform-specifically: `wireless` SSH to the robot's IP, `lite` SSH to the host PC plus a daemon API probe, `simulation` is a no-op (the `use_sim=True` constructor provides the connection in-process)
+- **MUST** execute the `connect` step platform-specifically: `wireless` SSH to the robot's IP, `lite` SSH to the host PC plus a daemon API probe, `simulation` is a no-op (the `spawn_daemon=True, use_sim=True` constructor provides the connection in-process; plain `use_sim=True` without `spawn_daemon=True` would fail with `ConnectionError`)
 - **MUST** skip the `sync code` and `install deps` steps in simulation (no deploy needed)
 - **MUST** record per-phase outcomes structurally (phase, status, duration, error class if any)
 - **MUST** terminate cleanly on disconnect or unexpected behavior exit — no hanging SSH sessions, no orphaned behavior processes

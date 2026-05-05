@@ -9,7 +9,7 @@ This repository (`claude-reachy-mini`) ships skills, agents, and specs as a tool
 - A single app that implements all 29 motion slugs as `Move` subclasses
 - Full conformance with Pollen's app system: daemon subprocess, one app at a time, Hugging Face Spaces as distribution
 - Live command intake via a local WebSocket — later consumption by external integrations (HA, Wyoming bridge) lives in their own consumer repos
-- Locally developable via `ReachyMini(use_sim=True)` — no hardware needed to start
+- Locally developable via `ReachyMini(spawn_daemon=True, use_sim=True)` — no hardware needed to start
 - **Visible provenance**: any repository reading the app sees the reference to Claude Code and to `claude-reachy-mini` as the source of behavior specs and authoring skills
 
 ## Non-Goals
@@ -63,7 +63,7 @@ reachy-mini-show/
 │   ├── audio/                  # WAV samples (F32LE, 48 kHz, 2 ch — Pollen-conformant)
 │   ├── static/                 # optional: web-UI assets when custom_app_url is set
 │   └── config.py               # defaults and platform profiles
-└── tests/                      # unit tests against ReachyMini(use_sim=True)
+└── tests/                      # unit tests against ReachyMini(spawn_daemon=True, use_sim=True)
 ```
 
 The skeleton is **not hand-written**; it is created via the official CLI:
@@ -149,15 +149,39 @@ Hand-rolled skeletons drift subtly from Pollen's expectations and break on the f
 
 ### Development and distribution paths
 
-Development happens on the developer's **laptop**, not on the robot itself (even though the Wireless ships a RPi 4 CM4 — that is run-, not dev-hardware). Dev loop:
+Development happens on the developer's **laptop**, not on the robot itself (even though the Wireless ships a RPi 4 CM4 — that is run-, not dev-hardware). There are two sim paths — pick one:
+
+**A) External daemon, separate app process** (default for the Show app, since app logs stay cleanly separated from daemon logs):
 
 ```bash
 reachy-mini-app-assistant create reachy-mini-show .
-uv pip install -e .                  # editable install in the active venv
-reachy-mini-daemon --sim             # local daemon in simulation
-# in parallel:
-python -m reachy_mini_show.main      # run the app directly, fast iteration
+uv venv && source .venv/bin/activate
+uv pip install -e .
+
+# Terminal 1 — daemon
+reachy-mini-daemon --sim                      # full sim path with the MuJoCo viewer
+# or, when GStreamer / MuJoCo are not installed:
+reachy-mini-daemon --mockup-sim --no-media --headless
+
+# Terminal 2 — app (connects to localhost:8000)
+python -m reachy_mini_show.main
 ```
+
+**B) In-process daemon for tests / smoke runs** (no second terminal needed):
+
+```python
+with ReachyMini(spawn_daemon=True, use_sim=True) as mini:
+    ...
+```
+
+`spawn_daemon=True` boots a daemon subprocess inside the Python process; `use_sim=True` alone is **not** enough — without `spawn_daemon=True` the SDK tries to connect to an external daemon and fails with `ConnectionError`. This is an important API trap the official docs gloss over.
+
+**System dependencies for the full `--sim` path** (MuJoCo viewer + GStreamer WebRTC):
+
+- `gir1.2-gst-plugins-base-1.0`, `gir1.2-gstreamer-1.0`, `python3-gi` (Debian / Ubuntu) — otherwise `ValueError: Namespace GstApp not available` on daemon start
+- MuJoCo (Python wheel arrives automatically)
+
+When developing without GStreamer, use `--mockup-sim --no-media --headless` plus `request_media_backend = "no_media"` on the app class — works fully for pose, antenna, and body-yaw tests; only audio / video are off.
 
 Three canonical deploy paths to Wireless:
 
@@ -187,7 +211,7 @@ Three canonical deploy paths to Wireless:
 
 Requirements:
 
-- **MUST** be locally developable via `with ReachyMini(use_sim=True) as mini:` and via `reachy-mini-daemon --sim`
+- **MUST** be locally developable via at least one of the two sim paths above (external daemon **or** `with ReachyMini(spawn_daemon=True, use_sim=True) as mini:`); plain `use_sim=True` without `spawn_daemon=True` is **not** a valid sim path and fails with `ConnectionError`
 - **MUST** support all three deploy paths — the HF Space route is the default; REST and SSH are fallbacks without dashboard or without internet
 - **MUST** know that on Wireless every app installs into the shared venv `/venvs/apps_venv/` (no per-app venv); dependency conflicts with other installed apps are a real failure mode
 - **MUST NOT** modify code in the daemon service (`reachy-mini-daemon.service`) on the Wireless — that service is Pollen-owned
@@ -222,7 +246,7 @@ Requirements:
 - [ ] Commands with an unknown major version are rejected with `error code: "unsupported_protocol_version"`
 - [ ] All 29 motion slugs are implemented as `Move` subclasses and registered
 - [ ] BPM dance blocks accept constructor-parametrised BPM and beat count
-- [ ] A local test with `ReachyMini(use_sim=True)` runs without hardware
+- [ ] A local test with `ReachyMini(spawn_daemon=True, use_sim=True)` runs without hardware
 - [ ] App provenance is visible: README, CLAUDE.md, and `pyproject.toml [project.urls]` reference the `claude-reachy-mini` plugin
 - [ ] A push to the HF remote installs the app in the Reachy dashboard without manual intervention
 - [ ] The three deploy paths (HF push, REST `/api/apps/install`, offline `scp` + `pip install` into `/venvs/apps_venv/`) are documented in the app repo

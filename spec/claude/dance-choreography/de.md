@@ -119,7 +119,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
   2. BPM, Beats und Lead-Time aus der Frontmatter konstruktor-parametrisiert übergeben
   3. Idle-/Outro-Sektion mit `loop_count=None` als Hintergrund-Behavior einplanen
   4. Audio-Trigger gegen das Lied taktgenau ausrichten (Hinweis auf `audio-beat-tracking`, geplant)
-  5. Test gegen `ReachyMini(use_sim=True)` schreiben, dann On-Hardware-Validierung via `reachy-mini-on-device`-Agent
+  5. Test gegen `ReachyMini(spawn_daemon=True, use_sim=True)` schreiben, dann On-Hardware-Validierung via `reachy-mini-on-device`-Agent
   6. Plattform-spezifische Fallbacks (z. B. `headbang-soft` → `groove-bob` bei Servo-Wärme) implementieren
 - **MUSS [MUST]** die `Offene Fragen`-Sektion explizit Open-Question-Marker enthalten, wenn der Skill eine Lücke im Motion-Catalog erkannt hat (z. B. „Für eine glaubhafte Reggae-Bridge fehlt ein `head-tilt-side`-Baustein — als Motion-Spec vorschlagen?")
 - **SOLLTE [SHOULD]** im Markdown-Body Quer-Verweise auf die zugrunde liegenden Motion-Specs setzen (`spec/reachy-mini/motions/<slug>/de.md`) und auf die `app-architecture`-Spec, wenn protokoll-relevante Punkte berührt sind

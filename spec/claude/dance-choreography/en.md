@@ -119,7 +119,7 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
   2. Pass BPM, beats, and lead time as constructor parameters
   3. Plan the idle / outro section with `loop_count=None` as background behavior
   4. Align audio triggers with the song on the beat (pointer to `audio-beat-tracking`, planned)
-  5. Write a test against `ReachyMini(use_sim=True)`, then on-hardware validation via the `reachy-mini-on-device` agent
+  5. Write a test against `ReachyMini(spawn_daemon=True, use_sim=True)`, then on-hardware validation via the `reachy-mini-on-device` agent
   6. Implement platform-specific fallbacks (e.g. `headbang-soft` → `groove-bob` on servo heat)
 - **MUST** make the `Open questions` section explicit when the skill detected a gap in the motion catalog (e.g. "A credible reggae bridge would need a `head-tilt-side` block — propose as a motion spec?")
 - **SHOULD** cross-link the Markdown body to the underlying motion specs (`spec/reachy-mini/motions/<slug>/de.md`) and to the `app-architecture` spec when protocol-relevant points are touched

@@ -38,12 +38,12 @@ Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") 
 - **MUST** emit the behavior manifest with all required fields (name, description, author, optional version, optional SDK-compat range); for unknown detail fields, prefer a TBD stub over guessing
 - **MUST** emit the behavior module (Python) with the lifecycle hooks the SDK contract requires (e.g. `setup`, `step`, `stop` — exact signatures TBD until verified)
 - **MUST** emit a README / docstring stub containing description, intended hardware preconditions, and a quickstart block
-- **MUST** emit a test stub that runs against `ReachyMini(use_sim=True)` and thereby covers the **platform-independent sanity check** — at minimum import the behavior, instantiate the hook signatures, run one tick through the move loop, clean shutdown; motion-specific on-hardware tests may be `> ⚠ TBD: validate against real hardware`
+- **MUST** emit a test stub that runs against `ReachyMini(spawn_daemon=True, use_sim=True)` and thereby covers the **platform-independent sanity check** — at minimum import the behavior, instantiate the hook signatures, run one tick through the move loop, clean shutdown; motion-specific on-hardware tests may be `> ⚠ TBD: validate against real hardware`
 - **SHOULD** leave a `.gitignore`-friendly footprint (no caches, egg-info, IDE files committed)
 - **MAY** also emit an optional Hugging Face Spaces manifest when publishing is foreseeable; otherwise omit rather than ship an empty stub
 
 ### Platform profiles
-- **MUST** run the test stub against `ReachyMini(use_sim=True)` as the default path — Simulation is the only profile that works without hardware and belongs in every CI run
+- **MUST** run the test stub against `ReachyMini(spawn_daemon=True, use_sim=True)` as the default path — Simulation is the only profile that works without hardware and belongs in every CI run
 - **SHOULD** annotate clearly in the test stub which aspects can **not** be checked in simulation (audio playback, IMU telemetry, LED sync, real pose reach) — pointer to the `reachy-mini-on-device` agent for on-hardware validation against Wireless or Lite
 - **MUST** include in the behavior README stub a platform table that names Wireless / Lite / Simulation and the applicability per platform
 - **MUST NOT** hard-code platform-specific assumptions in the test stub (e.g. an IMU read that fails on Lite) — those checks are the `reachy-mini-on-device` agent's territory
@@ -70,7 +70,7 @@ Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") 
 - [ ] The behavior module contains the lifecycle hooks (signatures TBD-marked where unverified) and is syntactically valid
 - [ ] The test stub imports the behavior and asserts the presence of the hooks; motion-specific tests are TBD-marked
 - [ ] On a name collision the skill aborts and names the existing path
-- [ ] Test stub runs against `ReachyMini(use_sim=True)` without hardware
+- [ ] Test stub runs against `ReachyMini(spawn_daemon=True, use_sim=True)` without hardware
 - [ ] Test stub annotates which aspects simulation cannot check
 - [ ] Behavior README stub carries a platform table (Wireless / Lite / Simulation)
 - [ ] The behavior name is validated for kebab-case and length; violations abort with a clear error
