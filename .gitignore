@@ -32,6 +32,10 @@ env/
 # Audits — local-only, findings convert to issues/PRs
 .audits/
 
+# Choreography drafts — authored output of the dance-choreography skill;
+# belongs in the consuming reachy-mini-show app repo, not this plugin.
+/choreographies/
+
 # Vale — style packages fetched by `vale sync` (keep repo-local vocab)
 .github/styles/*
 !.github/styles/config/
