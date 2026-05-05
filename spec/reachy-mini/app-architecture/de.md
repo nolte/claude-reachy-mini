@@ -25,21 +25,31 @@ Dieses Repository (`claude-reachy-mini`) liefert Skills, Agents und Specs als To
 ### App-Identität
 - **MUSS [MUST]** den Slug `reachy-mini-show` durchgehend für Repo-Name, Python-Package-Name und HF-Space-Name tragen
 - **MUSS [MUST]** als Hugging-Face-Space gepackt sein, mit dem Tag `reachy_mini_python_app` im README-Frontmatter (sonst keine Discovery im Reachy-Dashboard)
+- **MUSS [MUST]** im `pyproject.toml` einen Entry-Point in der Group `reachy_mini_apps` deklarieren, der die App-Klasse benennt — der Daemon entdeckt Apps ausschließlich über diese Group:
+
+  ```toml
+  [project.entry-points."reachy_mini_apps"]
+  reachy-mini-show = "reachy_mini_show.main:ReachyMiniShowApp"
+  ```
+
 - **MUSS [MUST]** semantische Versionierung nutzen
 - **MUSS [MUST]** den `reachy_mini`-SDK-Pin auf eine konkrete Minor-Version setzen (z. B. `^1.7.0`); SDK-Major-Update ist immer eine bewusste Re-Validierung
 
 ### Repository-Layout
-Pollen-CLI-konformes Layout mit Provenienz-Marker (`CLAUDE.md`, Plugin-URL):
+Layout konform zur Pollen-Robotics-CLI `reachy-mini-app-assistant` (Default-Template), erweitert um Provenienz-Marker (`CLAUDE.md`, Plugin-URL):
 
 ```
 reachy-mini-show/
-├── pyproject.toml              # Pollen-konformes Format, SDK-Pin, Provenienz-URLs
+├── pyproject.toml              # Pollen-konformes Format, SDK-Pin, Provenienz-URLs,
+│                               #   [project.entry-points."reachy_mini_apps"]
 ├── README.md                   # HF-Frontmatter `reachy_mini_python_app`, Provenienz-Notiz
 ├── CLAUDE.md                   # Verweis auf claude-reachy-mini Plugin (Authoring-Quelle)
+├── index.html                  # Hugging-Face-Space-Landing-Page (Pollen-CLI-Default)
+├── style.css                   # Landing-Page-Style (Pollen-CLI-Default)
 ├── reachy_mini_show/
 │   ├── __init__.py
-│   ├── main.py                 # Pollen-Entry: main(reachy, stop_event)
-│   ├── server.py               # WebSocket-Server :8765
+│   ├── main.py                 # ReachyMiniApp-Subklasse + __main__ → wrapped_run()
+│   ├── server.py               # WebSocket-Server :8765 (show-spezifische Erweiterung)
 │   ├── behaviors/
 │   │   ├── __init__.py         # Slug → Klasse Registry
 │   │   ├── base.py             # gemeinsame Move-Subklasse
@@ -51,9 +61,20 @@ reachy-mini-show/
 │   │   ├── dance/              # groove-bob, sway-side, headbang-soft, spin-look-around
 │   │   └── defensive/          # flinch, alarm, scanning
 │   ├── audio/                  # WAV-Samples (F32LE, 48 kHz, 2 ch — Pollen-konform)
+│   ├── static/                 # optional: Web-UI-Assets, falls custom_app_url gesetzt
 │   └── config.py               # Defaults und Plattform-Profile
 └── tests/                      # Unit-Tests gegen ReachyMini(use_sim=True)
 ```
+
+Das Skelett wird **nicht von Hand** angelegt, sondern über das offizielle CLI:
+
+```bash
+uv pip install reachy-mini
+reachy-mini-app-assistant create reachy-mini-show /pfad/zum/ziel        # ohne HF-Push
+reachy-mini-app-assistant create reachy-mini-show /pfad/zum/ziel --publish   # legt HF-Space + Git-Remote an
+```
+
+Manuelle Skelette weichen subtil von Pollens Erwartungen ab und brechen beim ersten Daemon-Lauf.
 
 ### Provenienz-Marker (Pflicht)
 
@@ -63,11 +84,13 @@ reachy-mini-show/
 - **SOLLTE [SHOULD]** ein Code-Header in `main.py` einen einzeiligen Verweis tragen: `# Behaviors derived from spec/reachy-mini/motions/ in nolte/claude-reachy-mini`
 
 ### Lifecycle
-- **MUSS [MUST]** die Pollen-Konvention `main(reachy: ReachyMini, stop_event: threading.Event)` implementieren
-- **MUSS [MUST]** drei parallele Tasks unter `asyncio.run(...)` starten: WebSocket-Server, Behavior-Worker (liest Queue, ruft `mini.async_play_move(...)`), Idle-Loop (wenn Queue leer und kein Behavior aktiv → läuft `waiting-idle` oder konfigurierter Idle-Mode)
-- **MUSS [MUST]** auf `stop_event` alle drei Tasks sauber beenden, laufendes Behavior via `mini.cancel_move()` abbrechen und Reachy in `INIT_HEAD_POSE` + `INIT_ANTENNAS_JOINT_POSITIONS` fahren
+- **MUSS [MUST]** Pollens App-Vertrag implementieren: eine Klasse `ReachyMiniShowApp(ReachyMiniApp)` aus `reachy_mini` mit der Pflicht-Methode `run(self, reachy_mini: ReachyMini, stop_event: threading.Event)`. Der Daemon ruft `run()` mit einer bereits verbundenen Instanz auf und sendet `SIGINT`, der `stop_event.set()` triggert.
+- **MUSS [MUST]** in `main.py` einen `if __name__ == "__main__":`-Block tragen, der `ReachyMiniShowApp().wrapped_run()` aufruft (für Direkt-Lauf via `python -m reachy_mini_show.main`); `wrapped_run()` übernimmt Connect, optionale Services, und ruft dann `run()`.
+- **MUSS [MUST]** innerhalb von `run()` drei parallele Tasks unter `asyncio.run(...)` starten: WebSocket-Server, Behavior-Worker (liest Queue, ruft `reachy_mini.async_play_move(...)`), Idle-Loop (wenn Queue leer und kein Behavior aktiv → läuft `waiting-idle` oder konfigurierter Idle-Mode)
+- **MUSS [MUST]** auf `stop_event` alle drei Tasks sauber beenden, laufendes Behavior via `reachy_mini.cancel_move()` abbrechen und Reachy in `INIT_HEAD_POSE` + `INIT_ANTENNAS_JOINT_POSITIONS` fahren — danach kehrt `run()` zurück, der Daemon setzt das Robot in seine Default-Pose
 - **MUSS [MUST]** bei einer Task-Exception alle anderen Tasks sauber beenden und in eine Sicherheitspose fahren — keine hängenden Verbindungen, keine eingefrorene Pose
 - **DARF NICHT [MUST NOT]** Hardware-Reconnect in der App selbst implementieren — Pollens Daemon übergibt eine bereits verbundene Instanz; Verbindungs-Lifecycle gehört dem Daemon
+- **DARF NICHT [MUST NOT]** den Lifecycle als freie `main(reachy, stop_event)`-Funktion modellieren — der Daemon erwartet die `ReachyMiniApp`-Subklasse, sonst greift weder Discovery noch der `__main__`-Direktlauf-Pfad
 
 ### Behavior-Implementierung
 - **MUSS [MUST]** pro Motion-Slug genau eine `Move`-Subklasse haben, organisiert in den Kategorie-Unterordnern (`emotions/`, `social/`, `state/`, `dance/`, `defensive/`)
@@ -116,6 +139,7 @@ reachy-mini-show/
 - **MUSS [MUST]** Defaults in `config.py` als Dataclass halten
 - **MUSS [MUST]** ENV-Var-Overrides unterstützen: `REACHY_SHOW_PORT`, `REACHY_SHOW_IDLE_MODE`, `REACHY_SHOW_LOG_LEVEL`
 - **DARF NICHT [MUST NOT]** HA-spezifische Config-Werte (HA-URL, HA-Token) führen — diese leben im Konsumenten-Repo
+- **KANN [MAY]** ein Settings-Web-UI exponieren, indem `custom_app_url` auf der `ReachyMiniApp`-Subklasse gesetzt wird (z. B. `"http://0.0.0.0:8042"`); Pollen startet dann automatisch einen FastAPI-Server, der `static/` aus dem Package serviert. Das Dashboard zeigt das Settings-Icon und öffnet die UI unter `http://localhost:8042` (Lite/Sim) bzw. `http://reachy-mini.local:8042` (Wireless). Wenn nicht benötigt, `custom_app_url = None` setzen.
 
 ### Plattform-Profile
 - **MUSS [MUST]** zwischen Wireless / Lite / Simulation unterscheiden, basierend auf SDK-Capability-Discovery
@@ -123,14 +147,63 @@ reachy-mini-show/
 - Lite: keine IMU-Reads, kein Battery-Polling; sonst voll
 - Simulation: keine Audio-Wiedergabe, keine Sensor-Events außer Pose-Read
 
-### Distributionspfad
-- **MUSS [MUST]** lokal-entwickelbar sein über `with ReachyMini(use_sim=True) as mini:`
-- **MUSS [MUST]** auf echte Hardware deploybar sein über Pollens `local`-Source-Slot (Daemon-REST-API oder Reachy-Dashboard)
-- **MUSS [MUST]** als Hugging-Face-Space publizierbar sein über `git push <hf-remote>` — Tag `reachy_mini_python_app` macht die App im Reachy-Dashboard installierbar
+### Entwicklungs- und Distributionspfade
+
+Entwicklung findet auf dem **Notebook** des Entwicklers statt, nicht auf dem Roboter selbst (auch wenn der Wireless einen RPi 4 CM4 trägt — das ist Lauf-, keine Dev-Hardware). Dev-Loop:
+
+```bash
+reachy-mini-app-assistant create reachy-mini-show .
+uv pip install -e .                  # editable install im aktiven venv
+reachy-mini-daemon --sim             # lokaler Daemon in Simulation
+# parallel:
+python -m reachy_mini_show.main      # App direkt starten, schnell iterieren
+```
+
+Drei kanonische Deploy-Pfade nach Wireless:
+
+1. **Hugging-Face-Space (Standard, mit Internet)** — `git push <hf-remote>` aus dem App-Repo. Sobald der Tag `reachy_mini_python_app` im README-Frontmatter steht, erscheint die App im Reachy-Dashboard und ist mit einem Klick installierbar.
+2. **Daemon-REST-API direkt** — funktioniert gegen jeden erreichbaren Daemon (Wireless via `reachy-mini.local:8000`, Lite via Host-PC, Sim via `localhost:8000`):
+
+   ```bash
+   # aus HF installieren
+   curl -X POST http://reachy-mini.local:8000/api/apps/install \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://huggingface.co/spaces/<user>/reachy-mini-show"}'
+
+   # starten / stoppen / listen
+   curl -X POST http://reachy-mini.local:8000/api/apps/start-app/reachy-mini-show
+   curl -X POST http://reachy-mini.local:8000/api/apps/stop-current-app
+   curl       http://reachy-mini.local:8000/api/apps/list
+   ```
+
+3. **Offline / manuell (kein Internet, z. B. Konferenz)** — direkt ins Shared-venv des Wireless installieren:
+
+   ```bash
+   scp -r /pfad/zur/app pollen@reachy-mini.local:/tmp/reachy-mini-show
+   ssh pollen@reachy-mini.local \
+     "/venvs/apps_venv/bin/pip install /tmp/reachy-mini-show"
+   # nach Code-Änderungen: Daemon oder App über REST-API neu starten
+   ```
+
+Anforderungen:
+
+- **MUSS [MUST]** lokal-entwickelbar sein über `with ReachyMini(use_sim=True) as mini:` und über `reachy-mini-daemon --sim`
+- **MUSS [MUST]** alle drei Deploy-Pfade unterstützen — die HF-Space-Route ist Default, die REST- und SSH-Pfade sind Fallback ohne Dashboard bzw. ohne Internet
+- **MUSS [MUST]** wissen, dass auf Wireless alle Apps in das Shared-venv `/venvs/apps_venv/` installiert werden (kein per-App-venv); Abhängigkeits-Konflikte mit anderen installierten Apps sind ein realer Failure-Mode
+- **DARF NICHT [MUST NOT]** auf dem Wireless eigenen Code im Daemon-Service (`reachy-mini-daemon.service`) modifizieren — der Service ist Pollen-Eigentum
 
 ### Logging und Observability
 - **MUSS [MUST]** strukturiertes Python-`logging` mit `INFO`-Default und `DEBUG` per ENV-Var nutzen
 - **MUSS [MUST]** wichtige Lifecycle-Events (Behavior gestartet/beendet, Idle-Mode-Wechsel, Verbindungs-Probleme) sowohl ins Log als auch als WebSocket-Event ausgeben
+- **MUSS [MUST]** wissen, dass auf Wireless `stdout`/`stderr` der App vom Daemon eingefangen werden und über `sudo journalctl -u reachy-mini-daemon` lesbar sind — auf Lite/Simulation erscheinen Logs direkt im Daemon-Terminal. Diagnostik-Beispiele:
+
+  ```bash
+  ssh pollen@reachy-mini.local
+  sudo journalctl -u reachy-mini-daemon -f                              # live
+  sudo journalctl -u reachy-mini-daemon --since '5 min ago' \
+    | grep -v "uvicorn\|GET \|POST "                                    # gefiltert
+  ```
+
 - **DARF NICHT [MUST NOT]** Tokens, Credentials oder rohe Audio-Bytes ins Log ausgeben
 
 ### Versionierung
@@ -139,8 +212,11 @@ reachy-mini-show/
 - **SOLLTE [SHOULD]** für Tanz-Bausteine die `bpm`-Range pro Release dokumentieren (Hardware-Performance kann sich mit Firmware-Versionen verändern)
 
 ## Akzeptanzkriterien
-- [ ] App-Repo folgt Pollen-CLI-Layout, mit `reachy_mini_python_app`-Tag im HF-Frontmatter
-- [ ] `main(reachy, stop_event)` startet drei parallele Tasks (WebSocket, Behavior-Worker, Idle-Loop)
+- [ ] App-Repo wurde mit `reachy-mini-app-assistant create` angelegt und passiert `reachy-mini-app-assistant check` ohne Findings
+- [ ] `pyproject.toml` deklariert genau einen Entry-Point in der Group `reachy_mini_apps`, der auf die `ReachyMiniShowApp`-Klasse zeigt
+- [ ] README trägt den Tag `reachy_mini_python_app` im YAML-Frontmatter
+- [ ] `ReachyMiniShowApp.run(reachy_mini, stop_event)` startet drei parallele Tasks (WebSocket, Behavior-Worker, Idle-Loop) und kehrt nach `stop_event.set()` sauber zurück
+- [ ] `python -m reachy_mini_show.main` läuft via `wrapped_run()` direkt gegen einen lokalen `reachy-mini-daemon --sim`
 - [ ] Lokaler WebSocket auf `127.0.0.1:8765` nimmt JSON-Commands an und broadcastet JSON-Events
 - [ ] Jedes Command und jedes Event trägt ein `protocol_version`-Feld; `get_status` liefert `supported_protocol_versions`
 - [ ] Commands mit unbekannter Major-Version werden mit `error code: "unsupported_protocol_version"` abgelehnt
@@ -149,25 +225,32 @@ reachy-mini-show/
 - [ ] Lokaler Test mit `ReachyMini(use_sim=True)` läuft ohne Hardware durch
 - [ ] App-Provenienz ist sichtbar: README, CLAUDE.md und `pyproject.toml [project.urls]` verweisen auf das `claude-reachy-mini`-Plugin
 - [ ] Push an HF-Remote installiert die App im Reachy-Dashboard ohne manuellen Eingriff
+- [ ] Die drei Deploy-Pfade (HF-Push, REST-`/api/apps/install`, Offline `scp` + `pip install` ins `/venvs/apps_venv/`) sind in der Doku des App-Repos dokumentiert
+- [ ] Auf Wireless sind App-Logs über `sudo journalctl -u reachy-mini-daemon` sichtbar
 - [ ] `stop_event` führt zur Ruhepose ohne Aktuator-Klemmen oder hängende Verbindungen
 - [ ] Eine Task-Exception bricht alle anderen Tasks sauber ab und fährt in Sicherheitspose
 - [ ] Plattform-Profile blenden nicht-vorhandene Sensor-Reads korrekt aus
 
 ## Quellen
-- Upstream-SDK-Repo (Quelle der Wahrheit für `Move`, `ReachyMini`, App-Lifecycle): <https://github.com/pollen-robotics/reachy_mini>
-- App-Subsystem (`main(reachy, stop_event)`-Konvention, App-Lock, App-Manager): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
-- App-Templates (kanonische Vorlage für `pyproject.toml`, `main.py`, `README.md` mit `reachy_mini_python_app`-Tag): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- Upstream-SDK-Repo (Quelle der Wahrheit für `Move`, `ReachyMini`, `ReachyMiniApp`, App-Lifecycle): <https://github.com/pollen-robotics/reachy_mini>
+- Offizielle Apps-Doku (Build, Publish, REST-Install, Logs, Web-UI): <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/SDK/apps.md>
+- App-Subsystem (`ReachyMiniApp`-ABC, `wrapped_run`, App-Lock, App-Manager): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
+- App-Templates (kanonische Vorlage für `pyproject.toml`, `main.py`, `README.md`, `index.html`, `style.css` mit `reachy_mini_python_app`-Tag): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
 - Daemon (REST-API, App-Lock, Lifecycle, Status — der Subprozess, der diese App startet): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
 - IO-Protokoll (Befehls- und Telemetrie-Messages, Referenz für unser WebSocket-Protokoll): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
 - SDK-Konzept-Doku (Apps, Quickstart, Core-Concept): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Pollens `AGENTS.md` (Einsprungspunkt, an dem AI-Agents die App-Authoring-Skills finden): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+- HF-Blog-Tutorial (Schritt-für-Schritt mit Screenshots): <https://huggingface.co/blog/pollen-robotics/make-and-publish-your-reachy-mini-apps>
 - Lauffähiges Minimal-App-Beispiel: <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/minimal_demo.py>
+- Conversation-App als komplettes Referenz-Repo (Audio-Pipeline, LLM-Tools, FastAPI-UI): <https://github.com/pollen-robotics/reachy_mini_conversation_app>
 
 ## Offene Fragen
 - ~~Heißt der Slug `reachy-mini-show`?~~ **Beantwortet**: ja, durchgehend.
 - ~~Audio-Files aus Plugin-Repo gespiegelt oder eigen?~~ **Beantwortet**: das App-Repo hält seine eigenen Audio-Files; keine Spiegelung aus dem Plugin-Repo.
 - ~~Beispiel-App-Skelett im Plugin-Repo unter `examples/`?~~ **Beantwortet**: erstmal kein Example. Wenn `behavior-scaffold` ein konkretes Layout-Vorbild braucht, kann es per Pollen-CLI zur Laufzeit erzeugt werden.
 - ~~WebSocket-Protokoll-Versionierung?~~ **Beantwortet**: `protocol_version`-Feld in jedem Command und Event ist jetzt Anforderung; `get_status` liefert `supported_protocol_versions`.
-- Wie wird die Pollen-CLI exakt aufgerufen? Vorschlag: über den `behavior-scaffold`-Skill kapseln, sodass der Entwickler nur die Hülle füttert.
+- ~~Wie wird die Pollen-CLI exakt aufgerufen?~~ **Beantwortet**: das offizielle Tool heißt `reachy-mini-app-assistant` (`uv pip install reachy-mini`); Sub-Commands `create <name> <dest> [--publish] [--template default|conversation]`, `check <path>`, `publish <path>`. Der Skill `behavior-scaffold` kapselt diesen CLI-Aufruf.
+- ~~`main(reachy, stop_event)` als freie Funktion vs. `ReachyMiniApp`-Subklasse mit `run()`?~~ **Beantwortet**: Pollen erwartet die Subklasse mit `run(self, reachy_mini, stop_event)`; ein `__main__`-Block ruft `wrapped_run()`. Ein freier `main()` würde weder vom Daemon-Discovery-Pfad (Entry-Point-Group `reachy_mini_apps`) noch vom Direkt-Lauf-Pfad korrekt eingebunden.
 - Welcher GitHub-Owner für das App-Repo — `nolte` direkt oder eine Org? Vorschlag: `nolte/reachy-mini-show`.
 - Soll der WebSocket optional auch UNIX-Sockets sprechen (für VM- oder Container-isolierte Konsumenten)? Default bleibt TCP.
 - Wie wird ein Behavior abgebrochen, das in der WebSocket-Queue noch wartet (nicht das aktive)? Vorschlag: `cancel` leert die Queue und stoppt das aktive Behavior; ein zukünftiger `cancel_pending` könnte das später trennen.
