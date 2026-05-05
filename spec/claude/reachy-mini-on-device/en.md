@@ -3,7 +3,7 @@
 Status: draft
 
 ## Context
-Once the hardware is on hand, behaviors must be exercised on the real Reachy Mini before they end up in an app or a Hugging Face publish. By hand that means: SSH or USB attach, sync code, install dependencies, start the behavior, collect logs and telemetry, stop on misbehavior, write a report. These steps are sequential, latency-bound, error-prone, and they produce a lot of raw output — exactly the kind of work that clogs the main thread of a Claude Code conversation when run inline. The `reachy-mini-on-device` agent encapsulates that lifecycle in its own tool session and hands the main thread a tight structured summary. It tests, it does not develop — code changes stay with the main thread, which uses the `reachy-mini-sdk`, `behavior-scaffold`, and `home-assistant-bridge` skills.
+Once the hardware is on hand, behaviors must be exercised on the real Reachy Mini before they end up in an app or a Hugging Face publish. By hand that means: SSH or USB attach, sync code, install dependencies, start the behavior, collect logs and telemetry, stop on misbehavior, write a report. These steps are sequential, latency-bound, error-prone, and they produce a lot of raw output — exactly the kind of work that clogs the main thread of a Claude Code conversation when run inline. The `reachy-mini-on-device` agent encapsulates that lifecycle in its own tool session and hands the main thread a tight structured summary. It tests, it does not develop — code changes stay with the main thread, which uses the `reachy-mini-sdk`, `app-scaffold`, and `home-assistant-bridge` skills.
 
 ## Goals
 - A behavior reaches the real device and runs live in a single agent invocation
@@ -91,7 +91,7 @@ Requirements:
 
 ### Boundaries
 - **SHOULD** point at `reachy-mini-sdk` whenever the main thread needs to adjust motion idioms after the test
-- **SHOULD** point at `behavior-scaffold` when the test reveals the behavior is structurally incomplete
+- **SHOULD** point at `app-scaffold` when the test reveals the behavior is structurally incomplete
 - **SHOULD** point at `home-assistant-bridge` when `interactive` mode is to run against real HA events
 - **MUST NOT** duplicate content from those skills — the agent is observer and orchestrator, not knowledge base
 
@@ -109,7 +109,7 @@ Requirements:
 - [ ] Input parameters (behavior path, device address, timeout, trigger mode) are documented
 - [ ] The output format is documented as a strict schema; raw logs land in `.audits/on-device/<timestamp>-<name>.log`
 - [ ] `.audits/` is in `.gitignore` so logs never get committed
-- [ ] References to `reachy-mini-sdk`, `behavior-scaffold`, `home-assistant-bridge` are visible in the body
+- [ ] References to `reachy-mini-sdk`, `app-scaffold`, `home-assistant-bridge` are visible in the body
 - [ ] The agent is accepted by the skill/agent catalog generator (frontmatter valid, `name` matches filename, `distribution` set)
 - [ ] Statements without hardware verification carry a `⚠ TBD: validate against real hardware` marker
 

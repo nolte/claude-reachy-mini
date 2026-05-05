@@ -3,7 +3,7 @@
 Status: draft
 
 ## Context
-This repository (`claude-reachy-mini`) ships skills, agents, and specs as a toolbox for development. The concrete application built with that toolbox is a **Pollen Reachy Mini app** — a Python package that the Reachy daemon launches as a subprocess on the robot, turning the 29 motion specs from this plugin into live behaviors. This specification defines the app layout, lifecycle, command interface, and distribution path. It is the source of truth against which the `behavior-scaffold` and `reachy-mini-sdk` skills and the `reachy-mini-on-device` agent calibrate their proposals. The app lives in a **separate app repository** (proposed: `nolte/reachy-mini-show`) — this plugin repository itself contains no app code.
+This repository (`claude-reachy-mini`) ships skills, agents, and specs as a toolbox for development. The concrete application built with that toolbox is a **Pollen Reachy Mini app** — a Python package that the Reachy daemon launches as a subprocess on the robot, turning the 29 motion specs from this plugin into live behaviors. This specification defines the app layout, lifecycle, command interface, and distribution path. It is the source of truth against which the `app-scaffold` and `reachy-mini-sdk` skills and the `reachy-mini-on-device` agent calibrate their proposals. The app lives in a **separate app repository** (proposed: `nolte/reachy-mini-show`) — this plugin repository itself contains no app code.
 
 ## Goals
 - A single app that implements all 29 motion slugs as `Move` subclasses
@@ -79,7 +79,7 @@ Hand-rolled skeletons drift subtly from Pollen's expectations and break on the f
 ### Provenance markers (mandatory)
 
 - **MUST** carry, in `README.md` immediately after the HF frontmatter, a provenance block with (1) a reference to the Claude Code plugin `claude-reachy-mini` (`https://github.com/nolte/claude-reachy-mini`), (2) a reference to the motion catalog (`spec/reachy-mini/motions/`), (3) a reference to this architecture spec
-- **MUST** carry a `CLAUDE.md` at the app repo root that names the recommended plugin skills (`reachy-mini-sdk`, `behavior-scaffold`, agent `reachy-mini-on-device`) and links the plugin repo
+- **MUST** carry a `CLAUDE.md` at the app repo root that names the recommended plugin skills (`reachy-mini-sdk`, `app-scaffold`, agent `reachy-mini-on-device`) and links the plugin repo
 - **MUST** carry, in `pyproject.toml` under `[project.urls]`, at least: `Plugin = "https://github.com/nolte/claude-reachy-mini"`, `SDK = "https://github.com/pollen-robotics/reachy_mini"`, `Specs = "https://github.com/nolte/claude-reachy-mini/tree/develop/spec/reachy-mini/"`
 - **SHOULD** carry a one-line code header in `main.py`: `# Behaviors derived from spec/reachy-mini/motions/ in nolte/claude-reachy-mini`
 
@@ -295,9 +295,9 @@ Requirements:
 ## Open Questions
 - ~~Is the slug `reachy-mini-show`?~~ **Answered**: yes, end-to-end.
 - ~~Audio mirrored from the plugin repo or owned?~~ **Answered**: the app repo carries its own audio; no mirroring from the plugin repo.
-- ~~Example app skeleton in the plugin repo under `examples/`?~~ **Answered**: no example for now. If `behavior-scaffold` needs a concrete layout reference, it can be generated at runtime via the Pollen CLI.
+- ~~Example app skeleton in the plugin repo under `examples/`?~~ **Answered**: no example for now. If `app-scaffold` needs a concrete layout reference, it can be generated at runtime via the Pollen CLI.
 - ~~WebSocket protocol versioning?~~ **Answered**: a `protocol_version` field on every command and event is now a requirement; `get_status` returns `supported_protocol_versions`.
-- ~~How exactly is the Pollen CLI invoked?~~ **Answered**: the official tool is `reachy-mini-app-assistant` (`uv pip install reachy-mini`); sub-commands `create <name> <dest> [--publish] [--template default|conversation]`, `check <path>`, `publish <path>`. The `behavior-scaffold` skill wraps this CLI invocation.
+- ~~How exactly is the Pollen CLI invoked?~~ **Answered**: the official tool is `reachy-mini-app-assistant` (`uv pip install reachy-mini`); sub-commands `create <name> <dest> [--publish] [--template default|conversation]`, `check <path>`, `publish <path>`. The `app-scaffold` skill wraps this CLI invocation.
 - ~~Free `main(reachy, stop_event)` function vs. `ReachyMiniApp` subclass with `run()`?~~ **Answered**: Pollen expects the subclass with `run(self, reachy_mini, stop_event)`; an `__main__` block calls `wrapped_run()`. A free `main()` would not be picked up by either the daemon discovery path (entry-point group `reachy_mini_apps`) or the direct-run path.
 - Which GitHub owner for the app repo — `nolte` directly or an org? Proposal: `nolte/reachy-mini-show`.
 - Should the WebSocket optionally also speak UNIX sockets (for VM- or container-isolated consumers)? TCP is the default.

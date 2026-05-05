@@ -151,6 +151,6 @@ Reuse one `httpx.AsyncClient` and one WebSocket connection per bridge lifetime �
 ## Boundaries to neighbouring skills
 
 - Reachy motion idioms → `reachy-mini-sdk`
-- Scaffolding a brand-new behavior triggered from HA → `behavior-scaffold`
+- Scaffolding a brand-new behavior triggered from HA → `app-scaffold`
 - Audio / beat / tempo for dance behaviors → `audio-beat-tracking` (planned)
 - Live on-device test of an HA-triggered motion → agent `reachy-mini-on-device` (planned)

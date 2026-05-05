@@ -3,7 +3,7 @@
 Status: draft
 
 ## Kontext
-Sobald die Hardware da ist, müssen Behaviors auf dem echten Reachy Mini überprüft werden, bevor sie in eine App oder eine Hugging-Face-Veröffentlichung wandern. Manuell heißt das: SSH oder USB anbinden, Code synchronisieren, Abhängigkeiten installieren, Behavior starten, Logs und Telemetrie sammeln, bei Fehlverhalten stoppen, ein Protokoll schreiben. Diese Schritte sind sequenziell, latenz-lastig, fehleranfällig und produzieren viel Rohausgabe — genau die Art von Aufgabe, die den Hauptthread eines Claude-Code-Gesprächs zumüllt, wenn sie inline läuft. Der Agent `reachy-mini-on-device` kapselt diesen Lifecycle in einer eigenen Tool-Session und liefert dem Hauptthread nur eine knappe, strukturierte Zusammenfassung zurück. Er testet, er entwickelt nicht — Code-Anpassungen bleiben Aufgabe des Hauptthreads, der die Skills `reachy-mini-sdk`, `behavior-scaffold` und `home-assistant-bridge` nutzt.
+Sobald die Hardware da ist, müssen Behaviors auf dem echten Reachy Mini überprüft werden, bevor sie in eine App oder eine Hugging-Face-Veröffentlichung wandern. Manuell heißt das: SSH oder USB anbinden, Code synchronisieren, Abhängigkeiten installieren, Behavior starten, Logs und Telemetrie sammeln, bei Fehlverhalten stoppen, ein Protokoll schreiben. Diese Schritte sind sequenziell, latenz-lastig, fehleranfällig und produzieren viel Rohausgabe — genau die Art von Aufgabe, die den Hauptthread eines Claude-Code-Gesprächs zumüllt, wenn sie inline läuft. Der Agent `reachy-mini-on-device` kapselt diesen Lifecycle in einer eigenen Tool-Session und liefert dem Hauptthread nur eine knappe, strukturierte Zusammenfassung zurück. Er testet, er entwickelt nicht — Code-Anpassungen bleiben Aufgabe des Hauptthreads, der die Skills `reachy-mini-sdk`, `app-scaffold` und `home-assistant-bridge` nutzt.
 
 ## Ziele
 - Ein Behavior wird mit einem einzigen Aufruf auf das echte Gerät gebracht und live ausgeführt
@@ -91,7 +91,7 @@ Anforderungen:
 
 ### Boundaries
 - **SOLLTE [SHOULD]** auf `reachy-mini-sdk` verweisen, sobald der Hauptthread Bewegungs-Idiomatik nach dem Test anpassen soll
-- **SOLLTE [SHOULD]** auf `behavior-scaffold` verweisen, wenn der Test zeigt, dass das Behavior strukturell unvollständig ist
+- **SOLLTE [SHOULD]** auf `app-scaffold` verweisen, wenn der Test zeigt, dass das Behavior strukturell unvollständig ist
 - **SOLLTE [SHOULD]** auf `home-assistant-bridge` verweisen, wenn der `interactive`-Modus mit echten HA-Events laufen soll
 - **DARF NICHT [MUST NOT]** Inhalte aus diesen Skills duplizieren — der Agent ist Beobachter und Orchestrator, nicht Wissensbasis
 
@@ -109,7 +109,7 @@ Anforderungen:
 - [ ] Eingabe-Parameter (Behavior-Pfad, Geräte-Adresse, Timeout, Trigger-Modus) sind dokumentiert
 - [ ] Ausgabe-Format ist als striktes Schema dokumentiert; rohe Logs landen in `.audits/on-device/<timestamp>-<name>.log`
 - [ ] `.audits/` ist in `.gitignore` enthalten, sodass Logs niemals committet werden
-- [ ] Verweise auf `reachy-mini-sdk`, `behavior-scaffold`, `home-assistant-bridge` sind im Body sichtbar
+- [ ] Verweise auf `reachy-mini-sdk`, `app-scaffold`, `home-assistant-bridge` sind im Body sichtbar
 - [ ] Der Agent wird vom Skill-Agent-Katalog-Generator akzeptiert (Frontmatter validiert, `name` matcht Dateinamen, `distribution` ist gesetzt)
 - [ ] Aussagen ohne Hardware-Verifikation tragen einen `⚠ TBD: validate against real hardware`-Hinweis
 

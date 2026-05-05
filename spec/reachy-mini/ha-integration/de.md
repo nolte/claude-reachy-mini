@@ -3,7 +3,7 @@
 Status: draft
 
 ## Kontext
-Der Reachy Mini soll als nativer Smart-Home-Bewohner in Home Assistant (HA) eingebunden sein — bidirektional, ohne Brückencode in Drittsystemen, mit allen für Smart-Home relevanten HA-Features: Voice Assist Pipeline, Camera Stream, Media Player, Behavior-Trigger via Service-Calls, Telemetrie als Sensoren, Behaviors als Reaktion auf Automations. Diese Spezifikation legt fest, wie die Integration verteilt, entdeckt und kommuniziert wird, welche Schichten sie hat und wie HA und Reachy entitätenseitig aufeinander treffen. Sie ist die Architektur-Quelle, gegen die der `home-assistant-bridge`-Skill, der `behavior-scaffold`-Skill und der Agent `reachy-mini-on-device` ihre Vorschläge ausrichten.
+Der Reachy Mini soll als nativer Smart-Home-Bewohner in Home Assistant (HA) eingebunden sein — bidirektional, ohne Brückencode in Drittsystemen, mit allen für Smart-Home relevanten HA-Features: Voice Assist Pipeline, Camera Stream, Media Player, Behavior-Trigger via Service-Calls, Telemetrie als Sensoren, Behaviors als Reaktion auf Automations. Diese Spezifikation legt fest, wie die Integration verteilt, entdeckt und kommuniziert wird, welche Schichten sie hat und wie HA und Reachy entitätenseitig aufeinander treffen. Sie ist die Architektur-Quelle, gegen die der `home-assistant-bridge`-Skill, der `app-scaffold`-Skill und der Agent `reachy-mini-on-device` ihre Vorschläge ausrichten.
 
 ## Ziele
 - Reachy Mini erscheint in HA als nativer Custom-Component-Eintrag, installierbar via HACS

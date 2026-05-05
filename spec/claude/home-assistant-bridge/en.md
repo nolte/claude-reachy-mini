@@ -15,7 +15,7 @@ Reachy Mini is meant to be a co-resident in a smart-home setup: Home Assistant (
 ## Non-Goals
 - Developing a Home Assistant custom component inside HA itself (separate repo, separate skill bouquet)
 - Reachy motion idiomatics (`reachy-mini-sdk`'s job)
-- Scaffolding a new behavior (`behavior-scaffold`)
+- Scaffolding a new behavior (`app-scaffold`)
 - Audio and beat tracking (`audio-beat-tracking`, planned)
 - Live deployment / on-device testing (agent `reachy-mini-on-device`, planned)
 - General smart-home architecture, MQTT brokers, Zigbee stacks — only the HA interface is in scope
@@ -70,7 +70,7 @@ Reachy Mini is meant to be a co-resident in a smart-home setup: Home Assistant (
 
 ### Boundaries to neighbouring skills
 - **SHOULD** point at `reachy-mini-sdk` whenever the task is dominated by motion idioms
-- **SHOULD** point at `behavior-scaffold` whenever a _new_ behavior is to grow out of an HA trigger
+- **SHOULD** point at `app-scaffold` whenever a _new_ behavior is to grow out of an HA trigger
 - **SHOULD** point at the agent `reachy-mini-on-device` whenever the HA-triggered motion is to be tested live on the device
 - **SHOULD** point at `audio-beat-tracking` whenever Reachy is to react to music streamed independently of HA
 

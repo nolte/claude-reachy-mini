@@ -8,7 +8,7 @@ Dieses Plugin liefert wiederverwendbare Bausteine, mit denen Claude Code Reachy-
 
 ## Inhalt
 
-- **Skills** — Wissens- und Workflow-Bausteine für SDK-Nutzung, Behavior-Scaffolding, Home-Assistant-Anbindung
+- **Skills** — Wissens- und Workflow-Bausteine für SDK-Nutzung, App-Scaffolding, Home-Assistant-Anbindung
 - **Agents** — größere, eigenständige Aufgaben (z. B. Live-Test auf dem Gerät)
 - **Spezifikationen** — die Quelle der Wahrheit hinter jedem Skill und Agent
 

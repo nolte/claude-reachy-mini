@@ -15,7 +15,7 @@ Reachy Mini soll im Smart-Home-Kontext ein Co-Bewohner sein: Home Assistant (HA)
 ## Nicht-Ziele
 - Entwicklung einer Home-Assistant-Custom-Component innerhalb von HA selbst (eigenes Repo, eigenes Skill-Bouquet)
 - Reachy-Bewegungs-Idiomatik (Aufgabe von `reachy-mini-sdk`)
-- Scaffolding eines neuen Behaviors (`behavior-scaffold`)
+- Scaffolding eines neuen Behaviors (`app-scaffold`)
 - Audio- und Beat-Tracking (`audio-beat-tracking`, geplant)
 - Live-Deployment / On-Device-Test (Agent `reachy-mini-on-device`, geplant)
 - Allgemeine Smart-Home-Architektur, MQTT-Brokers, Zigbee-Stacks — nur die HA-Schnittstelle ist im Scope
@@ -70,7 +70,7 @@ Reachy Mini soll im Smart-Home-Kontext ein Co-Bewohner sein: Home Assistant (HA)
 
 ### Schnittstellen zu benachbarten Skills
 - **SOLLTE [SHOULD]** auf `reachy-mini-sdk` verweisen, sobald die Aufgabe Bewegungs-Idiomatik dominiert
-- **SOLLTE [SHOULD]** auf `behavior-scaffold` verweisen, sobald ein _neues_ Behavior aus einem HA-Trigger entstehen soll
+- **SOLLTE [SHOULD]** auf `app-scaffold` verweisen, sobald ein _neues_ Behavior aus einem HA-Trigger entstehen soll
 - **SOLLTE [SHOULD]** auf den Agent `reachy-mini-on-device` verweisen, sobald die HA-getriggerte Bewegung live auf dem Gerät getestet werden soll
 - **SOLLTE [SHOULD]** auf `audio-beat-tracking` verweisen, wenn Reachy auf Musik reagieren soll, die unabhängig von HA gestreamt wird
 
@@ -84,7 +84,7 @@ Reachy Mini soll im Smart-Home-Kontext ein Co-Bewohner sein: Home Assistant (HA)
 - [ ] Kein Snippet enthält `verify=False`, einen Klartext-Token oder ein ungeschütztes Token im Log
 - [ ] Die minimal unterstützte HA-Version ist im Skill-Body sichtbar dokumentiert (TBD bis verifiziert)
 - [ ] Aussagen ohne Verifikation tragen einen `⚠ TBD: validate against current Home Assistant API`-Hinweis
-- [ ] Out-of-Scope-Themen (HA-Custom-Component-Entwicklung, Reachy-SDK-Idiomatik, Behavior-Scaffold, Audio) sind als „dafür gibt es Skill / Agent X" markiert
+- [ ] Out-of-Scope-Themen (HA-Custom-Component-Entwicklung, Reachy-SDK-Idiomatik, App-Scaffold, Audio) sind als „dafür gibt es Skill / Agent X" markiert
 - [ ] Der MkDocs-Katalog rendert den Skill ohne Build-Fehler (`task docs --strict` grün)
 
 ## Offene Fragen

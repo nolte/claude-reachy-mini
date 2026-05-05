@@ -18,7 +18,7 @@ Das `reachy_mini`-Python-SDK von Pollen Robotics / Hugging Face ist die primäre
 - Veröffentlichung von Behaviors auf Hugging Face Spaces / Hub (eigener Skill `behavior-publish-hf` geplant)
 - Beat- und Tempo-Erkennung für Tanz-Anwendungen (eigener Skill `audio-beat-tracking` geplant)
 - Home-Assistant-Integration (eigener Skill `home-assistant-bridge`)
-- Scaffolding eines neuen Behaviors (eigener Skill `behavior-scaffold`)
+- Scaffolding eines neuen Behaviors (eigener Skill `app-scaffold`)
 - Live-Deployment / Test auf dem Gerät (eigener Agent `reachy-mini-on-device`)
 
 ## Anforderungen
@@ -53,7 +53,7 @@ Das `reachy_mini`-Python-SDK von Pollen Robotics / Hugging Face ist die primäre
 - **MUSS [MUST]** Aussagen, die mangels Hardware oder mangels Verifikation nicht belegt sind, durch eine sichtbare Markierung kennzeichnen (z. B. `> ⚠ TBD: zu validieren mit echter Hardware`)
 
 ### Schnittstellen zu benachbarten Skills
-- **SOLLTE [SHOULD]** auf den Skill `behavior-scaffold` verweisen, sobald die Aufgabe ein _neues_ Behavior anlegt — statt Scaffolding-Logik zu duplizieren
+- **SOLLTE [SHOULD]** auf den Skill `app-scaffold` verweisen, sobald die Aufgabe ein _neues_ Behavior anlegt — statt Scaffolding-Logik zu duplizieren
 - **SOLLTE [SHOULD]** auf den Skill `home-assistant-bridge` verweisen, sobald die Aufgabe Reachy mit Home Assistant verbindet
 - **SOLLTE [SHOULD]** auf den geplanten Skill `audio-beat-tracking` verweisen, sobald die Aufgabe Audio analysiert (z. B. für Tanz-Synchronisation)
 - **SOLLTE [SHOULD]** auf den geplanten Agent `reachy-mini-on-device` verweisen, sobald die Aufgabe ein Behavior live auf dem Gerät testen will
@@ -65,7 +65,7 @@ Das `reachy_mini`-Python-SDK von Pollen Robotics / Hugging Face ist die primäre
 - [ ] Mindestens ein lauffähiges Code-Beispiel pro dokumentiertem Bereich existiert
 - [ ] Jedes Beispiel trägt eine Quell-Referenz und benennt die SDK-Version
 - [ ] Die geprüfte SDK-Version ist im Skill-Body explizit ausgewiesen
-- [ ] Out-of-Scope-Themen (Bringup, Simulation, HF-Publishing, Beat-Tracking, HA-Bridge, Behavior-Scaffolding, On-Device-Testing) sind als „dafür gibt es Skill / Agent X" markiert
+- [ ] Out-of-Scope-Themen (Bringup, Simulation, HF-Publishing, Beat-Tracking, HA-Bridge, App-Scaffolding, On-Device-Testing) sind als „dafür gibt es Skill / Agent X" markiert
 - [ ] Aussagen ohne Hardware-Verifikation tragen einen sichtbaren TBD-Hinweis
 - [ ] Der Skill wird im MkDocs-Katalog korrekt gerendert (Build läuft `task docs --strict` ohne Fehler)
 

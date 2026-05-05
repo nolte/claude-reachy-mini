@@ -18,7 +18,7 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 - Publishing behaviors to Hugging Face Spaces / Hub (separate skill `behavior-publish-hf` planned)
 - Audio beat / tempo detection for dance applications (separate skill `audio-beat-tracking` planned)
 - Home Assistant integration (separate skill `home-assistant-bridge`)
-- Scaffolding a new behavior (separate skill `behavior-scaffold`)
+- Scaffolding a new behavior (separate skill `app-scaffold`)
 - Live deployment / on-device testing (separate agent `reachy-mini-on-device`)
 
 ## Requirements
@@ -53,7 +53,7 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 - **MUST** mark statements that are not verified for lack of hardware or for lack of verification with a visible marker (e.g. `> ⚠ TBD: validate against real hardware`)
 
 ### Boundaries to neighbouring skills
-- **SHOULD** point at the skill `behavior-scaffold` whenever the task creates a _new_ behavior — instead of duplicating scaffolding logic
+- **SHOULD** point at the skill `app-scaffold` whenever the task creates a _new_ behavior — instead of duplicating scaffolding logic
 - **SHOULD** point at the skill `home-assistant-bridge` whenever the task connects Reachy with Home Assistant
 - **SHOULD** point at the planned skill `audio-beat-tracking` whenever the task analyses audio (e.g. for dance synchronisation)
 - **SHOULD** point at the planned agent `reachy-mini-on-device` whenever the task wants to test a behavior live on the device

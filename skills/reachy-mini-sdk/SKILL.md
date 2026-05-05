@@ -189,7 +189,7 @@ For non-Python clients or remote control:
 
 ## Boundaries to neighbouring skills (planned)
 
-- new behavior **scaffolding** → `behavior-scaffold`
+- new behavior **scaffolding** → `app-scaffold`
 - bidirectional **Home Assistant** wiring → `home-assistant-bridge`
 - audio **beat / tempo detection** for dance behaviors → `audio-beat-tracking`
 - live **on-device test / deploy** of a behavior → agent `reachy-mini-on-device`

@@ -8,7 +8,7 @@ description: >-
   <name>", or equivalent German requests ("Behavior auf dem Gerät testen",
   "Behavior live laufen lassen"). Don't use for hardware bring-up or firmware
   flashing (separate skills planned), don't use for behavior development
-  (that's the `reachy-mini-sdk` and `behavior-scaffold` skills), and don't use
+  (that's the `reachy-mini-sdk` and `app-scaffold` skills), and don't use
   as a long-running watchdog — the agent runs a bounded test lifecycle, not a
   daemon. Returns a tight summary plus a path to a full-text log artifact
   under `.audits/on-device/`.
@@ -45,7 +45,7 @@ You **do**:
 
 You **don't**:
 
-- modify the behavior under test (that's the caller's job, supported by `reachy-mini-sdk` and `behavior-scaffold`)
+- modify the behavior under test (that's the caller's job, supported by `reachy-mini-sdk` and `app-scaffold`)
 - write motion logic
 - bring up new hardware, flash firmware (separate skills planned)
 - publish anything to Hugging Face (`behavior-publish-hf`, planned)
@@ -123,4 +123,4 @@ Optional sidecar JSON with the same data when `verbosity=machine`.
 - **MUST NOT** modify the behavior under test, even to "fix a small bug". Report and return.
 - **MUST** finish cleanly on disconnect — no hanging SSH session, no orphaned device process.
 - **MUST** mark every unverified protocol / signature / threshold with `> ⚠ TBD: validate against real hardware`.
-- **MUST** delegate motion knowledge, behavior scaffolding, HA wiring back to `reachy-mini-sdk`, `behavior-scaffold`, `home-assistant-bridge` instead of duplicating them here.
+- **MUST** delegate motion knowledge, behavior scaffolding, HA wiring back to `reachy-mini-sdk`, `app-scaffold`, `home-assistant-bridge` instead of duplicating them here.

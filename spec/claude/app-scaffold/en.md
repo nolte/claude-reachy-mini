@@ -1,9 +1,9 @@
-# Behavior Scaffold Skill
+# App Scaffold Skill
 
 Status: draft
 
 ## Context
-Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") are the primary deliverable of app development built around this plugin. Pollen Robotics / Hugging Face define a canonical repository and module shape that keeps behaviors loadable and publishable. Hand-rolled scaffolds tend to drift on detail conventions — manifest fields, hook signatures, test layout — and that drift only surfaces on the first load or publish attempt. The `behavior-scaffold` skill produces the complete, valid skeleton of a new behavior so the developer only has to fill in the motion logic. It complements the `reachy-mini-sdk` skill (knowledge base) on the writing path and delegates everything beyond the skeleton to specialised skills.
+Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") are the primary deliverable of app development built around this plugin. Pollen Robotics / Hugging Face define a canonical repository and module shape that keeps behaviors loadable and publishable. Hand-rolled scaffolds tend to drift on detail conventions — manifest fields, hook signatures, test layout — and that drift only surfaces on the first load or publish attempt. The `app-scaffold` skill produces the complete, valid skeleton of a new behavior so the developer only has to fill in the motion logic. It complements the `reachy-mini-sdk` skill (knowledge base) on the writing path and delegates everything beyond the skeleton to specialised skills.
 
 ## Goals
 - A new behavior is structurally complete after a single skill invocation — manifest, module, hooks, test stub, docs stub
@@ -64,7 +64,7 @@ Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") 
 - **SHOULD** point at the neighbouring skills (`reachy-mini-sdk`, `home-assistant-bridge`, `audio-beat-tracking`, agent `reachy-mini-on-device`) instead of duplicating their concerns
 
 ## Acceptance Criteria
-- [ ] The skill exists at `skills/behavior-scaffold/SKILL.md` with valid frontmatter (`name: behavior-scaffold`, `description`, optional tags) and is accepted by the catalog generator
+- [ ] The skill exists at `skills/app-scaffold/SKILL.md` with valid frontmatter (`name: app-scaffold`, `description`, optional tags) and is accepted by the catalog generator
 - [ ] A test invocation with name, description, and (optional) author/tags produces a behavior folder containing manifest, module, README / docstring, and test stub
 - [ ] The manifest contains the required fields; unknown detail fields are TBD-marked
 - [ ] The behavior module contains the lifecycle hooks (signatures TBD-marked where unverified) and is syntactically valid

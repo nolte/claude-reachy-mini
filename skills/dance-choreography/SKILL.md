@@ -13,7 +13,7 @@ description: >-
   Choreographie für Reachy", "plane einen Tanz zu diesem Lied". Do not
   activate on pure beat / tempo detection from audio (that is
   `audio-beat-tracking`), on writing the actual `Move` subclasses (that is
-  `behavior-scaffold` plus the developer using `reachy-mini-sdk`), on
+  `app-scaffold` plus the developer using `reachy-mini-sdk`), on
   sending direct WebSocket commands to the app, or on hardware bring-up.
 tags: [reachy-mini, dance, choreography, authoring]
 ---
@@ -40,7 +40,7 @@ Before writing a choreography, **open the relevant motion specs** and confirm BP
 ## When NOT to activate
 
 - pure beat / tempo detection from an audio file → `audio-beat-tracking` (planned)
-- writing the actual `Move` subclasses → `behavior-scaffold` plus developer with `reachy-mini-sdk`
+- writing the actual `Move` subclasses → `app-scaffold` plus developer with `reachy-mini-sdk`
 - sending live WebSocket commands to the app → app's own surface (see `spec/reachy-mini/app-architecture`)
 - composing a brand-new dance block (a new motion spec) → `nolte-shared:spec` plus the motion-catalog convention
 - on-device test or live deployment → agent `reachy-mini-on-device`
@@ -169,7 +169,7 @@ Emotion blocks (`happy`, `excited`, `proud`, `surprised`, `shy`, `confused`, `cu
 ## Boundaries to neighbouring skills
 
 - SDK knowledge / idiomatic API use → `reachy-mini-sdk`
-- Scaffolding the app or a new behavior → `behavior-scaffold`
+- Scaffolding the app or a new behavior → `app-scaffold`
 - Audio beat / tempo / BPM extraction → `audio-beat-tracking` (planned)
 - New motion specs → `nolte-shared:spec` plus the motion-catalog convention under `spec/reachy-mini/motions/`
 - Live deployment / on-device verification of the resulting dance → agent `reachy-mini-on-device`

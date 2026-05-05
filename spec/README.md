@@ -6,7 +6,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 
 | Slug | Titel (DE) | Titel (EN) | Status | Zuletzt aktualisiert |
 |---|---|---|---|---|
-| [`claude/behavior-scaffold`](claude/behavior-scaffold/de.md) | Behavior-Scaffold-Skill | Behavior Scaffold Skill | draft | unversioned |
+| [`claude/app-scaffold`](claude/app-scaffold/de.md) | App-Scaffold-Skill | App Scaffold Skill | draft | unversioned |
 | [`claude/dance-choreography`](claude/dance-choreography/de.md) | Dance-Choreography-Skill | Dance Choreography Skill | draft | unversioned |
 | [`claude/home-assistant-bridge`](claude/home-assistant-bridge/de.md) | Home-Assistant-Bridge-Skill | Home Assistant Bridge Skill | draft | unversioned |
 | [`claude/reachy-mini-on-device`](claude/reachy-mini-on-device/de.md) | On-Device-Test-Agent für Reachy Mini | On-Device Test Agent for Reachy Mini | draft | unversioned |

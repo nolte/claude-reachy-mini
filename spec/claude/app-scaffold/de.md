@@ -1,9 +1,9 @@
-# Behavior-Scaffold-Skill
+# App-Scaffold-Skill
 
 Status: draft
 
 ## Kontext
-Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home Assistant") sind das primäre Lieferobjekt der App-Entwicklung mit diesem Plugin. Pollen Robotics / Hugging Face geben für Behaviors eine kanonische Repository- und Modul-Form vor, die Behaviors lade- und veröffentlichungsfähig hält. Wer manuell scaffolded, weicht regelmäßig in Detail-Konventionen ab — Manifest-Felder, Hook-Signaturen, Test-Layout — und das wird beim ersten Lade- oder Publish-Versuch sichtbar. Dieser Skill `behavior-scaffold` erzeugt das vollständige, valide Skelett für ein neues Behavior, sodass der Entwickler nur noch Bewegungs-Logik einfüllt. Er ergänzt den Skill `reachy-mini-sdk` (Wissensbasis) um den schreibenden Pfad und delegiert alles, was über das Skelett hinausgeht, an spezialisierte Skills.
+Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home Assistant") sind das primäre Lieferobjekt der App-Entwicklung mit diesem Plugin. Pollen Robotics / Hugging Face geben für Behaviors eine kanonische Repository- und Modul-Form vor, die Behaviors lade- und veröffentlichungsfähig hält. Wer manuell scaffolded, weicht regelmäßig in Detail-Konventionen ab — Manifest-Felder, Hook-Signaturen, Test-Layout — und das wird beim ersten Lade- oder Publish-Versuch sichtbar. Dieser Skill `app-scaffold` erzeugt das vollständige, valide Skelett für ein neues Behavior, sodass der Entwickler nur noch Bewegungs-Logik einfüllt. Er ergänzt den Skill `reachy-mini-sdk` (Wissensbasis) um den schreibenden Pfad und delegiert alles, was über das Skelett hinausgeht, an spezialisierte Skills.
 
 ## Ziele
 - Ein neues Behavior ist mit einem einzigen Skill-Aufruf strukturell vollständig vorhanden — Manifest, Modul, Hooks, Test-Stub, Doku-Stub
@@ -64,7 +64,7 @@ Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home As
 - **SOLLTE [SHOULD]** auf Nachbar-Skills verweisen (`reachy-mini-sdk`, `home-assistant-bridge`, `audio-beat-tracking`, Agent `reachy-mini-on-device`) statt deren Inhalte zu duplizieren
 
 ## Akzeptanzkriterien
-- [ ] Der Skill ist unter `skills/behavior-scaffold/SKILL.md` mit gültiger Frontmatter (`name: behavior-scaffold`, `description`, optionale Tags) angelegt und wird vom Katalog-Generator akzeptiert
+- [ ] Der Skill ist unter `skills/app-scaffold/SKILL.md` mit gültiger Frontmatter (`name: app-scaffold`, `description`, optionale Tags) angelegt und wird vom Katalog-Generator akzeptiert
 - [ ] Ein Test-Aufruf mit Namen, Beschreibung und (optional) Autor/Tags erzeugt einen Behavior-Ordner mit Manifest, Modul, README/Docstring und Test-Stub
 - [ ] Manifest enthält Pflicht-Felder; unbekannte Detail-Felder sind TBD-markiert
 - [ ] Behavior-Modul enthält die Lifecycle-Hooks (Signaturen TBD-markiert wo unverifiziert) und ist syntaktisch valide

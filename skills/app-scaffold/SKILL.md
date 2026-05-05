@@ -1,10 +1,10 @@
 ---
-name: behavior-scaffold
+name: app-scaffold
 description: Scaffold a new Reachy Mini behavior with the official Pollen Robotics / Hugging Face folder shape — manifest, behavior module with lifecycle hooks, test stub, and docs stub. Activate on phrasings like "scaffold a new Reachy behavior", "create a Reachy Mini behavior named X", "start a new dance behavior for Reachy", "new behavior skeleton for Reachy Mini". Do not activate when the user only edits an existing behavior, only publishes one to Hugging Face, or asks about motion logic itself — those have their own skills/agents.
 tags: [reachy-mini, behavior, scaffolding]
 ---
 
-# Behavior Scaffold
+# App Scaffold
 
 > ⚠ TBD: validate against pollen-robotics/reachy_mini — the exact Pollen Robotics behavior layout (manifest filename, manifest schema, hook signatures, naming length limits) is not confirmed against the live SDK yet. Read the canonical layout under <https://github.com/pollen-robotics/reachy_mini> before generating files, and update this skill (and the spec) when the layout is verified.
 

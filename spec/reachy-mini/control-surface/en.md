@@ -3,7 +3,7 @@
 Status: draft
 
 ## Context
-Anyone writing skills, behaviors, or agents in this plugin needs a canonical reference for *which* elements of the Reachy Mini are actually controllable, *how* they are addressed, and *under which limits* you compose natural-looking motion from them. Without this specification every implementation reconstructs the hardware reality from scratch — usually from half-baked training samples, which on first real device contact either risks the hardware or produces mechanical-feeling motion. This spec consolidates the publicly known hardware and SDK properties of Reachy Mini, describes each control layer the SDK exposes, and for every mechanical and electrical limitation states how it shapes motion composition. It is the normative knowledge base against which the `reachy-mini-sdk` skill validates its snippets, and against which the `behavior-scaffold` skill anchors its templates.
+Anyone writing skills, behaviors, or agents in this plugin needs a canonical reference for *which* elements of the Reachy Mini are actually controllable, *how* they are addressed, and *under which limits* you compose natural-looking motion from them. Without this specification every implementation reconstructs the hardware reality from scratch — usually from half-baked training samples, which on first real device contact either risks the hardware or produces mechanical-feeling motion. This spec consolidates the publicly known hardware and SDK properties of Reachy Mini, describes each control layer the SDK exposes, and for every mechanical and electrical limitation states how it shapes motion composition. It is the normative knowledge base against which the `reachy-mini-sdk` skill validates its snippets, and against which the `app-scaffold` skill anchors its templates.
 
 ## Goals
 - Every controllable element of the Reachy Mini is catalogued with identifier, axes, value range, and unit
@@ -320,7 +320,7 @@ The following principles are translated from classical animation onto a 6-DoF he
 - [ ] Observability (position read, latency trace, telemetry) is captured as a requirement
 - [ ] Hardware numbers that are not verifiable from the official docs or SDK source carry a `⚠ TBD` marker
 - [ ] The `reachy-mini-sdk` skill points at this spec as the canonical knowledge base
-- [ ] The `behavior-scaffold` skill points at this spec for move primitives and default easings
+- [ ] The `app-scaffold` skill points at this spec for move primitives and default easings
 
 ## References
 - Upstream SDK repo (canonical source for every constant and class referenced in the tables above): <https://github.com/pollen-robotics/reachy_mini>

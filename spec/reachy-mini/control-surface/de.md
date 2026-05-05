@@ -3,7 +3,7 @@
 Status: draft
 
 ## Kontext
-Wer in diesem Plugin Skills, Behaviors oder Agents schreibt, braucht eine kanonische Referenz dafür, *welche* Elemente am Reachy Mini überhaupt steuerbar sind, *wie* sie angesprochen werden und *unter welchen Grenzen* daraus natürlich wirkende Bewegungen komponiert werden. Ohne diese Spezifikation rekonstruiert jede Implementierung die Hardware-Realität neu — meistens aus halbgaren Trainings-Stichproben, was beim ersten echten Gerätekontakt entweder Hardware gefährdet oder zu mechanisch wirkenden Bewegungen führt. Diese Spec konsolidiert die öffentlich bekannten Hardware- und SDK-Eigenschaften des Reachy Mini, beschreibt jede Steuerungs-Schicht des SDKs, und gibt für jede mechanische und elektrische Limitation an, wie sie die Bewegungs-Komposition formt. Sie ist die normative Wissensbasis, gegen die der `reachy-mini-sdk`-Skill seine Snippets validiert und gegen die der `behavior-scaffold`-Skill seine Schablonen anpasst.
+Wer in diesem Plugin Skills, Behaviors oder Agents schreibt, braucht eine kanonische Referenz dafür, *welche* Elemente am Reachy Mini überhaupt steuerbar sind, *wie* sie angesprochen werden und *unter welchen Grenzen* daraus natürlich wirkende Bewegungen komponiert werden. Ohne diese Spezifikation rekonstruiert jede Implementierung die Hardware-Realität neu — meistens aus halbgaren Trainings-Stichproben, was beim ersten echten Gerätekontakt entweder Hardware gefährdet oder zu mechanisch wirkenden Bewegungen führt. Diese Spec konsolidiert die öffentlich bekannten Hardware- und SDK-Eigenschaften des Reachy Mini, beschreibt jede Steuerungs-Schicht des SDKs, und gibt für jede mechanische und elektrische Limitation an, wie sie die Bewegungs-Komposition formt. Sie ist die normative Wissensbasis, gegen die der `reachy-mini-sdk`-Skill seine Snippets validiert und gegen die der `app-scaffold`-Skill seine Schablonen anpasst.
 
 ## Ziele
 - Jedes steuerbare Element des Reachy Mini ist katalogisiert mit Bezeichner, Achsen, Wertebereich und Einheit
@@ -320,7 +320,7 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 - [ ] Beobachtbarkeit (Position-Read, Latenz-Trace, Telemetrie) ist als Anforderung geführt
 - [ ] Hardware-Zahlen, die nicht aus offizieller Doku oder SDK-Source verifiziert sind, tragen einen `⚠ TBD`-Hinweis
 - [ ] `reachy-mini-sdk`-Skill verweist auf diese Spec als kanonische Wissensbasis
-- [ ] `behavior-scaffold`-Skill verweist auf diese Spec für Move-Primitives und Default-Easings
+- [ ] `app-scaffold`-Skill verweist auf diese Spec für Move-Primitives und Default-Easings
 
 ## Quellen
 - Upstream-SDK-Repo (kanonische Quelle für alle in den Tabellen referenzierten Konstanten und Klassen): <https://github.com/pollen-robotics/reachy_mini>

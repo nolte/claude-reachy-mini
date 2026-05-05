@@ -11,7 +11,7 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - Hardware limits from `spec/reachy-mini/control-surface/de.md` are checked per section before writing (BPM range per block, cool-down after `headbang-soft` bursts, `max_body_yaw` for `spin-look-around`, brown-out risk under full actuator load)
 - Platform consequences (Wireless / Lite / Simulation) are explicit per section — a `headbang-soft` sequence safe on Wireless via IMU cool-down carries a hard bang limit on Lite
 - Output is both human-readable (for the translating developer) and machine-readable (for later tools that want to diff, lint, or render choreographies)
-- The skill stays narrow: it delivers the plan, not the code, and delegates SDK idioms to `reachy-mini-sdk`, behavior scaffolding to `behavior-scaffold`, and audio beat detection to `audio-beat-tracking` (planned)
+- The skill stays narrow: it delivers the plan, not the code, and delegates SDK idioms to `reachy-mini-sdk`, behavior scaffolding to `app-scaffold`, and audio beat detection to `audio-beat-tracking` (planned)
 
 ## Non-goals
 - Concrete `Move` subclasses, move sequence code, or app patches inside the `reachy-mini-show` repo (developer's job; SDK idioms via `reachy-mini-sdk`)
@@ -140,7 +140,7 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - **MUST NOT** generate `Move` subclass code, app patches, or WebSocket commands — the skill produces only the choreography file
 - **MUST NOT** process an audio file or estimate BPM from an audio file; that is the job of `audio-beat-tracking` (planned)
 - **MUST NOT** talk to the `reachy_mini` daemon, a `ReachyMini` instance, or the Hugging Face Spaces repo of the app
-- **SHOULD** point at neighbouring skills (`reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking`, agent `reachy-mini-on-device`) instead of duplicating their content
+- **SHOULD** point at neighbouring skills (`reachy-mini-sdk`, `app-scaffold`, `audio-beat-tracking`, agent `reachy-mini-on-device`) instead of duplicating their content
 
 ## Acceptance Criteria
 - [ ] The skill lives under `skills/dance-choreography/SKILL.md` with valid frontmatter (`name: dance-choreography`, `description`, optional tags) and is accepted by the catalog generator
@@ -158,7 +158,7 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - [ ] Defensive blocks (`flinch`, `alarm`, `scanning`) appear in no choreography
 - [ ] The translation checklist is present in every choreography file and lists at least the six mandatory steps
 - [ ] `pre-commit run --all-files` passes on the generated file without auto-fix modifications
-- [ ] References to `reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking`, and agent `reachy-mini-on-device` are visible in the skill body
+- [ ] References to `reachy-mini-sdk`, `app-scaffold`, `audio-beat-tracking`, and agent `reachy-mini-on-device` are visible in the skill body
 - [ ] Hardware-specific values that are TBD in `control-surface` are also marked `> ⚠ TBD: validate against real hardware` in the choreography
 
 ## References

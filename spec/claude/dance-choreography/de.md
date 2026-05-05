@@ -11,7 +11,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - Hardware-Limits aus `spec/reachy-mini/control-surface/de.md` werden vor dem Schreiben pro Sektion durchgeprüft (BPM-Range je Baustein, Cool-down nach `headbang-soft`-Bursts, `max_body_yaw` bei `spin-look-around`, Brown-out-Risiko bei voller Aktuator-Last)
 - Plattform-Konsequenzen (Wireless / Lite / Simulation) sind je Sektion explizit ausgewiesen — eine `headbang-soft`-Sequenz, die auf Wireless mit IMU-Cool-down sicher ist, trägt auf Lite ein hartes Bangs-Limit
 - Output ist sowohl menschenlesbar (für den übersetzenden Entwickler) als auch maschinenlesbar (für spätere Tools, die Choreographien diff-, lint- oder render-bar machen wollen)
-- Der Skill bleibt schmal: er liefert den Plan, nicht den Code, und delegiert SDK-Idiome an `reachy-mini-sdk`, Behavior-Scaffolding an `behavior-scaffold`, Audio-Beat-Erkennung an `audio-beat-tracking` (geplant)
+- Der Skill bleibt schmal: er liefert den Plan, nicht den Code, und delegiert SDK-Idiome an `reachy-mini-sdk`, App-Scaffolding an `app-scaffold`, Audio-Beat-Erkennung an `audio-beat-tracking` (geplant)
 
 ## Nicht-Ziele
 - Konkrete `Move`-Subklassen, Move-Sequenz-Code oder App-Patches im `reachy-mini-show`-Repo (Aufgabe des Entwicklers; SDK-Idiome via `reachy-mini-sdk`)
@@ -140,7 +140,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - **DARF NICHT [MUST NOT]** `Move`-Subklassen-Code, App-Patches oder WebSocket-Befehle erzeugen — der Skill produziert ausschließlich die Choreographie-Datei
 - **DARF NICHT [MUST NOT]** eine Audio-Datei verarbeiten oder BPM aus einer Audio-Datei schätzen; das ist Aufgabe von `audio-beat-tracking` (geplant)
 - **DARF NICHT [MUST NOT]** den `reachy_mini`-Daemon, eine `ReachyMini`-Instanz oder das Hugging-Face-Spaces-Repo der App ansprechen
-- **SOLLTE [SHOULD]** auf Nachbar-Skills verweisen (`reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking`, Agent `reachy-mini-on-device`) statt deren Inhalte zu duplizieren
+- **SOLLTE [SHOULD]** auf Nachbar-Skills verweisen (`reachy-mini-sdk`, `app-scaffold`, `audio-beat-tracking`, Agent `reachy-mini-on-device`) statt deren Inhalte zu duplizieren
 
 ## Akzeptanzkriterien
 - [ ] Der Skill ist unter `skills/dance-choreography/SKILL.md` mit gültiger Frontmatter (`name: dance-choreography`, `description`, optionale Tags) angelegt und wird vom Katalog-Generator akzeptiert
@@ -158,7 +158,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - [ ] Defensive-Bausteine (`flinch`, `alarm`, `scanning`) tauchen in keiner Choreographie auf
 - [ ] Übersetzungs-Checkliste ist in jeder Choreographie-Datei vorhanden und nennt mindestens die sechs Pflicht-Schritte
 - [ ] `pre-commit run --all-files` läuft auf der erzeugten Datei grün, ohne Auto-Fix-Modifikationen
-- [ ] Verweise auf `reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking` und Agent `reachy-mini-on-device` sind im Skill-Body sichtbar
+- [ ] Verweise auf `reachy-mini-sdk`, `app-scaffold`, `audio-beat-tracking` und Agent `reachy-mini-on-device` sind im Skill-Body sichtbar
 - [ ] Hardware-spezifische Werte, die in `control-surface` TBD sind, sind auch in der Choreographie als `> ⚠ TBD: validate against real hardware` markiert
 
 ## Quellen
