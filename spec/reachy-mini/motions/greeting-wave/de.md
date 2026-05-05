@@ -64,6 +64,12 @@ Keine — die Welle ist die ganze Aussage, eine Modulation würde sie verwischen
 - `LINEAR`-Easing in der Welle — wirkt mechanisch wie ein Scheibenwischer
 - Audio mit Glocken-Sound — passt nicht zur sozialen Geste
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll die Wave 3-phasig oder 4-phasig sein (eine zusätzliche Welle vor Phase 5)?
 - Welche Audio-Datei eignet sich als Standard? Vorschlag: `wake_up`-Sound aus dem SDK als Referenz, eigene Datei für maßgeschneidertes „Hallo".

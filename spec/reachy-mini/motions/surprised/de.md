@@ -67,6 +67,12 @@ Sehr kleine, schnelle Sinus-Mod auf `pitch` (Amplitude 0,8°, Frequenz 6 Hz) und
 - Body-Yaw beim Snap (Phase 2) abweichend von 0° — verteilt die Reaktion auf zu viele Achsen
 - Audio später als Phase 2 — entkoppelt Klang von Bewegung
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Reicht ein einzelner Yaw-Schwenker (nur Phase 5) oder sind beide nötig? Empirisch testen — beide sind dramatischer.
 - Sollte das Mikro-Zittern (Phase 4) optional sein? Pro: macht den Affekt menschlicher. Contra: macht das Behavior länger.

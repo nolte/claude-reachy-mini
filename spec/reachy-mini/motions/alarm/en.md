@@ -69,6 +69,12 @@ A repeating alarm tone (e.g. a two-note beep) during phase 2, started with phase
 - Quiet audio — defeats the warning function
 - Hold phase without LED sync — the multi-channel cue (motion + LED + audio) is diagnostic
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which LED-effect register pattern produces the best red blink? `> ⚠ TBD: validate against current ReSpeaker firmware`.
 - Should there be severity tiers (`alarm-warning`, `alarm-critical`) with different durations and frequencies?

@@ -64,6 +64,12 @@ Sinus-Mod auf `roll`: Amplitude 2°, Frequenz 8 Hz — kurzer Schauer, ähnlich 
 - Gesamt-Dauer > 2 s — entwertet die spontane Reaktion
 - `LINEAR`-Easing in Phase 2 — wirkt aggressiv, nicht abwehrend
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sollen es zwei Schauer (in Phase 4) oder nur einer sein? Mehrere Schauer wirken stärker, aber riskieren in „nervös" zu kippen.
 - Welche Audio-Datei eignet sich? Vorschlag: kurzes abgekautes „Bä!" oder „Igitt".

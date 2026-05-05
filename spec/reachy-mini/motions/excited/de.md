@@ -67,6 +67,12 @@ Sinus-Mod auf `pitch` (Amplitude 2°, Frequenz 5 Hz), `z` (Amplitude 2 mm, gleic
 - Phase 6 ohne Antennen-Vibration — entwertet die Synchronität der Aufregung
 - Zu langes Audio (> 1 s) — kollidiert mit der schnellen Bewegungsfolge
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sind vier Hüpfer das richtige Maß, oder reichen drei? Vier ist energischer; drei ist weniger anstrengend für die Stewart-Plattform.
 - Welche Audio-Datei eignet sich? Vorschlag: dreimaliges aufsteigendes „Tu-tuh-tu!" oder ein Konfetti-Sample.

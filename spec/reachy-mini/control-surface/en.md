@@ -322,6 +322,17 @@ The following principles are translated from classical animation onto a 6-DoF he
 - [ ] The `reachy-mini-sdk` skill points at this spec as the canonical knowledge base
 - [ ] The `behavior-scaffold` skill points at this spec for move primitives and default easings
 
+## References
+- Upstream SDK repo (canonical source for every constant and class referenced in the tables above): <https://github.com/pollen-robotics/reachy_mini>
+- SDK source tree (`ReachyMini`, IO, Media, Motion, Daemon, Apps, Tools): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Motion module (`Move` ABC, easing modes `MIN_JERK` / `CARTOON`, `goto`, `recorded_move`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- IO protocol (every `*Cmd` / `*Msg` type used in the requirements): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- Media stack (camera, audio, GStreamer pipelines, mic DOA): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/media>
+- Daemon (status, app lock, REST API): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- API docs (MDX sources for `reachymini`, `media`, `motion`, `daemon`, `apps`, `tools`, `utils`, REST API, OpenAPI schema): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/API>
+- SDK concept docs (Quickstart, Core Concept, Apps, Python / JavaScript SDK, Media architecture): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Platform profile docs (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - ~~Does the Reachy Mini head have 3 DoF or 6 DoF?~~ **Answered**: 6 DoF (Stewart platform); pose is a 4×4 transform matrix; builder `create_head_pose(x, y, z, roll, pitch, yaw, …)` from `reachy_mini.utils`.
 - ~~Which audio codecs?~~ **Answered**: push API expects `F32LE` at 48 kHz, 2 channels. `play_sound(file=...)` decodes arbitrary formats via GStreamer `playbin`.

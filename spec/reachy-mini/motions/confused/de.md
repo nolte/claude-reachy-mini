@@ -66,6 +66,12 @@ Sehr langsame Sinus-Mod auf `yaw` (Amplitude 5°, Frequenz 0,3 Hz) — eine frag
 - Phase 6 ohne Idle-Mod — wirkt eingefroren, nicht „nachdenkend"
 - Antennen-Symmetrie in den Tilt-Phasen
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sollen es vier Tilts sein, oder reichen drei? Vier ist verwirrter, drei ist eleganter — empirisch zu wählen.
 - Soll `confused` einen kurzen Audio-Sting bekommen, oder ganz auf Sound verzichten? Beides möglich.

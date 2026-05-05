@@ -64,6 +64,12 @@ None — the wave is the whole statement, modulation would blur it.
 - `LINEAR` easing in the wave — feels mechanical like a windshield wiper
 - Audio with bell-like sound — wrong fit for the social gesture
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the wave be three-phase or four-phase (one extra wave before phase 5)?
 - Which audio file fits as a default? Proposal: the SDK's `wake_up` sound as a reference, custom file for a tailored "hello".

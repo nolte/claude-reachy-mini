@@ -64,6 +64,12 @@ None — the sequence is too compact, any modulation would blur it.
 - Roll or yaw components — defeat the clear vertical affect
 - Audio only on phase 2 without a follow-up beat — the snap+agree split is lost
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should `recognition` have a shorter variant (only snap + one nod, ~1.0 s)?
 - Which audio file fits? Proposal: two short tones in rising pitch.

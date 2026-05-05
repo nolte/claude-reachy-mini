@@ -62,6 +62,12 @@ None.
 - Rising audio tone — wrong affect
 - Hold phase 7 longer than 0.6 s — reads as wistful instead of farewell
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the pitch in phase 7 go even deeper (e.g. -18°) for a stronger farewell character? Test empirically.
 - How is the handover into `waiting-idle` or `goto_sleep()` wired? Skill-layer decision.

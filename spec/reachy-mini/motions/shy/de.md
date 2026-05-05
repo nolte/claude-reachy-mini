@@ -65,6 +65,12 @@ Keine.
 - Audio mit lautem oder ausrufendem Charakter — entwertet die Verlegenheit
 - Mehrere Lugen-Phasen — wirkt unentschieden statt schüchtern
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Wie wird die „Trigger-Richtung" bestimmt — vom Caller übergeben oder via `look_at_image` der erkannten Person?
 - Welche Audio-Datei eignet sich? Vorschlag: ein gedämpftes „Hm…" mit aufsteigendem Tonfall.

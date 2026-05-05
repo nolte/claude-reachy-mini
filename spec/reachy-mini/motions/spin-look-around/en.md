@@ -68,6 +68,12 @@ None.
 - Antenna modulation during the swings — feels restless
 - Swing speed > 150°/s — overstresses the body-yaw servo
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the default be the "tracking" variant or the "no-tracking" variant? Leaning: no-tracking for hardware safety.
 - Which hold duration is ideal? 0.3 s might be too short — test empirically.

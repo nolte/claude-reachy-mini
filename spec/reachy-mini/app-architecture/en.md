@@ -153,6 +153,15 @@ reachy-mini-show/
 - [ ] A task exception aborts every other task cleanly and drives to a safe pose
 - [ ] Platform profiles correctly hide unavailable sensor reads
 
+## References
+- Upstream SDK repo (source of truth for `Move`, `ReachyMini`, app lifecycle): <https://github.com/pollen-robotics/reachy_mini>
+- Apps subsystem (`main(reachy, stop_event)` convention, app lock, app manager): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
+- App templates (canonical scaffold for `pyproject.toml`, `main.py`, `README.md` with the `reachy_mini_python_app` tag): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- Daemon (REST API, app lock, lifecycle, status — the subprocess that launches this app): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- IO protocol (command and telemetry messages, reference for our WebSocket protocol): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- SDK concept docs (Apps, Quickstart, Core Concept): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Runnable minimal app example: <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/minimal_demo.py>
+
 ## Open Questions
 - ~~Is the slug `reachy-mini-show`?~~ **Answered**: yes, end-to-end.
 - ~~Audio mirrored from the plugin repo or owned?~~ **Answered**: the app repo carries its own audio; no mirroring from the plugin repo.

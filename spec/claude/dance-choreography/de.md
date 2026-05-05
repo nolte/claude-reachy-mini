@@ -161,6 +161,13 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - [ ] Verweise auf `reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking` und Agent `reachy-mini-on-device` sind im Skill-Body sichtbar
 - [ ] Hardware-spezifische Werte, die in `control-surface` TBD sind, sind auch in der Choreographie als `> ⚠ TBD: validate against real hardware` markiert
 
+## Quellen
+- Upstream-SDK-Repo (Quelle der `Move`-Subklasse, Easing-Modi, Pose-Konstanten, gegen die die Choreographie übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`-Pfad, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Beispiel-Move-Sequenzen (kanonische Vorlage für die Übersetzung der Frontmatter in Code): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sequence.py> und <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/recorded_moves.py>
+- Upstream-Claude-Skill `motion-philosophy` (Pollen-Sicht auf Bewegungs-Charakter): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+- App-Manager und App-Templates (Lifecycle-Kontext, in den `set_dance` einläuft): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
+
 ## Offene Fragen
 - Soll der Skill optional eine zweite Output-Variante (rein YAML, ohne Markdown-Body) anbieten, sobald ein Choreographie-Renderer / -Linter existiert?
 - Wie weit darf der Skill `mood`-Texte (Freiform-Englisch oder -Deutsch) interpretieren, bevor er eine LLM-Heuristik wird, die schwer zu prüfen ist? Vorschlag: striktes Mapping von vordefinierten `mood`-Tokens (`calm`, `happy`, `melancholic`, `aggressive`, `playful`, `solemn`) auf Baustein-Präferenzen, plus Freitext-Notiz für Sonderfälle.

@@ -74,6 +74,12 @@ Sehr leise Atemgeräusche oder Gähnen-Sample (≤ 1,2 s), gestartet etwa mit Ph
 - Audio mit ausrufendem Gähn-Charakter — kollidiert mit der Subtilität
 - Schaukel-Amplitude > 8° — wirkt instabil/unkontrolliert statt schläfrig
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll der Body-Yaw überhaupt mitschaukeln, oder ist das zu „instabil"? Erste Annahme: ja, sehr leicht. Empirisch zu kalibrieren.
 - Wie viele Nicker sind ideal — zwei oder drei? Drei wäre dramatischer, aber verlängert die Sequenz auf > 6 s.

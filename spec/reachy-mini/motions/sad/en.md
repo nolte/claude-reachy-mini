@@ -65,6 +65,12 @@ Deep, slow sinusoidal modulation on `z` (amplitude 2 mm, frequency 0.15 Hz — o
 - Body yaw wobbling in both directions (left and right) — feels indecisive instead of sad
 - Fast, high-tempo audio — clashes with the heavy tempo
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which audio file serves as a reference for the sigh? Proposal: a short descending sine or a generic "aw" sample.
 - How deep can the pitch droop without breaking the read? Test pitch in the -25° to -30° range empirically.

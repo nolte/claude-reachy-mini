@@ -67,6 +67,12 @@ A very small, fast sinusoidal modulation on `pitch` (amplitude 0.8°, frequency 
 - Body yaw away from 0° at the snap (phase 2) — disperses the reaction across too many axes
 - Audio later than phase 2 — decouples sound from motion
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Is one yaw swing (phase 5 only) enough, or are both required? Test empirically — both is more dramatic.
 - Should the micro-tremor (phase 4) be optional? Pro: makes the affect more human. Con: lengthens the behavior.

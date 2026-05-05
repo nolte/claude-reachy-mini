@@ -62,6 +62,12 @@ No additional modulation — the sweep itself is the motion.
 - Antenna modulation — defeats the calm scan character
 - Sweep speed > 60°/s — feels panicked rather than calm
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the scan always start in the same direction (left first), or random?
 - With an active vision pipeline, should the scan be automatically replaced by `look_at_world` once a target is detected? Pro: context-relevant; con: increases composition complexity.

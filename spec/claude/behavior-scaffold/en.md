@@ -34,7 +34,7 @@ Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") 
 - **SHOULD** make the target path configurable (default: the consuming repo's standard behaviors directory, discovered by convention or configuration)
 
 ### Generated artifacts
-- **MUST** create a behavior folder whose layout matches the official Pollen Robotics convention — the exact layout is `> ⚠ TBD: validate against pollen-robotics/reachy_mini` and is confirmed before the skill is implemented
+- **MUST** create a behavior folder whose layout matches the official Pollen Robotics convention — the exact layout is `> ⚠ TBD: validate against pollen-robotics/reachy_mini` (source: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>) and is confirmed before the skill is implemented
 - **MUST** emit the behavior manifest with all required fields (name, description, author, optional version, optional SDK-compat range); for unknown detail fields, prefer a TBD stub over guessing
 - **MUST** emit the behavior module (Python) with the lifecycle hooks the SDK contract requires (e.g. `setup`, `step`, `stop` — exact signatures TBD until verified)
 - **MUST** emit a README / docstring stub containing description, intended hardware preconditions, and a quickstart block
@@ -79,8 +79,15 @@ Reachy Mini behaviors (e.g. "dances to music", "nods on a Home Assistant call") 
 - [ ] References to `reachy-mini-sdk`, `behavior-publish-hf`, `home-assistant-bridge`, `audio-beat-tracking`, and `reachy-mini-on-device` are visible in the skill body
 - [ ] The post-scaffold next-steps checklist is documented as a convention in the skill
 
+## References
+- Upstream SDK repo (source of truth for manifest schema and hook signatures): <https://github.com/pollen-robotics/reachy_mini>
+- App templates of the SDK (skeleton precedent, including `pyproject.toml.j2`, `main.py.j2`, `README.md.j2`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- App manager implementation (canonical lifecycle expectations for `main(reachy, stop_event)`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
+- Upstream Claude skill `create-app` (parallel authoring source against which drift is reconciled): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/create-app.md>
+- SDK concept docs (Apps, Core Concept, Quickstart): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+
 ## Open Questions
-- What does the official behavior layout in the current `pollen-robotics/reachy_mini` repo look like concretely (folder structure, manifest filename, manifest schema)? Verify before implementing the skill.
+- What does the official behavior layout in the current [`pollen-robotics/reachy_mini`](https://github.com/pollen-robotics/reachy_mini) repo look like concretely (folder structure, manifest filename, manifest schema)? Verify before implementing the skill — see [`src/reachy_mini/apps/templates`](https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates).
 - Which manifest schema does Hugging Face Spaces require for publishable behaviors? Which fields are required, which optional?
 - Which length and character-set rules apply exactly to behavior names on Hugging Face and in the SDK?
 - Where does the behaviors folder usually live in the consuming app repo? Configuration, convention, or auto-discovery?

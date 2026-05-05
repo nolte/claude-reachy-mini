@@ -64,6 +64,12 @@ Sinusoidal modulation on `yaw` (amplitude 5°, frequency 1.0 Hz) — fast, short
 - Phase 4 search frequency above 2 Hz — feels nervous
 - `CARTOON` easing in phase 2 — feels springy, not stealthy
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the peek always go to the same side or random left/right?
 - Which audio file fits? Proposal: a quiet questioning beep.

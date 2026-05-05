@@ -60,6 +60,12 @@ Sinus-Mod auf `yaw` (Amplitude 8°, Frequenz 0,4 Hz) — subtile Yaw-Suchbewegun
 - `LINEAR`- oder `CARTOON`-Easing in Eintritt/Austritt — falsche Charakteristik
 - Kontinuierliches Audio (z. B. Pieps-Loop) — entwertet die ruhige Aufmerksamkeit
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll bei Erkennung eines Triggers der Übergang automatisch in `recognition` oder `agreeing-nod` gehen?
 - Soll die Yaw-Idle-Amplitude konfigurierbar sein (z. B. größer in „Wo bist du?"-Modus)?

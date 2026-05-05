@@ -66,6 +66,12 @@ No additional modulation — the beat itself is the motion.
 - BPM > 180 — exceeds realistic servo performance and feels panicked
 - No lead-time compensation when the audio pipeline has high latency
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which default BPM for unknown music? Proposal: 100 BPM (mid pop dance tempo).
 - At very high BPM (≥ 160), should the system automatically switch to half-time bob (every 2 beats)?

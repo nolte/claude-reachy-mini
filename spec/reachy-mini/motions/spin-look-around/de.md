@@ -68,6 +68,12 @@ Keine.
 - Antennen-Modulation während der Schwenks — wirkt unruhig
 - Schwenk-Geschwindigkeit > 150°/s — überlastet den Body-Yaw-Servo
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll der Default die „Tracking"-Variante oder die „No-Tracking"-Variante sein? Tendenz: No-Tracking wegen Hardware-Sicherheit.
 - Welche Pause-Dauer in den Hold-Phasen ist ideal? 0,3 s könnte zu kurz wirken — empirisch testen.

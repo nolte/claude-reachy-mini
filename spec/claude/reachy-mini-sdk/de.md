@@ -69,6 +69,16 @@ Das `reachy_mini`-Python-SDK von Pollen Robotics / Hugging Face ist die primäre
 - [ ] Aussagen ohne Hardware-Verifikation tragen einen sichtbaren TBD-Hinweis
 - [ ] Der Skill wird im MkDocs-Katalog korrekt gerendert (Build läuft `task docs --strict` ohne Fehler)
 
+## Quellen
+- Upstream-SDK-Repo (kanonische Quelle für API, Versionierung, Lizenz): <https://github.com/pollen-robotics/reachy_mini>
+- SDK-Source-Tree (`ReachyMini`, IO, Media, Motion, Daemon, Apps, Tools): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Motion-Modul (`Move`-ABC, Easing-Modi `MIN_JERK`/`CARTOON`, `goto`, `recorded_move`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- API-Doku (MDX-Quellen für `reachymini`, `media`, `motion`, `daemon`, `apps`, `tools`, `utils`, REST-API, OpenAPI-Schema): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/API>
+- SDK-Konzept-Doku (Quickstart, Core-Concept, Apps, Python-/JavaScript-SDK, Media-Architektur, Installation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Lauffähige Beispiele (kanonische Vorbilder für Code-Snippets): <https://github.com/pollen-robotics/reachy_mini/tree/main/examples>
+- Upstream-Claude-Skills (Pollens parallele Authoring-Quelle; Drift-Check abgleicht): <https://github.com/pollen-robotics/reachy_mini/tree/main/skills>
+- Plattform-Profile-Doku (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche genaue `reachy_mini`-Version pinnen wir initial? Vorschlag: die letzte stabile vor Hardware-Eintreffen, dokumentiert im Skill-Body.
 - Hat das SDK eine offizielle Compatibility-Matrix mit Python-Versionen, die wir verlinken sollten?

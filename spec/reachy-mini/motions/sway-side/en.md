@@ -64,6 +64,12 @@ None.
 - Body yaw opposed to roll — confusing pose
 - BPM > 140 — the sway becomes too fast, no longer reads as "swayey"
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the antenna asymmetry be flipped (roll left → left antenna up)? Test empirically — both variants have appeal.
 - How is `sway-side` combined with `groove-bob`? Proposal: parallel `Move` composition possible if the subsystems are orthogonal (pitch vs. roll).

@@ -322,6 +322,17 @@ Die folgenden Prinzipien sind aus der klassischen Animation übertragen auf eine
 - [ ] `reachy-mini-sdk`-Skill verweist auf diese Spec als kanonische Wissensbasis
 - [ ] `behavior-scaffold`-Skill verweist auf diese Spec für Move-Primitives und Default-Easings
 
+## Quellen
+- Upstream-SDK-Repo (kanonische Quelle für alle in den Tabellen referenzierten Konstanten und Klassen): <https://github.com/pollen-robotics/reachy_mini>
+- SDK-Source-Tree (`ReachyMini`, IO, Media, Motion, Daemon, Apps, Tools): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Motion-Modul (`Move`-ABC, Easing-Modi `MIN_JERK` / `CARTOON`, `goto`, `recorded_move`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- IO-Protokoll (sämtliche `*Cmd`/`*Msg`-Typen, die in den Anforderungen verwendet werden): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- Media-Stack (Kamera, Audio, GStreamer-Pipelines, Mic-DOA): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/media>
+- Daemon (Status, App-Lock, REST-API): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- API-Doku (MDX-Quellen für `reachymini`, `media`, `motion`, `daemon`, `apps`, `tools`, `utils`, REST-API, OpenAPI-Schema): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/API>
+- SDK-Konzept-Doku (Quickstart, Core-Concept, Apps, Python-/JavaScript-SDK, Media-Architektur): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Plattform-Profile-Doku (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - ~~Hat der Reachy-Mini-Kopf 3 DoF oder 6 DoF?~~ **Beantwortet**: 6 DoF (Stewart-Plattform), Pose ist 4×4-Transform-Matrix; Builder `create_head_pose(x, y, z, roll, pitch, yaw, …)` aus `reachy_mini.utils`.
 - ~~Welche Audio-Codecs?~~ **Beantwortet**: Push-API erwartet `F32LE` bei 48 kHz, 2 Channels. `play_sound(file=...)` decodiert beliebige Formate über GStreamer `playbin`.

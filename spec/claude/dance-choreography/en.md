@@ -161,6 +161,13 @@ The `reachy-mini-show` app (see `reachy-mini/app-architecture`) ships four BPM-p
 - [ ] References to `reachy-mini-sdk`, `behavior-scaffold`, `audio-beat-tracking`, and agent `reachy-mini-on-device` are visible in the skill body
 - [ ] Hardware-specific values that are TBD in `control-surface` are also marked `> ⚠ TBD: validate against real hardware` in the choreography
 
+## References
+- Upstream SDK repo (source of the `Move` subclass, easing modes, pose constants the choreography is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto` path, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Example move sequences (canonical template for translating the frontmatter into code): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sequence.py> and <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/recorded_moves.py>
+- Upstream Claude skill `motion-philosophy` (Pollen view on motion character): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+- App manager and app templates (lifecycle context that `set_dance` runs inside): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
+
 ## Open questions
 - Should the skill optionally offer a second output variant (pure YAML, no Markdown body) once a choreography renderer / linter exists?
 - How far may the skill interpret free-form `mood` text (English or German) before becoming an LLM heuristic that is hard to test? Proposal: strict mapping from a fixed set of `mood` tokens (`calm`, `happy`, `melancholic`, `aggressive`, `playful`, `solemn`) onto block preferences, plus a free-text note for special cases.

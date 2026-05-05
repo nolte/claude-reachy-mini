@@ -74,6 +74,12 @@ Very quiet breathing or yawn sample (≤ 1.2 s), started around phase 2. Volume 
 - Audio with an exclamatory yawn — clashes with the subtlety
 - Sway amplitude above 8° — feels unstable / uncontrolled instead of sleepy
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should body yaw sway at all, or is that "too unstable"? First assumption: yes, very slightly. Calibrate empirically.
 - How many bobs are ideal — two or three? Three would be more dramatic but pushes the sequence past 6 s.

@@ -63,6 +63,12 @@ Langsame Sinus-Mod auf `yaw` (Amplitude 3°, Frequenz 0,4 Hz) — die Pose schwe
 - Hold-Phasen ohne Idle-Mod — wirkt eingefroren, nicht musternd
 - Audio mit ausrufendem Charakter (lautes „Ah!") — kollidiert mit der nachdenklichen Geste
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche Antennen-Asymmetrie wirkt am stärksten als „neugierig"? -15°/+25° ist ein erster Vorschlag — empirisch zwischen 15° und 35° testen.
 - Soll die Sequenz einseitig (nur Tilt links oder rechts) statt beidseitig gebaut werden? Pro: kürzer; Contra: weniger expressiv.

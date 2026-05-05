@@ -65,6 +65,12 @@ Während Phase 5 eine sehr kleine Sinus-Modulation auf `pitch` (Amplitude 1°, F
 - Phasen-Dauern auf den Tick-Frequenz-Tick (20 ms) ausrichten — keine Synchronität nötig, der Daemon interpoliert
 - Lautes oder langes Audio (> 1 s) — kollidiert mit dem Bewegungs-Tempo
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche konkrete Audio-Datei wird verwendet? Vorschlag: kurzer Aufstieg aus dem `wake_up`-Sound des SDKs als Referenz.
 - Soll es eine „kleine" und eine „große" Glücklich-Variante geben (z. B. nur ein Federn vs. zwei)? Hängt vom Trigger-Kontext ab.

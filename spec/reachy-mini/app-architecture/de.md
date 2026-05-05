@@ -153,6 +153,15 @@ reachy-mini-show/
 - [ ] Eine Task-Exception bricht alle anderen Tasks sauber ab und fährt in Sicherheitspose
 - [ ] Plattform-Profile blenden nicht-vorhandene Sensor-Reads korrekt aus
 
+## Quellen
+- Upstream-SDK-Repo (Quelle der Wahrheit für `Move`, `ReachyMini`, App-Lifecycle): <https://github.com/pollen-robotics/reachy_mini>
+- App-Subsystem (`main(reachy, stop_event)`-Konvention, App-Lock, App-Manager): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
+- App-Templates (kanonische Vorlage für `pyproject.toml`, `main.py`, `README.md` mit `reachy_mini_python_app`-Tag): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- Daemon (REST-API, App-Lock, Lifecycle, Status — der Subprozess, der diese App startet): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- IO-Protokoll (Befehls- und Telemetrie-Messages, Referenz für unser WebSocket-Protokoll): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- SDK-Konzept-Doku (Apps, Quickstart, Core-Concept): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Lauffähiges Minimal-App-Beispiel: <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/minimal_demo.py>
+
 ## Offene Fragen
 - ~~Heißt der Slug `reachy-mini-show`?~~ **Beantwortet**: ja, durchgehend.
 - ~~Audio-Files aus Plugin-Repo gespiegelt oder eigen?~~ **Beantwortet**: das App-Repo hält seine eigenen Audio-Files; keine Spiegelung aus dem Plugin-Repo.

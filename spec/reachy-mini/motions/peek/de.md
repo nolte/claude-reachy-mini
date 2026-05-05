@@ -64,6 +64,12 @@ Sinus-Mod auf `yaw` (Amplitude 5°, Frequenz 1,0 Hz) — schnelles, kurzes Suche
 - Suchbewegung in Phase 4 mit Frequenz > 2 Hz — wirkt nervös
 - `CARTOON`-Easing in Phase 2 — wirkt federnd, nicht heimlich
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll der Peek immer auf dieselbe Seite gehen oder Random links/rechts?
 - Welche Audio-Datei eignet sich? Vorschlag: ein leiser fragender Pieps.

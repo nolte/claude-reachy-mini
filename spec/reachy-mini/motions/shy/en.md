@@ -65,6 +65,12 @@ None.
 - Audio loud or exclamatory — defeats the embarrassment
 - Multiple peek phases — feels indecisive rather than shy
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - How is the "trigger direction" determined — passed by the caller or via `look_at_image` of the detected person?
 - Which audio file fits? Proposal: a muted "hm…" with a rising tone.

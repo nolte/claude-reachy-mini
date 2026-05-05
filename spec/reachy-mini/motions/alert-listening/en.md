@@ -60,6 +60,12 @@ Sinusoidal modulation on `yaw` (amplitude 8°, frequency 0.4 Hz) — subtle yaw 
 - `LINEAR` or `CARTOON` easing in entry/exit — wrong character
 - Continuous audio (e.g. beep loop) — defeats the calm attention
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - On a trigger match, should the handover automatically chain into `recognition` or `agreeing-nod`?
 - Should the yaw-idle amplitude be configurable (e.g. larger in a "where are you?" mode)?

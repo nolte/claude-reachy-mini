@@ -68,6 +68,12 @@ Schnelle Sinus-Modulation auf `pitch`: Amplitude ±2°, Frequenz 8 Hz. Bei 50 Hz
 - Phase 1 (Anticipation) weglassen — der Vorstoß wirkt dann weniger lesbar
 - Audio-Knurren länger als 500 ms — überdauert den Vorstoß und verwischt das Timing
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche Vibrations-Frequenz wirkt am ehesten als „kontrollierte Wut" und nicht als „nervös"? Empirisch zwischen 6 und 10 Hz testen.
 - Ist die Drohgeste (Phase 2 + 3) auch ohne die Yaw-Schwenker (Phasen 4–5) lesbar? Ja vermutlich — kürzere „mild-wütend"-Variante als Option.

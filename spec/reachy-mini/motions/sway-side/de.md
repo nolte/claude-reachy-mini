@@ -64,6 +64,12 @@ Keine.
 - Body-Yaw entgegengesetzt zum Roll — verwirrte Pose
 - BPM > 140 — Wiegen wird zu schnell, wirkt nicht mehr „swayig"
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll die Antennen-Asymmetrie umgekehrt werden (links Roll → linke Antenne hoch)? Empirisch testen — beide Varianten haben Charme.
 - Wie wird `sway-side` mit `groove-bob` kombiniert? Vorschlag: parallele `Move`-Komposition möglich, wenn die Subsysteme orthogonal sind (Pitch vs. Roll).

@@ -65,6 +65,12 @@ None — phase 3 is explicitly static (frozen hold).
 - Recovery phase longer than 0.3 s — feels like sad lingering
 - Pitch positive — wrong direction, the flinch should snap down/back
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the startle pose carry a small roll component (e.g. +5°) to read as "side-defensive"? Test empirically.
 - Which audio file fits? Proposal: a short "eh!" or "oh!" beep with a falling tone.

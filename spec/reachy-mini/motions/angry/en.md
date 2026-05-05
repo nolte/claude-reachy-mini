@@ -68,6 +68,12 @@ Fast sinusoidal modulation on `pitch`: amplitude ±2°, frequency 8 Hz. At a 50 
 - Skipping phase 1 (anticipation) — the thrust then reads less clearly
 - Growl audio longer than 500 ms — overlaps the thrust and blurs the timing
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which vibration frequency reads as "controlled anger" rather than "nervous"? Empirically test between 6 and 10 Hz.
 - Is the threat pose (phases 2 + 3) legible without the yaw swings (phases 4–5)? Probably yes — keep a shorter "mild-angry" variant as an option.

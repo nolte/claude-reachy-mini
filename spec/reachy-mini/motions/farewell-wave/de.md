@@ -62,6 +62,12 @@ Keine.
 - Audio aufsteigend — falscher Affekt
 - Hold-Phase 7 länger als 0,6 s — wirkt wehmütig statt verabschiedend
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll der Pitch in Phase 7 noch tiefer (z. B. -18°) für stärkeren Abschieds-Charakter? Empirisch testen.
 - Wie wird der Übergang zu `waiting-idle` oder `goto_sleep()` gekoppelt? Skill-Layer-Entscheidung.

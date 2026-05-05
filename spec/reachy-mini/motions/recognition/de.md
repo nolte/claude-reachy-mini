@@ -64,6 +64,12 @@ Keine — die Sequenz ist zu kompakt, jede Modulation würde sie verwischen.
 - Roll- oder Yaw-Komponenten — entwerten den klaren Vertikal-Affekt
 - Audio nur an Phase 2 ohne Folge-Beat — die Aufteilung Snap+Zustimm geht verloren
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll `recognition` eine kürzere Variante haben (nur Snap + ein Nicker, ~1,0 s)?
 - Welche Audio-Datei eignet sich? Vorschlag: zwei kurze Tonfälle in steigender Tonhöhe.

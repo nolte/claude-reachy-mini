@@ -69,6 +69,12 @@ Ein wiederholter Alarm-Ton (z. B. zweitöniges Pieps) während Phase 2, gestarte
 - Leises Audio — entwertet die Warn-Funktion
 - Hold-Phase ohne LED-Sync — die Mehrkanaligkeit (Bewegung + LED + Audio) ist diagnostisch
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welches LED-Effekt-Register-Pattern erzeugt das beste rote Blinken? `> ⚠ TBD: validate against current ReSpeaker firmware`.
 - Soll es Schweregrad-Stufen geben (`alarm-warning`, `alarm-critical`) mit unterschiedlichen Dauern und Frequenzen?

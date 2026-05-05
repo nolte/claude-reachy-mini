@@ -34,7 +34,7 @@ Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home As
 - **SOLLTE [SHOULD]** den Ziel-Pfad parametrisierbar machen (Default: das Standard-Behaviors-Verzeichnis des konsumierenden Repos, ermittelt durch Konvention oder Konfiguration)
 
 ### Erzeugte Artefakte
-- **MUSS [MUST]** einen Behavior-Ordner anlegen, dessen Layout der offiziellen Pollen-Robotics-Konvention entspricht — exakter Aufbau ist `> ⚠ TBD: validate against pollen-robotics/reachy_mini` und wird vor Skill-Implementierung bestätigt
+- **MUSS [MUST]** einen Behavior-Ordner anlegen, dessen Layout der offiziellen Pollen-Robotics-Konvention entspricht — exakter Aufbau ist `> ⚠ TBD: validate against pollen-robotics/reachy_mini` (Quelle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>) und wird vor Skill-Implementierung bestätigt
 - **MUSS [MUST]** das Behavior-Manifest mit allen Pflicht-Feldern erzeugen (Name, Description, Author, ggf. Version, ggf. SDK-Compat-Range); bei unbekannten Feldern lieber TBD-Stub als raten
 - **MUSS [MUST]** das Behavior-Modul (Python) mit den Lifecycle-Hooks anlegen, die der SDK-Vertrag fordert (z. B. `setup`, `step`, `stop` — exakte Signaturen TBD bis verifiziert)
 - **MUSS [MUST]** ein README- bzw. Docstring-Stub erzeugen, der Beschreibung, beabsichtigte Hardware-Voraussetzungen und einen Quickstart-Block enthält
@@ -79,8 +79,15 @@ Reachy-Mini-Behaviors (z. B. „tanzt zur Musik", „nickt auf Anruf von Home As
 - [ ] Verweise auf `reachy-mini-sdk`, `behavior-publish-hf`, `home-assistant-bridge`, `audio-beat-tracking` und `reachy-mini-on-device` sind im Skill-Body sichtbar
 - [ ] Die nach dem Scaffold ausgegebene Next-Steps-Checkliste ist im Skill als Konvention dokumentiert
 
+## Quellen
+- Upstream-SDK-Repo (Quelle der Wahrheit für Manifest-Schema und Hook-Signaturen): <https://github.com/pollen-robotics/reachy_mini>
+- App-Templates des SDKs (Vorbild für das zu erzeugende Skelett, inkl. `pyproject.toml.j2`, `main.py.j2`, `README.md.j2`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- App-Manager-Implementierung (kanonische Lifecycle-Erwartungen an `main(reachy, stop_event)`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
+- Upstream-Claude-Skill `create-app` (parallele Authoring-Quelle, gegen die Drift abgeglichen wird): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/create-app.md>
+- SDK-Konzept-Doku (Apps, Core-Concept, Quickstart): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+
 ## Offene Fragen
-- Wie sieht das offizielle Behavior-Layout im aktuellen `pollen-robotics/reachy_mini`-Repository konkret aus (Ordner-Struktur, Manifest-Datei-Name, Manifest-Schema)? Vor Skill-Implementierung verifizieren.
+- Wie sieht das offizielle Behavior-Layout im aktuellen [`pollen-robotics/reachy_mini`](https://github.com/pollen-robotics/reachy_mini)-Repository konkret aus (Ordner-Struktur, Manifest-Datei-Name, Manifest-Schema)? Vor Skill-Implementierung verifizieren — siehe [`src/reachy_mini/apps/templates`](https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates).
 - Welches Manifest-Schema verlangt Hugging Face Spaces für veröffentlichungs-fähige Behaviors? Welche Pflicht-Felder, welche Optionalfelder?
 - Welche Längen- und Zeichensatz-Regeln gelten exakt für Behavior-Namen auf Hugging Face und im SDK?
 - Wo lebt der Behaviors-Ordner üblicherweise im konsumierenden App-Repo? Konfiguration, Konvention oder Auto-Discovery?

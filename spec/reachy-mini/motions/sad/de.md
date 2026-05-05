@@ -65,6 +65,12 @@ Tiefe, langsame Sinus-Modulation auf `z` (Amplitude 2 mm, Frequenz 0,15 Hz — a
 - Body-Yaw in beide Richtungen wackeln (rechts und links) — wirkt unentschieden statt traurig
 - Schnelles Audio mit hohem Tempo — kollidiert mit dem schweren Tempo
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche Audio-Datei dient als Referenz für den Seufzer? Vorschlag: kurzer absteigender Sinus oder ein generisches „aw"-Sample.
 - Wie tief darf der Pitch hängen, ohne dass das Bild „kaputt" wirkt? Pitch -25° bis -30° empirisch zu prüfen.

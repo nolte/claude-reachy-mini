@@ -68,6 +68,12 @@ Kein Idle-Modulation — die Bewegung ist kompakt und entscheidend, jede Modulat
 - `LINEAR`-Easing in den Yaw-Phasen — wirkt mechanisch wie ein Metronom
 - Audio mit ausrufendem „NEIN!" — kollidiert mit der ruhigen Skepsis
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sollen es immer drei Schwenker sein, oder situations-abhängig zwei? Zwei ist knapper, drei ist nachdrücklicher.
 - Welche Audio-Datei eignet sich? Vorschlag: ein neutrales „Mh-mh" mit absteigendem Tonfall.

@@ -113,6 +113,14 @@ Requirements:
 - [ ] The agent is accepted by the skill/agent catalog generator (frontmatter valid, `name` matches filename, `distribution` set)
 - [ ] Statements without hardware verification carry a `⚠ TBD: validate against real hardware` marker
 
+## References
+- Upstream SDK repo (`ReachyMini` class, `use_sim` constructor, pose constants `INIT_HEAD_POSE` / `INIT_ANTENNAS_JOINT_POSITIONS`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py>
+- Daemon implementation (REST API, app lock, lifecycle, status — drives the `connect`/`watch` paths): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- IO protocol (telemetry messages `JointPositionsMsg`, `HeadPoseMsg`, `ImuDataMsg`, commands like `SetMicrophoneVolumeCmd`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- IMU and audio examples (sampling patterns for the `watch` step): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/imu_example.py>, <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sound_record.py>
+- Upstream Claude skills `debugging` and `safe-torque` (parallel safety / diagnostics heuristics against which the emergency-stop logic is reconciled): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>, <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
+- Troubleshooting docs (per-platform failure modes): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/troubleshooting>
+
 ## Open Questions
 - Which deploy protocol is canonical — `rsync` over SSH, `scp`, a device-specific tool, or does the SDK support remote-run directly?
 - Which telemetry format does the SDK emit (events, sample streams, log lines)? The output schema depends on it.

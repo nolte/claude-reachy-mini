@@ -173,6 +173,15 @@ This separation is mandatory: voice-pipeline changes (e.g. a new wake-word engin
 - [ ] Multiple parallel Reachy Mini devices configurable as separate devices
 - [ ] Migration from a previous config-flow version runs without user intervention
 
+## References
+- Upstream SDK repo (source of truth for daemon API, IO protocol, media stack): <https://github.com/pollen-robotics/reachy_mini>
+- Daemon (REST API, app lock, lifecycle — what the HA integration talks to as the Reachy endpoint): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- IO protocol (`JointPositionsMsg`, `HeadPoseMsg`, `ImuDataMsg`, LED / mic commands like `SetMicrophoneVolumeCmd`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
+- Media stack (camera, WebRTC via GStreamer, audio DOA, speaker — basis for the `camera.*` and `media_player.*` entities): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/media>
+- REST API docs (the HA integration primarily talks to these): <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/API/rest-api.mdx> with OpenAPI schema at <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/API/openapi.json>
+- SDK integration docs (examples for external consumers — analogous to the HA bridge): <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/SDK/integration.md>
+- Wyoming protocol (voice layer, external standard): <https://github.com/rhasspy/wyoming>
+
 ## Open Questions
 - Which minimum HA version do we set exactly? Proposal `>=2024.10` for the `assist_satellite` domain.
 - Which default wake word? "Hey Reachy"? A local model must be trained — `microWakeWord` is trainable, ~30 min effort.

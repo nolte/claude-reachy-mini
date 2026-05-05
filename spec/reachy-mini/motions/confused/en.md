@@ -66,6 +66,12 @@ Very slow sinusoidal modulation on `yaw` (amplitude 5°, frequency 0.3 Hz) — a
 - Phase 6 without idle modulation — feels frozen, not "thinking"
 - Antenna symmetry in the tilt phases
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should there be four tilts or three? Four reads as more confused, three as more elegant — empirically chosen.
 - Should `confused` get a brief audio sting, or no sound at all? Either is fine.

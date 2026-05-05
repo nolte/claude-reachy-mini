@@ -65,6 +65,12 @@ During phase 5 a very small sinusoidal modulation on `pitch` (amplitude 1°, fre
 - Aligning phase durations to tick boundaries (20 ms) — no need for tick alignment, the daemon interpolates
 - Loud or long audio (> 1 s) — clashes with the motion tempo
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which concrete audio file is used? Proposal: a short rise borrowed from the SDK's `wake_up` sound as a reference.
 - Should there be a "small" and a "large" happy variant (one bounce vs. two)? Depends on trigger context.

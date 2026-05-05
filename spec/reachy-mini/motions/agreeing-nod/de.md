@@ -65,6 +65,12 @@ Kein Idle-Modulation in diesem Behavior — die Bewegung ist kompakt genug, dass
 - Pitch nicht tief genug (< -8° im ersten Nicker) — Geste wird unsichtbar
 - Hold (Phase 7) länger als 0,4 s — wirkt steif
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sollen es immer drei Nicker sein, oder situations-abhängig zwei? Zwei wäre minimaler.
 - Welche Audio-Datei eignet sich? Vorschlag: ein kurzes neutrales „Mhm" — bewusst nicht „Ja!" oder „Genau!".

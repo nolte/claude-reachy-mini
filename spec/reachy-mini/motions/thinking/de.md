@@ -64,6 +64,12 @@ Antennen-Vibration ist die Idle-Mod und läuft ständig in den Loop-Phasen 2–5
 - Lautes Audio (Volume > 30) — entwertet die ruhige Geste
 - Loop-Dauer < 2 s pro Cycle — zu schnell zum Lesen
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll die Dauer der einzelnen Loop-Phasen mit Random-Drift versehen sein, damit kein zwei-mal-identischer Cycle entsteht? Pattern „Timing-Variation" aus `control-surface`.
 - Welche Audio-Datei eignet sich? Vorschlag: ein leises Murmeln oder ein subtiles tickendes Geräusch.

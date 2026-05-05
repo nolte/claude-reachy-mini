@@ -71,6 +71,12 @@ Keine.
 - BPM > 140 — der Bang wird zu hektisch
 - Mehr als 16 Bangs am Stück ohne Cool-down — Servo-Wärmeaufbau
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Sollen variable Bang-Stärken (z. B. jeden 4. Beat verstärkt) Teil der Sequenz sein, statt fixer Amplitude?
 - Welche obere BPM-Grenze ist sicher für Dauer-Performance? Empirisch zu prüfen am Gerät.

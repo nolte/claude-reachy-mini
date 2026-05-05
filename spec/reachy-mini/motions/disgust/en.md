@@ -64,6 +64,12 @@ Sinusoidal modulation on `roll`: amplitude 2°, frequency 8 Hz — short shudder
 - Total duration > 2 s — defeats the spontaneous reaction
 - `LINEAR` easing in phase 2 — feels aggressive, not aversive
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Two shudders in phase 4 or just one? Multiple shudders read as stronger, but risk tipping into "jittery".
 - Which audio file fits? Proposal: a clipped "ew!" or "yuck".

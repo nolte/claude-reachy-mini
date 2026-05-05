@@ -68,6 +68,12 @@ No idle modulation — the motion is compact and decisive, any modulation would 
 - `LINEAR` easing in the yaw phases — feels mechanical like a metronome
 - Audio with an exclamatory "NO!" — clashes with the calm scepticism
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should there always be three swings, or two depending on context? Two is more concise, three is more emphatic.
 - Which audio file fits? Proposal: a neutral "mm-mm" with a falling tone.

@@ -65,6 +65,12 @@ No idle modulation in this behavior — the motion is compact enough that any ho
 - Pitch not deep enough (< -8° on the first nod) — the gesture becomes invisible
 - Hold (phase 7) longer than 0.4 s — feels stiff
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should there always be three nods, or two depending on the context? Two would be minimal.
 - Which audio file fits? Proposal: a short neutral "mhm" — deliberately not "yes!" or "exactly!".

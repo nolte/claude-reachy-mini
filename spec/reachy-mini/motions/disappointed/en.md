@@ -61,6 +61,12 @@ Very light sinusoidal modulation on `z` (amplitude 1 mm, frequency 0.3 Hz) and `
 - Antennas drooping as far as in `sad` (-25°) — reads as weak `sad`
 - Audio with a loud or long sigh — over-paints the affect
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should body yaw drift at all, or stay strictly centred? A small turn-away makes the affect more human, but staying centred would be cleaner.
 - Which audio file fits? Proposal: a short falling tone, quieter than `sad`.

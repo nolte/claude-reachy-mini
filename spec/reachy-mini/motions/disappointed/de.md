@@ -61,6 +61,12 @@ Sehr leichte Sinus-Mod auf `z` (Amplitude 1 mm, Frequenz 0,3 Hz) und `pitch` (Am
 - Antennen so weit hängend wie bei `sad` (-25°) — wirkt wie schwacher `sad`
 - Audio mit lautem oder langem Seufzer — überzeichnet den Affekt
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll der Body-Yaw überhaupt ausschwenken, oder strikt zentriert bleiben? Leichte Wegdrehung macht den Affekt menschlicher, aber strikt zentriert wäre sauberer.
 - Welche Audio-Datei eignet sich? Vorschlag: ein kurzer fallender Ton, leiser als bei `sad`.

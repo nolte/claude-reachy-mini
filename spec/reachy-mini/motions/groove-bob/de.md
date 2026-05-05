@@ -66,6 +66,12 @@ Keine zusätzliche Modulation — der Beat selbst ist die Bewegung.
 - BPM > 180 — überschreitet realistische Servo-Performance und wirkt panisch
 - Kein Lead-Time-Kompensation bei Audio-Pipeline mit hoher Latenz
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Welche Default-BPM bei unbekannter Musik? Vorschlag: 100 BPM (mittlere Pop-Tanzgeschwindigkeit).
 - Soll bei sehr hohem BPM (≥ 160) automatisch auf Half-Time-Bob (alle 2 Beats) umgeschaltet werden?

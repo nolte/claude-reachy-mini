@@ -67,6 +67,12 @@ Beliebig — Body-Yaw bleibt sowieso konstant 0°.
 - Antennen statisch ohne Modulation — wirkt eingefroren
 - Audio jeglicher Art — Idle muss still sein
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll die Atem-Frequenz langsam driften (z. B. 0,2–0,3 Hz statt fix 0,25 Hz), damit der Idle nicht mechanisch wirkt? Pattern „Timing-Variation" aus `control-surface`.
 - Wie integriert sich `waiting-idle` mit `mini.disable_motors()` für Energie-Spar-Modus? Vorschlag: nach 5 min Idle automatisch in `goto_sleep()` übergehen.

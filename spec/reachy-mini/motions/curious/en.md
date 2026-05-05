@@ -63,6 +63,12 @@ Slow sinusoidal modulation on `yaw` (amplitude 3°, frequency 0.4 Hz) — the po
 - Hold phases without idle modulation — feels frozen, not inspecting
 - Audio with an exclamatory character (loud "ah!") — clashes with the contemplative gesture
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Which antenna asymmetry reads strongest as "curious"? -15°/+25° is a first proposal — empirically test between 15° and 35°.
 - Should the sequence be single-sided (left tilt or right tilt only) instead of both? Pro: shorter; con: less expressive.

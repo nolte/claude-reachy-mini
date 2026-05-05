@@ -65,6 +65,12 @@ Keine — Phase 3 ist explizit statisch (Frozen-Hold).
 - Recovery-Phase länger als 0,3 s — wirkt wie trauriges Verharren
 - Pitch positiv — falsche Richtung, sollte nach unten/hinten zucken
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll die Schreck-Pose auch eine kleine Roll-Komponente haben (z. B. +5°), um „seitwärts-defensiv" zu wirken? Empirisch testen.
 - Welche Audio-Datei eignet sich? Vorschlag: kurzer „Eh!" oder „Oh!"-Pieps mit fallendem Tonfall.

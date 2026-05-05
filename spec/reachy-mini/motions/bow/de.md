@@ -63,6 +63,12 @@ Keine — die Stille während des Holds (Phase 3) trägt die Würde der Geste.
 - Hold (Phase 3) kürzer als 0,3 s — der formelle Charakter geht verloren
 - Antennen aufgerichtet (positive Werte) — wirkt freudig statt formell
 
+## Quellen
+- Upstream-SDK-Repo (Quelle für `Move`-ABC, Easing-Modi, Pose-Konstanten, Antennen-DOFs, gegen die diese Sequenz übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
+- `Move`-ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Offene Fragen
 - Soll es Varianten geben (`bow-deep` mit -30° für besondere Ehrungen, `bow-light` mit -15° für Alltagshöflichkeit)?
 - Welche Audio-Datei ist passend? Vorschlag: leises „Danke" oder „bitte" als optionales Audio.

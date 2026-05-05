@@ -67,6 +67,12 @@ Sinusoidal modulation on `pitch` (amplitude 2°, frequency 5 Hz), `z` (amplitude
 - Phase 6 without antenna vibration — defeats the synchronicity of the excitement
 - Audio longer than 1 s — clashes with the fast motion sequence
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Are four hops the right amount, or are three enough? Four is more energetic; three is gentler on the Stewart platform.
 - Which audio file fits? Proposal: a three-note rising "tu-tuh-tu!" or a confetti-style sample.

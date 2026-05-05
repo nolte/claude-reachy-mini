@@ -64,6 +64,12 @@ Antenna vibration is the idle modulation and runs continuously in loop phases 2�
 - Loud audio (volume > 30) — defeats the calm gesture
 - Loop duration < 2 s per cycle — too fast to read
 
+## References
+- Upstream SDK repo (source of the `Move` ABC, easing modes, pose constants, antenna DOFs this sequence is translated against): <https://github.com/pollen-robotics/reachy_mini>
+- `Move` ABC, `goto`, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
+- Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
+- Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+
 ## Open Questions
 - Should the duration of individual loop phases carry a small random drift so no two cycles read identically? "Timing variation" pattern from `control-surface`.
 - Which audio file fits? Proposal: a quiet murmur or a subtle ticking sound.
