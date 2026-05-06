@@ -18,7 +18,7 @@ Begriffsklärung: „App" und „Behavior" werden in diesem Plugin teilweise syn
 - Konkrete Bewegungs- oder Tanz-Logik (Aufgabe des Entwicklers; SDK-Wissen liefert `reachy-mini-sdk`)
 - Re-Implementierung des Pollen-CLI-Layouts — der Skill **muss** `reachy-mini-app-assistant create` aufrufen, niemals selbst Manifest, `pyproject.toml`, `main.py` oder `README.md` schreiben
 - Reine JS-/Web-Apps (Pollen-Doku: „JS-only apps are not yet supported for discovery/sharing"); diese Skill scaffolded nur Python-Apps mit optionalem `static/`-Web-UI
-- Veröffentlichung der App auf Hugging Face über das CLI hinaus (`reachy-mini-app-assistant publish` als separater Schritt; eigener Skill `behavior-publish-hf` geplant für Custom-Workflows)
+- Veröffentlichung der App auf Hugging Face über das CLI hinaus (`reachy-mini-app-assistant publish` als separater Schritt; eigener Skill `reachy-app-publish-hf` geplant für Custom-Workflows)
 - Audio-Analyse, Beat- und Tempo-Erkennung (eigener Skill `audio-beat-tracking` geplant)
 - Home-Assistant-Anbindung der App (eigener Skill `home-assistant-bridge`)
 - Live-Deployment / On-Device-Test (eigener Agent `reachy-mini-on-device`)
@@ -51,7 +51,7 @@ Begriffsklärung: „App" und „Behavior" werden in diesem Plugin teilweise syn
   - in `pyproject.toml` einen `[project.urls]`-Block mit `Plugin = "https://github.com/nolte/claude-reachy-mini"`, `SDK = "https://github.com/pollen-robotics/reachy_mini"`, `Specs = "https://github.com/nolte/claude-reachy-mini/tree/develop/spec/reachy-mini/"`
   - eine `CLAUDE.md` im App-Repo-Root anlegen, die die empfohlenen Plugin-Skills (`reachy-mini-sdk`, `app-scaffold`, Agent `reachy-mini-on-device`) namentlich auflistet und auf das Plugin-Repo verlinkt
   - im `README.md` direkt nach dem HF-Frontmatter einen Provenienz-Block einfügen
-- **MUSS [MUST]** im App-Verzeichnis einen `plan.md`-Stub anlegen mit den vier Pflicht-Abschnitten: (1) Verständnis (was die App tun soll, in eigenen Worten), (2) Technischer Approach (welche SDK-Methoden, welche Plattform-Profile), (3) Klärfragen (mit leeren Antwort-Feldern), (4) Wartepunkt für User-Approval. Quelle: AGENTS.md von Pollen, <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+- **MUSS [MUST]** im App-Verzeichnis-Root die Datei `plan.md` anlegen, deren Inhalt **wörtlich** dem verbindlichen Plan-Template-Stub aus [`reachy-mini/app-development-workflow`](../../reachy-mini/app-development-workflow/de.md) § Phase 3 folgt (Abschnitts-Namen und -Reihenfolge sind dort fix). Dieser Stub ist die kanonische Spec-Quelle für das `plan.md`-Schema und ist eine Obermenge der vier in Pollens AGENTS.md (<https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>) genannten Pflicht-Abschnitte (Verständnis ⊂ Scope, Technischer Approach ⊂ Motion-Inventar + IPC + Test-Strategie, Klärfragen ⊂ Open Questions, User-Approval ⊂ Abnahme); Pollens AGENTS.md bleibt damit erfüllt
 - **MUSS [MUST]** einen Test-Stub anlegen (`tests/test_smoke.py`), der gegen `ReachyMini(spawn_daemon=True, use_sim=True)` läuft und mindestens Import + Klassen-Instanziierung + ein `set_target`-Tick prüft; in der Skip-Bedingung GStreamer-Verfügbarkeit guarden
 - **DARF NICHT [MUST NOT]** ein reines JS-/Web-App-Skelett scaffolden — Pollen-Doku: „JS-only apps are not yet supported for discovery/sharing." Discovery via Hugging Face setzt eine Python-App voraus; Web-UI gehört (optional) als `static/`-Subordner ins Python-Paket.
 
@@ -81,7 +81,7 @@ Begriffsklärung: „App" und „Behavior" werden in diesem Plugin teilweise syn
 - [ ] Bei `template=conversation` wird das Pollen-Conversation-Template gewählt; Default ist `default`
 - [ ] Nach dem CLI-Lauf passiert `reachy-mini-app-assistant check <pfad>` ohne Findings
 - [ ] Provenienz-Post-Processing ergänzt `pyproject.toml` `[project.urls]`, eine `CLAUDE.md` im App-Repo und einen Provenienz-Block im `README.md`
-- [ ] Es wird ein `plan.md` im App-Verzeichnis mit den vier Pflicht-Abschnitten erzeugt (Verständnis, Approach, Klärfragen, Wartepunkt)
+- [ ] Es wird ein `plan.md` im App-Verzeichnis erzeugt, dessen Inhalt dem Plan-Template-Stub aus `reachy-mini/app-development-workflow` § Phase 3 entspricht (Abschnitts-Namen und -Reihenfolge unverändert übernommen)
 - [ ] Die Next-Steps-Checkliste benennt das User-Approval auf `plan.md` als ersten Schritt, vor jedem Code-Commit
 - [ ] Test-Stub `tests/test_smoke.py` läuft gegen `ReachyMini(spawn_daemon=True, use_sim=True)` ohne Hardware durch und gated auf GStreamer-Verfügbarkeit
 - [ ] Test-Stub kommentiert, welche Aspekte Simulation nicht prüfen kann
@@ -89,7 +89,7 @@ Begriffsklärung: „App" und „Behavior" werden in diesem Plugin teilweise syn
 - [ ] App-Name wird auf kebab-case validiert; Verstöße brechen mit klarer Fehlermeldung ab; `reachy-mini-app-assistant` normalisiert intern auf snake_case für den Python-Package-Namen — diese Normalisierung wird im Skill-Output ausgewiesen
 - [ ] Bei Namens-Kollision (Ziel-Pfad existiert) bricht der Skill ab und benennt den existierenden Pfad
 - [ ] `pre-commit run --all-files` läuft auf den generierten Dateien grün
-- [ ] Verweise auf `reachy-mini-sdk`, `behavior-publish-hf`, `home-assistant-bridge`, `audio-beat-tracking` und `reachy-mini-on-device` sind im Skill-Body sichtbar
+- [ ] Verweise auf `reachy-mini-sdk`, `reachy-app-publish-hf`, `home-assistant-bridge`, `audio-beat-tracking` und `reachy-mini-on-device` sind im Skill-Body sichtbar
 - [ ] Die nach dem Scaffold ausgegebene Next-Steps-Checkliste ist im Skill als Konvention dokumentiert
 
 ## Quellen

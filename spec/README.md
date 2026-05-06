@@ -15,6 +15,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`claude/reachy-mini-sdk`](claude/reachy-mini-sdk/de.md) | Reachy-Mini-SDK-Skill | Reachy Mini SDK Skill | draft | 2026-05-06 |
 | [`claude/reachy-mini-start`](claude/reachy-mini-start/de.md) | Start-Skill für Reachy-Mini-Apps | Start Skill for Reachy Mini Apps | draft | 2026-05-06 |
 | [`reachy-mini/app-architecture`](reachy-mini/app-architecture/de.md) | App-Architektur: Reachy-Mini-Show | App Architecture: Reachy Mini Show | draft | 2026-05-05 |
+| [`reachy-mini/app-development-workflow`](reachy-mini/app-development-workflow/de.md) | Entwicklungs-Workflow für Reachy-Mini-Apps | Development Workflow for Reachy Mini Apps | draft | unversioned |
 | [`reachy-mini/app-logging`](reachy-mini/app-logging/de.md) | Logging und Fehleranalyse während der App-Entwicklung | Logging and Failure Analysis During App Development | draft | unversioned |
 | [`reachy-mini/control-surface`](reachy-mini/control-surface/de.md) | Steuerungs-Oberfläche und Bewegungs-Design des Reachy Mini | Reachy Mini Control Surface and Motion Design | draft | 2026-05-05 |
 | [`reachy-mini/ha-integration`](reachy-mini/ha-integration/de.md) | Home-Assistant-Integration: Architektur | Home Assistant Integration: Architecture | draft | 2026-05-05 |

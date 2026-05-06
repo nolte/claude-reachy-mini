@@ -18,7 +18,7 @@ Sobald eine Reachy-Mini-App strukturell fertig ist (per `app-scaffold` aufgesetz
 - Hardware-Inbetriebnahme (separater Skill geplant)
 - Firmware-Flashen (separater Skill geplant)
 - Behavior-/Motion-Code editieren (`reachy-mini-sdk`, `app-scaffold`)
-- Hugging-Face-Publish (`reachy-mini-app-assistant publish`, oder ein zukünftiger `behavior-publish-hf`)
+- Hugging-Face-Publish (`reachy-mini-app-assistant publish`, oder ein zukünftiger `reachy-app-publish-hf`)
 - Persistenter Watchdog / Auto-Redeploy — der Agent fährt einen einmaligen Deploy-Lifecycle, kein Daemon
 - Pollen-Daemon-Restart, -Reload oder -Reconfiguration — out of scope, niemals durch diesen Agent
 - Simulation: in `use_sim=True` gibt es nichts zu deployen; Simulation ist Revier des `reachy-mini-on-device`-Agents
@@ -72,7 +72,7 @@ Diese Aufgabe ist als **Agent** modelliert, weil mehrere Begründungen aus `nolt
 - **MUSS** plattformspezifische Auth-Modelle anwenden:
   - **Wireless**: SSH direkt zum Reachy
   - **Lite**: SSH zum Host-PC; der dortige Pollen-Daemon empfängt den Install über diese Session
-- **MUSS** sicherstellen, dass `.audits/` in der `.gitignore` des Consumer-Repos steht, bevor dort Artefakte geschrieben werden; das Audit-Verzeichnis ist generiert, niemals committed
+- **MUSS** sicherstellen, dass `.audits/deploy/` in der `.gitignore` des Consumer-Repos steht, bevor dort Artefakte geschrieben werden; das `.audits/deploy/`-Verzeichnis ist generiert, niemals committed. Andere Unterverzeichnisse von `.audits/` können einer eigenen Policy folgen — etwa `.audits/security-review/` ist mitversioniert (siehe `reachy-mini/app-development-workflow` Phase 7)
 
 ### Grenzen
 - **SOLLTE** auf `app-scaffold` zeigen, wenn das lokale Pre-Flight zeigt, dass das App-Skelett selbst kaputt oder unvollständig ist
@@ -91,7 +91,7 @@ Diese Aufgabe ist als **Agent** modelliert, weil mehrere Begründungen aus `nolt
 - [ ] Der Agent verifiziert bei `verify=true`, dass die deployte App in `entry_points(group='reachy_mini_apps')` erscheint
 - [ ] Der Output-Report nennt den Deploy-Pfad explizit (`via_ssh_direct` / `via_host_usb`)
 - [ ] Der Output-Report unterscheidet `ABORTED` von `FAIL` gemäß obiger Regel
-- [ ] Das Volltext-Log liegt unter `.audits/deploy/<timestamp>-<app-name>.log` und `.audits/` steht in der `.gitignore` des Consumer-Repos
+- [ ] Das Volltext-Log liegt unter `.audits/deploy/<timestamp>-<app-name>.log` und `.audits/deploy/` steht in der `.gitignore` des Consumer-Repos
 - [ ] Der Agent existiert als `agents/reachy-mini-deploy.md` mit gültigem Frontmatter — `name: reachy-mini-deploy`, `description`, `distribution: plugin`, optionale Tags
 - [ ] Die `description` aktiviert auf Phrasings wie „App auf den Reachy ausrollen", „auf das Gerät deployen", „aktuellen Stand auf den Reachy bringen", sowie englische Varianten
 - [ ] Eine Skill-vs-Agent-Begründung ist im Agent-Body sichtbar (mindestens mehrstufige Orchestrierung, Kontextfenster-Schutz, schmale Tool-Oberfläche)

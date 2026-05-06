@@ -17,7 +17,7 @@ A Reachy Mini app that has been deployed onto the Pollen daemon's environment (t
 - Running a full live trial with telemetry — owned by `reachy-mini-on-device` (agent)
 - Behavior / motion code editing — `reachy-mini-sdk`, `app-scaffold`
 - Pollen daemon restart, reload, or reconfiguration — out of scope, never performed by this skill
-- Hugging Face publishing — `reachy-mini-app-assistant publish`, or a future `behavior-publish-hf`
+- Hugging Face publishing — `reachy-mini-app-assistant publish`, or a future `reachy-app-publish-hf`
 - Persistent supervisor / auto-restart — the skill is single-shot
 
 ## Skill-vs-Agent rationale

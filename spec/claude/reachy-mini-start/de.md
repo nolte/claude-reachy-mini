@@ -17,7 +17,7 @@ Eine Reachy-Mini-App, die in die Pollen-Daemon-Umgebung deployt wurde (typischer
 - Vollen Live-Trial mit Telemetrie laufen lassen — gehört zu `reachy-mini-on-device` (Agent)
 - Behavior-/Motion-Code editieren — `reachy-mini-sdk`, `app-scaffold`
 - Pollen-Daemon-Restart, -Reload oder -Reconfiguration — out of scope, niemals durch diesen Skill
-- Hugging-Face-Publish — `reachy-mini-app-assistant publish`, oder ein zukünftiger `behavior-publish-hf`
+- Hugging-Face-Publish — `reachy-mini-app-assistant publish`, oder ein zukünftiger `reachy-app-publish-hf`
 - Persistenter Supervisor / Auto-Restart — der Skill ist Single-Shot
 
 ## Skill-vs-Agent-Begründung
