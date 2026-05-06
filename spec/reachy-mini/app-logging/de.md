@@ -44,8 +44,7 @@ Jede Reachy-Mini-App-Sitzung erzeugt Log-Einträge in **drei orthogonalen Logger
 | App-`stdout` (im Daemon-Hosting) | gepiped → `reachy_mini.apps.manager.runner.info` | erbt | jeder `print(...)` und alles, was das App-Subprocess auf stdout schreibt; Subprozess wird mit `python -u` (unbuffered) gespawnt | nicht direkt konfigurierbar; muss über App-Logger laufen, um saubere Levels zu haben |
 | App-`stderr` (im Daemon-Hosting) | gepiped → `reachy_mini.apps.manager.runner.error` (mit Heuristik) oder `.warning` | erbt | Tracebacks, ungefangene Exceptions, alles auf stderr; die Heuristik in `manager.py:206–209` klassifiziert Zeilen, die wie Errors aussehen, als `error`, sonst als `warning` | nicht direkt konfigurierbar |
 
-- **MUSS [MUST]** jede neue App in der eigenen Code-Basis `logging.getLogger(__name__)` als Logger-Quelle nutzen, niemals `logging.getLogger("root")` oder `print()` für Diagnose
-- **MUSS [MUST]** der App-Code einen Logger-Namen tragen, der mit dem Python-Modul-Namen übereinstimmt (per `__name__`), damit Filter und Level-Switches per Modul granular gesetzt werden können
+- **MUSS [MUST]** jede neue App in der eigenen Code-Basis `logging.getLogger(__name__)` als Logger-Quelle nutzen, niemals `logging.getLogger("root")` oder `print()` für Diagnose; das ergibt einen Logger-Namen, der mit dem Python-Modul-Namen übereinstimmt und damit granulare Modul-Filter und Level-Switches erlaubt
 - **DARF NICHT [MUST NOT]** der App-Code den Wurzel-Logger global re-konfigurieren (kein `logging.basicConfig(level=DEBUG)` ohne Bedingung); damit würde der SDK-Logger-Baum unkontrolliert mit-laut
 
 ### Plattform-Profile — wo Logs landen
@@ -157,10 +156,12 @@ Pollens [`skills/debugging.md`](https://github.com/pollen-robotics/reachy_mini/b
 - [ ] Die Verify-Basics-First-Heuristik (`examples/minimal_demo.py` vor App-Diagnose) ist als MUST verankert
 - [ ] Recovery-Aktionen (Daemon-Restart pro Plattform, Motor-Recovery via Safe-Torque) sind als Tabelle dokumentiert
 - [ ] Cross-Refs auf [`host-provisioning`](../host-provisioning/de.md) (Production-Logging), [`reachy-mini-on-device`](../../claude/reachy-mini-on-device/de.md) (Test-Agent-Tailing) und [`reachy-mini-sdk`](../../claude/reachy-mini-sdk/de.md) (idiomatic SDK-Use) sind sichtbar
-- [ ] Alle Quell-Verweise zeigen auf konkrete Datei + Zeilen-Nummer im Pollen-Repo, nicht nur auf das Repo-Root
+- [ ] Quell-Verweise auf Pollen-**Code**-Dateien zeigen auf Datei + Zeilen-Nummer; Verweise auf Pollen-**Markdown**-Quellen (`AGENTS.md`, `skills/*.md`) sind Datei-Level zitiert
 - [ ] Keine MUST-Klausel verlangt eine API-Funktion, deren Existenz nicht in `src/reachy_mini/` belegt ist (Konsistenz mit der `deep-dive-docs`-MUST aus [`claude/reachy-mini-sdk`](../../claude/reachy-mini-sdk/de.md))
 
 ## Quellen
+
+> Code-Source-Verweise sind gegen `pollen-robotics/reachy_mini@main` zum Stand 2026-05-06 verifiziert; bei Pollen-Refactors driften die Zeilen-Nummern still und werden über einen späteren Drift-Audit nachgezogen. Markdown-Quellen werden auf Datei-Ebene zitiert, da sie keine stabilen Zeilen-Anker tragen.
 
 - Pollen-Skill `debugging` (kanonische Triage-Heuristik, Common-Issues-Inventar, Verify-Basics-First): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>
 - SDK-Hauptklasse (`log_level`-Konstruktor-Parameter, `self.logger = logging.getLogger(__name__)`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py>
