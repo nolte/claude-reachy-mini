@@ -64,6 +64,12 @@ Anforderungen:
 - **MUSS [MUST]** in jeder Phase das beobachtete Ergebnis strukturiert protokollieren (Phase, Status, Dauer, Fehler-Klasse falls vorhanden)
 - **MUSS [MUST]** bei Disconnect oder unerwartetem Behavior-Exit kontrolliert enden — keine hängenden SSH-Sessions, keine offen gelassenen Behavior-Prozesse
 - **SOLLTE [SHOULD]** zwischen den Phasen einen Health-Check einschieben — auf Wireless mit IMU-Temperatur und Battery-Stand; auf Lite mit Daemon-Effort-/Strom-Daten falls verfügbar; in Simulation entfällt der Check
+- **SOLLTE [SHOULD]** im `watch & sample`-Schritt die plattform-passende Daemon-Log-Quelle als Standard mitlesen:
+  - **Wireless**: `ssh pollen@<host> "sudo journalctl -u reachy-mini-daemon.service -f --since '<lifecycle-start>'"` (filtern via `grep -v "uvicorn\|GET \|POST "` reduziert HTTP-Rauschen)
+  - **Lite**: lokaler Daemon-Stream über `reachy-mini-daemon --verbose` (oder Tail des Log-Files, falls der Daemon `--log-file` nutzt)
+  - **Simulation**: bereits im selben Prozess, kein separater Stream nötig
+  Quelle: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>
+- **SOLLTE [SHOULD]** im `stop`-Schritt vor `disconnect` das **Safe-Torque-Pattern** ausführen (Goto `SLEEP_HEAD_POSE` → `disable_motors()`), sofern Plattform != `simulation`. Detail-Pattern und Begründung: [`reachy-mini-sdk`](../reachy-mini-sdk/de.md) bzw. <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
 
 ### Notstopp
 - **MUSS [MUST]** den Notstopp **primär über `stop_event`** signalisieren (Pollens App-Lifecycle-Vertrag, `src/reachy_mini/apps/manager.py`): `stop_event.set()` + Wartezeit für graceful Cleanup; auf REST-Ebene `POST /api/apps/stop-current-app`. Dem Behavior wird ein konfigurierbares **Cleanup-Timeout** (Default 2 s) eingeräumt, in dem es seinen `run()` selbst zu Ende fährt
@@ -121,7 +127,10 @@ Anforderungen:
 - Daemon-Implementierung (REST-API, App-Lock, Lifecycle, Status — entscheidet über `connect`/`watch`-Pfade): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
 - IO-Protokoll (Telemetrie-Messages `JointPositionsMsg`, `HeadPoseMsg`, `ImuDataMsg`, Befehle wie `SetMicrophoneVolumeCmd`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
 - IMU- und Audio-Beispiele (Messmuster für Sample-Streams im `watch`-Schritt): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/imu_example.py>, <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sound_record.py>
+- App-Lifecycle-Vertrag (`stop_event`, `wrapped_run`, App-Manager — Quelle für die Notstopp-Eskalations-Sequenz): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
 - Upstream-Claude-Skills `debugging` und `safe-torque` (parallele Sicherheits-/Diagnose-Heuristiken, gegen die die Notstopp-Logik abgeglichen wird): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>, <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
+- Upstream-Claude-Skill `setup-environment` (Daemon-Status-Vorbedingung, GStreamer / MuJoCo Pre-Flight): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/setup-environment.md>
+- Pollens `AGENTS.md` (Einstiegspunkt, Plattform-Tabelle, allgemeine Konventionen): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 - Troubleshooting-Doku (Failure-Modes je Plattform): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/troubleshooting>
 
 ## Offene Fragen
