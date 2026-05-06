@@ -116,11 +116,12 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - **MUSS [MUST]** im Markdown-Body folgende Abschnitte tragen, in dieser Reihenfolge: `# <Titel>`, `## Kontext` (1–3 Sätze), `## Sektions-Tabelle` (eine Tabelle mit allen Sektionen), `## Plattform-Konsequenzen`, `## Übersetzungs-Checkliste für den Entwickler`, `## Offene Fragen`
 - **MUSS [MUST]** die `Übersetzungs-Checkliste` mindestens diese Punkte enthalten:
   1. Pro Sektions-Slug die `Move`-Subklasse aus `reachy_mini_show/behaviors/` instanziieren oder die Slug-Registry erweitern
-  2. BPM, Beats und Lead-Time aus der Frontmatter konstruktor-parametrisiert übergeben
+  2. BPM, Beats und Lead-Time aus der Frontmatter konstruktor-parametrisiert übergeben; im `Move.evaluate(t)` mit **`t_beats = elapsed_s * bpm / 60.0`** rechnen, nicht mit Sekunden — Pollens Konvention für BPM-synchronisierte Moves, Quelle: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/symbolic-motion.md>
   3. Idle-/Outro-Sektion mit `loop_count=None` als Hintergrund-Behavior einplanen
   4. Audio-Trigger gegen das Lied taktgenau ausrichten (Hinweis auf `audio-beat-tracking`, geplant)
   5. Test gegen `ReachyMini(spawn_daemon=True, use_sim=True)` schreiben, dann On-Hardware-Validierung via `reachy-mini-on-device`-Agent
   6. Plattform-spezifische Fallbacks (z. B. `headbang-soft` → `groove-bob` bei Servo-Wärme) implementieren
+  7. Für Emotion-`accent_slug`s die offizielle Emotions-Library `pollen-robotics/reachy-mini-emotions-library` über `RecordedMoves(...).get(<slug>)` konsumieren statt die Emotion neu zu komponieren — Quelle: AGENTS.md § Emotions Library, <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 - **MUSS [MUST]** die `Offene Fragen`-Sektion explizit Open-Question-Marker enthalten, wenn der Skill eine Lücke im Motion-Catalog erkannt hat (z. B. „Für eine glaubhafte Reggae-Bridge fehlt ein `head-tilt-side`-Baustein — als Motion-Spec vorschlagen?")
 - **SOLLTE [SHOULD]** im Markdown-Body Quer-Verweise auf die zugrunde liegenden Motion-Specs setzen (`spec/reachy-mini/motions/<slug>/de.md`) und auf die `app-architecture`-Spec, wenn protokoll-relevante Punkte berührt sind
 
@@ -156,7 +157,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - [ ] Bei Namens-Kollision bricht der Skill ab und benennt den existierenden Pfad
 - [ ] Bei einem nicht existierenden Slug bricht der Skill ab und nennt den fehlenden Slug
 - [ ] Defensive-Bausteine (`flinch`, `alarm`, `scanning`) tauchen in keiner Choreographie auf
-- [ ] Übersetzungs-Checkliste ist in jeder Choreographie-Datei vorhanden und nennt mindestens die sechs Pflicht-Schritte
+- [ ] Übersetzungs-Checkliste ist in jeder Choreographie-Datei vorhanden und nennt mindestens die sieben Pflicht-Schritte (inkl. `t_beats`-Konvention und Emotions-Library-Verweis)
 - [ ] `pre-commit run --all-files` läuft auf der erzeugten Datei grün, ohne Auto-Fix-Modifikationen
 - [ ] Verweise auf `reachy-mini-sdk`, `app-scaffold`, `audio-beat-tracking` und Agent `reachy-mini-on-device` sind im Skill-Body sichtbar
 - [ ] Hardware-spezifische Werte, die in `control-surface` TBD sind, sind auch in der Choreographie als `> ⚠ TBD: validate against real hardware` markiert
@@ -166,6 +167,10 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - `Move`-ABC, `goto`-Pfad, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
 - Beispiel-Move-Sequenzen (kanonische Vorlage für die Übersetzung der Frontmatter in Code): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sequence.py> und <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/recorded_moves.py>
 - Upstream-Claude-Skill `motion-philosophy` (Pollen-Sicht auf Bewegungs-Charakter): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+- Upstream-Claude-Skill `symbolic-motion` (Quelle der `t_beats`-Konvention für BPM-synchronisierte Moves und des `MoveOffsets`-Patterns): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/symbolic-motion.md>
+- Upstream-Claude-Skill `control-loops` (Lauf-Kontext für Move-Subklassen, Single-Owner-Loop bei 50–100 Hz): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/control-loops.md>
+- Pollens `AGENTS.md` § Emotions Library (kanonische Quelle der Emotion-Slug-Implementierungen über `RecordedMoves`): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+- Hugging-Face-Dataset `pollen-robotics/reachy-mini-emotions-library` (vorgefertigte Emotion-Aufzeichnungen): <https://huggingface.co/datasets/pollen-robotics/reachy-mini-emotions-library>
 - App-Manager und App-Templates (Lifecycle-Kontext, in den `set_dance` einläuft): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps>
 
 ## Offene Fragen

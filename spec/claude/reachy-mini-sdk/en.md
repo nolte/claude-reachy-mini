@@ -55,7 +55,32 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 - **MUST** target whichever Python lower bound the official SDK requires; on drift the lower bound is bumped through a spec update
 - **MUST** show examples in the style the SDK itself prescribes (e.g. `with`-statements when the SDK exposes a context-manager model)
 - **MUST** decorate every snippet with a source reference to the official Pollen Robotics docs or the official GitHub repo
+- **MUST** verify before using any SDK function that it exists in `src/reachy_mini/reachy_mini.py` (or the relevant submodule) — if it doesn't or has a different signature, do not hallucinate it; mark it as an Open Question with a pointer to the source tree. Source for the rule: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/deep-dive-docs.md> ("Before using any SDK function: 1. Verify it exists … 2. Check the signature … 3. Read the docstring.")
 - **MUST NOT** include code examples copy-pasted unchecked from older Reachy SDKs (Reachy 2, Reachy Pro) — any reuse must be marked when the API differs for Reachy Mini
+
+### Platform profiles (Wireless / Lite / Simulation)
+The canonical reference is [`reachy-mini/control-surface`](../../reachy-mini/control-surface/en.md). Quick orientation for the SDK skill context:
+
+| Platform | Compute / connect | Actuator set | Sensors / audio | Sim constructor |
+|---|---|---|---|---|
+| Reachy Mini (Wireless) | RPi 4 CM4 + LiFePO4 battery, self-contained, mDNS `reachy-mini.local:8000` | Stewart head, 2 antennas, body yaw | IMU (`mini.imu`), battery, mic array, camera, LED ring | n/a |
+| Reachy Mini Lite | tethered to host PC via USB-C, external power | identical to Wireless | **no IMU**, **no battery sensor**, otherwise full | n/a |
+| Simulation | software-only in the Python process or via `reachy-mini-daemon --sim` | identical (logical) | no real sensors (apart from pose read), **no audio / camera playback**; the full `--sim` needs GStreamer + MuJoCo, otherwise `--mockup-sim --no-media --headless` | `with ReachyMini(spawn_daemon=True, use_sim=True) as mini:` |
+
+- **MUST** name the platform a code example or knowledge snippet applies to; mark platform-specific assumptions (IMU read on Wireless) as such instead of presenting them as universal
+
+### Safety limits (canonical in control-surface)
+Hard-coded values from the SDK that every code snippet must respect:
+
+| Axis | Min | Max | Source |
+|---|---|---|---|
+| Head pitch / roll | −40° | +40° | `analytical_kinematics.py` plus the official hardware datasheet table |
+| Head yaw | −60° | +60° | ditto |
+| Head yaw relative to body | — | ±65° | `max_relative_yaw` |
+| Body yaw | −155° | +155° | `max_body_yaw=np.deg2rad(160)` |
+| Antenna (each) | −180° | +180° | URDF |
+
+- **MUST** respect the value ranges in every code snippet and guard against overshoot via assertions; source and full table: [`reachy-mini/control-surface`](../../reachy-mini/control-surface/en.md)
 
 ### Version pinning and drift detection
 - **MUST** name in the skill body the SDK version the skill is currently verified against (e.g. `reachy_mini==0.x.y`)
@@ -86,8 +111,21 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 - API docs (MDX sources for `reachymini`, `media`, `motion`, `daemon`, `apps`, `tools`, `utils`, REST API, OpenAPI schema): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/API>
 - SDK concept docs (Quickstart, Core Concept, Apps, Python / JavaScript SDK, Media architecture, Installation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
 - Runnable examples (canonical templates for code snippets): <https://github.com/pollen-robotics/reachy_mini/tree/main/examples>
-- Upstream Claude skills (Pollen's parallel authoring source; drift check reconciles against them): <https://github.com/pollen-robotics/reachy_mini/tree/main/skills>
 - Platform profile docs (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
+- Pollen's `AGENTS.md` (entry point for AI agents into the Pollen workflow): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+
+Pollen's parallel authoring skills (each is the source for a specific aspect of the knowledge base and is reconciled in the drift check):
+
+- `motion-philosophy.md` — `goto_target` vs. `set_target`, method choice: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>
+- `control-loops.md` — 50–100 Hz single-owner loop convention: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/control-loops.md>
+- `safe-torque.md` — anti-jerk pattern on motor toggle: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
+- `deep-dive-docs.md` — "Never invent functions" rule: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/deep-dive-docs.md>
+- `setup-environment.md` — preconditions before any app run: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/setup-environment.md>
+- `interaction-patterns.md` — antennas-as-buttons, head-as-joystick, no-GUI pattern: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/interaction-patterns.md>
+- `symbolic-motion.md` — `t_beats` convention for BPM-synchronised moves: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/symbolic-motion.md>
+- `rest-api.md` — REST surface (alternate transport to the Python API): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/rest-api.md>
+- `debugging.md` — debugging-by-dichotomy, daemon health checks: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>
+- `ai-integration.md` — LLM tools, move queue (for AI apps): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/ai-integration.md>
 
 ## Open Questions
 - Which exact `reachy_mini` version do we pin initially? Proposal: the last stable release before the hardware arrives, documented in the skill body.

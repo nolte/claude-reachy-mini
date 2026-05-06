@@ -64,6 +64,12 @@ Requirements:
 - **MUST** record per-phase outcomes structurally (phase, status, duration, error class if any)
 - **MUST** terminate cleanly on disconnect or unexpected behavior exit — no hanging SSH sessions, no orphaned behavior processes
 - **SHOULD** insert a health check between phases — Wireless with IMU temperature and battery state; Lite with daemon effort / current data when available; in simulation the check is omitted
+- **SHOULD** in the `watch & sample` step, follow the platform-appropriate daemon log source as a standard input:
+  - **Wireless**: `ssh pollen@<host> "sudo journalctl -u reachy-mini-daemon.service -f --since '<lifecycle-start>'"` (filter via `grep -v "uvicorn\|GET \|POST "` to reduce HTTP noise)
+  - **Lite**: local daemon stream via `reachy-mini-daemon --verbose` (or tail the log file if the daemon uses `--log-file`)
+  - **Simulation**: already in the same process, no separate stream needed
+  Source: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>
+- **SHOULD** in the `stop` step before `disconnect`, execute the **safe-torque pattern** (goto `SLEEP_HEAD_POSE` → `disable_motors()`), provided platform != `simulation`. Detailed pattern and rationale: [`reachy-mini-sdk`](../reachy-mini-sdk/en.md) and <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
 
 ### Emergency stop
 - **MUST** signal the emergency stop **primarily via `stop_event`** (Pollen's app-lifecycle contract, `src/reachy_mini/apps/manager.py`): `stop_event.set()` plus a wait for graceful cleanup; on the REST surface `POST /api/apps/stop-current-app`. The behavior gets a configurable **cleanup timeout** (default 2 s) to finish its `run()` itself
@@ -121,7 +127,10 @@ Requirements:
 - Daemon implementation (REST API, app lock, lifecycle, status — drives the `connect`/`watch` paths): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
 - IO protocol (telemetry messages `JointPositionsMsg`, `HeadPoseMsg`, `ImuDataMsg`, commands like `SetMicrophoneVolumeCmd`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/io/protocol.py>
 - IMU and audio examples (sampling patterns for the `watch` step): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/imu_example.py>, <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sound_record.py>
+- App lifecycle contract (`stop_event`, `wrapped_run`, app manager — source for the emergency-stop escalation sequence): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
 - Upstream Claude skills `debugging` and `safe-torque` (parallel safety / diagnostics heuristics against which the emergency-stop logic is reconciled): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>, <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md>
+- Upstream Claude skill `setup-environment` (daemon-status precondition, GStreamer / MuJoCo pre-flight): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/setup-environment.md>
+- Pollen's `AGENTS.md` (entry point, platform table, general conventions): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 - Troubleshooting docs (per-platform failure modes): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/troubleshooting>
 
 ## Open Questions

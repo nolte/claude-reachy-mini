@@ -94,10 +94,15 @@ Begriffsklärung: „App" und „Behavior" werden in diesem Plugin teilweise syn
 
 ## Quellen
 - Upstream-SDK-Repo (Quelle der Wahrheit für Manifest-Schema und Hook-Signaturen): <https://github.com/pollen-robotics/reachy_mini>
-- App-Templates des SDKs (Vorbild für das zu erzeugende Skelett, inkl. `pyproject.toml.j2`, `main.py.j2`, `README.md.j2`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
-- App-Manager-Implementierung (kanonische Lifecycle-Erwartungen an `main(reachy, stop_event)`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
-- Upstream-Claude-Skill `create-app` (parallele Authoring-Quelle, gegen die Drift abgeglichen wird): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/create-app.md>
+- Pollens `AGENTS.md` (Quelle für `plan.md`-Konvention, „Never create app folders manually", Plattform-Tabelle): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
+- App-Templates des SDKs (was das CLI tatsächlich erzeugt, inkl. `pyproject.toml.j2`, `main.py.j2`, `README.md.j2`, `index.html.j2`, `style.css.j2`): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates>
+- App-Manager-Implementierung (kanonische Lifecycle-Erwartungen an `ReachyMiniApp.run(reachy_mini, stop_event)`): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
+- Upstream-Claude-Skill `create-app` (parallele Authoring-Quelle für CLI-Wrapping, `--publish`-Default, Template-Wahl): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/create-app.md>
+- Upstream-Claude-Skill `setup-environment` (Pre-Flight-Heuristik: SDK installiert, Daemon erreichbar, `agents.local.md`-Konvention): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/setup-environment.md>
+- Upstream-Claude-Skill `testing-apps` (Sim-Pfad-Konventionen für den Test-Stub): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/testing-apps.md>
+- Upstream-Claude-Skill `debugging` (Erste-Smoke-Test-Heuristik, Daemon-Health-Check): <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/debugging.md>
 - SDK-Konzept-Doku (Apps, Core-Concept, Quickstart): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/SDK>
+- Konkretes Wrapper-Beispiel: das `reachy-mini-show`-Repo (`~/repos/github/reachy_mini_show`) ist der erste Konsument dieses Skills und dient als End-to-End-Referenz
 
 ## Offene Fragen
 - Wie sieht das offizielle Behavior-Layout im aktuellen [`pollen-robotics/reachy_mini`](https://github.com/pollen-robotics/reachy_mini)-Repository konkret aus (Ordner-Struktur, Manifest-Datei-Name, Manifest-Schema)? Vor Skill-Implementierung verifizieren — siehe [`src/reachy_mini/apps/templates`](https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps/templates).
