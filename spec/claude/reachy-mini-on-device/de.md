@@ -16,7 +16,7 @@ Sobald die Hardware da ist, müssen Behaviors auf dem echten Reachy Mini überpr
 - Hardware-Bringup (eigener Skill geplant)
 - Firmware-Flash (eigener Skill geplant)
 - Entwicklung des Behaviors oder der App (eigene Repos, eigene Skills)
-- Veröffentlichung des Behaviors auf Hugging Face (`behavior-publish-hf`, geplant)
+- Veröffentlichung des Behaviors auf Hugging Face (`reachy-app-publish-hf`, geplant)
 - Audio-/Beat-Tracking (`audio-beat-tracking`, geplant)
 - Dauerhafter Betrieb / Watchdog im Produktiv-Setup — der Agent ist ein Test-Lifecycle, kein Daemon
 
@@ -117,7 +117,7 @@ Anforderungen:
 - [ ] Notstopp-Verhalten und Default-Sicherheits-Thresholds sind dokumentiert (mit TBD-Markern, wo Hardware-verifiziert werden muss)
 - [ ] Eingabe-Parameter (Behavior-Pfad, Geräte-Adresse, Timeout, Trigger-Modus) sind dokumentiert
 - [ ] Ausgabe-Format ist als striktes Schema dokumentiert; rohe Logs landen in `.audits/on-device/<timestamp>-<name>.log`
-- [ ] `.audits/` ist in `.gitignore` enthalten, sodass Logs niemals committet werden
+- [ ] `.audits/on-device/` ist in `.gitignore` enthalten, sodass Logs niemals committet werden (andere Unterverzeichnisse wie `.audits/security-review/` folgen eigenen Policies — siehe `reachy-mini/app-development-workflow` Phase 7)
 - [ ] Verweise auf `reachy-mini-sdk`, `app-scaffold`, `home-assistant-bridge` sind im Body sichtbar
 - [ ] Der Agent wird vom Skill-Agent-Katalog-Generator akzeptiert (Frontmatter validiert, `name` matcht Dateinamen, `distribution` ist gesetzt)
 - [ ] Aussagen ohne Hardware-Verifikation tragen einen `⚠ TBD: validate against real hardware`-Hinweis

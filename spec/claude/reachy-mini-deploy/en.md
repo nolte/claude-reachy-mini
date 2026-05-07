@@ -18,7 +18,7 @@ Once a Reachy Mini app is structurally complete (scaffolded via `app-scaffold`, 
 - Hardware bring-up (separate skill planned)
 - Firmware flashing (separate skill planned)
 - Behavior / motion code editing (`reachy-mini-sdk`, `app-scaffold`)
-- Hugging Face publishing (`reachy-mini-app-assistant publish`, or a future `behavior-publish-hf`)
+- Hugging Face publishing (`reachy-mini-app-assistant publish`, or a future `reachy-app-publish-hf`)
 - Persistent watchdog / auto-redeploy operation — the agent runs a single-shot deploy lifecycle, not a daemon
 - Pollen daemon restart, reload, or reconfiguration — out of scope, never performed by this agent
 - Simulation: there is nothing to deploy in `use_sim=True`; simulation runs are the on-device agent's territory
@@ -72,7 +72,7 @@ This concern is modelled as an **agent** rather than a skill because several rat
 - **MUST** apply platform-aware auth models:
   - **Wireless**: SSH directly to the Reachy
   - **Lite**: SSH to the host PC; the Pollen daemon there receives the install through that session
-- **MUST** ensure `.audits/` is in the consuming repo's `.gitignore` before writing artifacts there; the audit folder is generated, never committed
+- **MUST** ensure `.audits/deploy/` is in the consuming repo's `.gitignore` before writing artifacts there; the `.audits/deploy/` folder is generated, never committed. Other subdirectories of `.audits/` may follow their own policy — for example `.audits/security-review/` is version-controlled (see `reachy-mini/app-development-workflow` phase 7)
 
 ### Boundaries
 - **SHOULD** point at `app-scaffold` when the local pre-flight reveals the app skeleton itself is broken or missing
@@ -91,7 +91,7 @@ This concern is modelled as an **agent** rather than a skill because several rat
 - [ ] The agent verifies, on `verify=true`, that the deployed app appears in `entry_points(group='reachy_mini_apps')`
 - [ ] The output report names the deploy path explicitly (`via_ssh_direct` / `via_host_usb`)
 - [ ] The output report distinguishes `ABORTED` from `FAIL` per the rule above
-- [ ] The full-text log lives at `.audits/deploy/<timestamp>-<app-name>.log` and `.audits/` is in the consuming repo's `.gitignore`
+- [ ] The full-text log lives at `.audits/deploy/<timestamp>-<app-name>.log` and `.audits/deploy/` is in the consuming repo's `.gitignore`
 - [ ] The agent exists at `agents/reachy-mini-deploy.md` with valid frontmatter — `name: reachy-mini-deploy`, `description`, `distribution: plugin`, optional tags
 - [ ] The `description` activates on phrasings like "deploy to the reachy", "rollout to reachy-mini.local", "ship the app to the device", and the equivalent German variants
 - [ ] A skill-vs-agent rationale is visible in the agent body (at least multi-stage orchestration, context-window protection, narrow tool surface)

@@ -15,7 +15,7 @@ The `reachy_mini` Python SDK from Pollen Robotics / Hugging Face is the primary 
 ## Non-Goals
 - Hardware bring-up, calibration, firmware flashing (separate skill planned)
 - Simulation / MuJoCo / URDF of the Reachy model (separate skill possible)
-- Publishing behaviors to Hugging Face Spaces / Hub (separate skill `behavior-publish-hf` planned)
+- Publishing behaviors to Hugging Face Spaces / Hub (separate skill `reachy-app-publish-hf` planned)
 - Audio beat / tempo detection for dance applications (separate skill `audio-beat-tracking` planned)
 - Home Assistant integration (separate skill `home-assistant-bridge`)
 - Scaffolding a new behavior (separate skill `app-scaffold`)
@@ -131,7 +131,7 @@ Pollen's parallel authoring skills (each is the source for a specific aspect of 
 - Which exact `reachy_mini` version do we pin initially? Proposal: the last stable release before the hardware arrives, documented in the skill body.
 - Does the SDK ship an official Python compatibility matrix we should link?
 - Should code examples favour the async or the synchronous variant of the SDK? Depends on what the SDK actually offers as the primary surface.
-- How deeply should Behaviors-publishing conventions for Hugging Face appear in this skill _before_ a dedicated `behavior-publish-hf` skill exists?
+- How deeply should Behaviors-publishing conventions for Hugging Face appear in this skill _before_ a dedicated `reachy-app-publish-hf` skill exists?
 - Which tag set is appropriate? Proposal: `[reachy-mini, sdk, python, robotics]`. Final decision in the frontmatter.
 - Should the skill also activate on pure simulation tasks (MuJoCo / URDF without real hardware)? Leaning: no — that belongs in a separate simulation skill.
 - How often is the drift check executed? Proposal: quarterly, or on every `reachy_mini` major release.
