@@ -34,7 +34,7 @@ Security defaults are non-negotiable: **TLS verification on, tokens never inline
 - developing a Home Assistant custom component (lives in HA's own integrations tree)
 - Reachy SDK motion work without HA → use `reachy-mini-sdk`
 - audio analysis / beat tracking → `audio-beat-tracking` (planned)
-- live on-device test → agent `reachy-mini-on-device` (planned)
+- live on-device test → agent `reachy-mini-on-device`
 
 ## Source of truth
 
@@ -153,4 +153,4 @@ Reuse one `httpx.AsyncClient` and one WebSocket connection per bridge lifetime �
 - Reachy motion idioms → `reachy-mini-sdk`
 - Scaffolding a brand-new behavior triggered from HA → `app-scaffold`
 - Audio / beat / tempo for dance behaviors → `audio-beat-tracking` (planned)
-- Live on-device test of an HA-triggered motion → agent `reachy-mini-on-device` (planned)
+- Live on-device test of an HA-triggered motion → agent `reachy-mini-on-device`

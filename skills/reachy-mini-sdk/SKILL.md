@@ -41,7 +41,7 @@ Before producing API-shaped code, **open the relevant doc page or source module*
 
 - pure hardware bring-up, calibration, firmware flashing → separate skill (planned)
 - pure simulation work without SDK calls → separate skill (planned)
-- publishing a finished behavior to Hugging Face → `behavior-publish-hf` (planned)
+- publishing a finished behavior to Hugging Face → `reachy-app-publish-hf` (planned)
 - audio beat / tempo detection alone → `audio-beat-tracking` (planned)
 
 ## Hardware platforms (per the official docs)
