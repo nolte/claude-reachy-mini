@@ -8,6 +8,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 |---|---|---|---|---|
 | [`claude/app-log-triage`](claude/app-log-triage/de.md) | App-Log-Triage-Skill | App Log Triage Skill | draft | unversioned |
 | [`claude/app-scaffold`](claude/app-scaffold/de.md) | App-Scaffold-Skill | App Scaffold Skill | draft | 2026-05-06 |
+| [`claude/audio-beat-tracking`](claude/audio-beat-tracking/de.md) | Audio-Beat-Tracking-Skill | Audio Beat Tracking Skill | draft | unversioned |
 | [`claude/dance-choreography`](claude/dance-choreography/de.md) | Dance-Choreography-Skill | Dance Choreography Skill | draft | 2026-05-06 |
 | [`claude/home-assistant-bridge`](claude/home-assistant-bridge/de.md) | Home-Assistant-Bridge-Skill | Home Assistant Bridge Skill | draft | 2026-05-05 |
 | [`claude/reachy-mini-deploy`](claude/reachy-mini-deploy/de.md) | Deploy-Agent für Reachy-Mini-Apps | Deploy Agent for Reachy Mini Apps | draft | 2026-05-06 |
