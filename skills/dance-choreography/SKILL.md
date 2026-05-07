@@ -112,32 +112,33 @@ warnings:
   - "headbang-soft chorus exceeds the 8-bang limit on Lite — insert a cool-down"
 ---
 
-# <Title>
+# <Titel>
 
-## Context
+## Kontext
 <1–3 sentences: song / mood / target platform>
 
-## Section table
+## Sektions-Tabelle
 | # | Section | Slug | BPM | Beats | Duration (s) | Lead time (s) | Accent | Notes |
 |---|---|---|---|---|---|---|---|---|
 | 1 | intro | waiting-idle | — | — | 4.0 | 0.0 | — | soft entry |
 | 2 | verse | groove-bob | 100 | 16 | 9.6 | 0.05 | — | |
 | ... |
 
-## Platform consequences
+## Plattform-Konsequenzen
 - Wireless: <e.g. servo heat polling needed for headbang-soft>
 - Lite: <e.g. hard 8-bang limit, no IMU read>
 - Simulation: <e.g. no audio, no servo heat — use reachy-mini-on-device for hardware proof>
 
-## Translation checklist for the developer
+## Übersetzungs-Checkliste für den Entwickler
 1. For each section slug, instantiate the matching `Move` subclass from `reachy_mini_show/behaviors/` or extend the slug registry.
-2. Pass BPM, beats, and lead time as constructor parameters (e.g. `GrooveBob(bpm=100, beats=16, lead_time_s=0.05)`).
+2. Pass BPM, beats, and lead time as constructor parameters (e.g. `GrooveBob(bpm=100, beats=16, lead_time_s=0.05)`); inside `Move.evaluate(t)`, compute against **`t_beats = elapsed_s * bpm / 60.0`** rather than seconds — Pollen's convention for BPM-synchronised moves (source: Pollen `symbolic-motion.md`).
 3. Plan the idle / outro section with `loop_count=None` as background behavior.
 4. Align audio triggers with the song on the beat — see `audio-beat-tracking` (planned) for the BPM extraction path.
 5. Write a test against `ReachyMini(use_sim=True)`, then on-hardware validation via the `reachy-mini-on-device` agent.
 6. Implement platform-specific fallbacks (e.g. `headbang-soft` → `groove-bob` on servo heat).
+7. For emotion `accent_slug`s, consume the official emotions library `pollen-robotics/reachy-mini-emotions-library` via `RecordedMoves(...).get(<slug>)` rather than re-composing the emotion (source: Pollen `AGENTS.md` § Emotions Library).
 
-## Open questions
+## Offene Fragen
 - <only when the skill detected a real gap — e.g. a missing block in the motion catalog>
 ```
 

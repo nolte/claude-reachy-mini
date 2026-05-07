@@ -46,13 +46,27 @@ Before producing API-shaped code, **open the relevant doc page or source module*
 
 ## Hardware platforms (per the official docs)
 
-| Platform | Notes |
-|---|---|
-| **Reachy Mini** (Wireless) | Built-in Raspberry Pi 4 Compute Module (CM4) + LiFePO4 battery; full feature set |
-| **Reachy Mini Lite** | Tethered to a host computer; reduced compute on-robot |
-| **Simulation** | Software-only; same `ReachyMini` API, no real motors |
+| Platform | Notes | Sim constructor |
+|---|---|---|
+| **Reachy Mini** (Wireless) | Built-in Raspberry Pi 4 Compute Module (CM4) + LiFePO4 battery; full feature set | n/a |
+| **Reachy Mini Lite** | Tethered to a host computer; reduced compute on-robot | n/a |
+| **Simulation** | Software-only; same `ReachyMini` API, no real motors | `with ReachyMini(spawn_daemon=True, use_sim=True) as mini:` |
 
 Docs: [Wireless](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started) · [Lite](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started) · [Simulation](https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started)
+
+## Safety limits (canonical in `reachy-mini/control-surface`)
+
+Hard-coded SDK ranges that every code snippet must respect. Source of truth is [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md); the table here mirrors the values for quick orientation.
+
+| Axis | Min | Max | SDK source |
+|---|---|---|---|
+| Head pitch / roll | −40° | +40° | `analytical_kinematics.py` plus the official hardware datasheet |
+| Head yaw | −60° | +60° | as above |
+| Head yaw relative to body | — | ±65° | `max_relative_yaw` |
+| Body yaw | −155° | +155° | `max_body_yaw=np.deg2rad(160)` |
+| Antenna (each) | −180° | +180° | URDF |
+
+Snippets that target the head MUST guard the value range with assertions before issuing pose commands. Do not rely on the daemon to clamp — it raises rather than clips.
 
 ## API reference (with direct doc / source links)
 
