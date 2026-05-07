@@ -77,9 +77,9 @@ Bevor irgendein Plan entsteht, **MUSS [MUST]** der Entwickler die folgenden inte
 
 Zusätzlich **MUSS [MUST]** mindestens ein Blick auf die folgenden externen Quellen erfolgen, um die SDK-Realität gegen die Spec-Annahmen abzugleichen:
 
-- Pollen-Robotics SDK-Repository: https://github.com/pollen-robotics/reachy_mini
-- Pollen-Robotics App-Assistant-CLI (Scaffold-Tool): https://github.com/pollen-robotics/reachy-mini-app-assistant
-- Hugging-Face-Spaces-Distribution für Reachy-Mini-Apps: https://huggingface.co/collections/pollen-robotics/reachy-mini
+- Pollen-Robotics SDK-Repository: <https://github.com/pollen-robotics/reachy_mini>
+- Pollen-Robotics App-Assistant-CLI (Scaffold-Tool): <https://github.com/pollen-robotics/reachy-mini-app-assistant>
+- Hugging-Face-Spaces-Distribution für Reachy-Mini-Apps: <https://huggingface.co/collections/pollen-robotics/reachy-mini>
 - Pollen `AGENTS.md` und `skills/`-Verzeichnisse im SDK-Repository (kanonische Pollen-Konventionen)
 
 **Inputs:** Anforderungs-Beschreibung aus Phase 1
@@ -214,7 +214,7 @@ Der Source-Code **MUSS [MUST]** gegen den folgenden Reachy-spezifischen Sicherhe
 
 #### Secrets und Credentials
 
-- Keine Klartext-Secrets im Repository (HA-Long-Lived-Tokens, Wyoming-Keys, MQTT-Credentials, HF-Tokens) — `git grep`-Negativ-Check auf typische Patterns (`token`, `password`, `api_key`, `Bearer `, JWT-Strukturen)
+- Keine Klartext-Secrets im Repository (HA-Long-Lived-Tokens, Wyoming-Keys, MQTT-Credentials, HF-Tokens) — `git grep`-Negativ-Check auf typische Patterns (`token`, `password`, `api_key`, `Bearer` mit Leerzeichen, JWT-Strukturen)
 - Secrets werden ausschließlich über Umgebungsvariablen oder externe Secret-Stores geladen
 - Logging redact: Secrets erscheinen niemals in Log-Ausgaben, weder INFO noch DEBUG noch in Tracebacks (Pollen-Daemon captured stderr — siehe [`reachy-mini/app-logging`](../app-logging/de.md))
 

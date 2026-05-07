@@ -77,9 +77,9 @@ Before any plan is written, the developer **MUST** have read or re-read the foll
 
 In addition, the developer **MUST** at least glance at the following external sources to reconcile the SDK reality against the spec assumptions:
 
-- Pollen Robotics SDK repository: https://github.com/pollen-robotics/reachy_mini
-- Pollen Robotics app-assistant CLI (scaffold tool): https://github.com/pollen-robotics/reachy-mini-app-assistant
-- Hugging Face Spaces distribution for Reachy Mini apps: https://huggingface.co/collections/pollen-robotics/reachy-mini
+- Pollen Robotics SDK repository: <https://github.com/pollen-robotics/reachy_mini>
+- Pollen Robotics app-assistant CLI (scaffold tool): <https://github.com/pollen-robotics/reachy-mini-app-assistant>
+- Hugging Face Spaces distribution for Reachy Mini apps: <https://huggingface.co/collections/pollen-robotics/reachy-mini>
 - Pollen `AGENTS.md` and `skills/` directories inside the SDK repository (canonical Pollen conventions)
 
 **Inputs:** requirement description from phase 1
@@ -214,7 +214,7 @@ The source code **MUST** be reviewed against the following Reachy-specific secur
 
 #### Secrets and credentials
 
-- No plaintext secrets in the repository (HA long-lived tokens, Wyoming keys, MQTT credentials, HF tokens) — `git grep` negative check for typical patterns (`token`, `password`, `api_key`, `Bearer `, JWT structures)
+- No plaintext secrets in the repository (HA long-lived tokens, Wyoming keys, MQTT credentials, HF tokens) — `git grep` negative check for typical patterns (`token`, `password`, `api_key`, `Bearer` followed by a space, JWT structures)
 - Secrets are loaded exclusively via environment variables or external secret stores
 - Logging redact: secrets never appear in log output, neither at INFO nor DEBUG nor in tracebacks (the Pollen daemon captures stderr — see [`reachy-mini/app-logging`](../app-logging/en.md))
 
