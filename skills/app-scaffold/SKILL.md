@@ -67,8 +67,8 @@ After step 2, post-process (these are the only files the skill itself writes):
   - `SDK = "https://github.com/pollen-robotics/reachy_mini"`
   - `Specs = "https://github.com/nolte/claude-reachy-mini/tree/develop/spec/reachy-mini/"`
 - **`CLAUDE.md`** — at the app repo root, point to this plugin and name the relevant skills (`reachy-mini-sdk`, `app-scaffold`, agent `reachy-mini-on-device`).
-- **`README.md`** — inject a provenance block immediately after the HF frontmatter, linking back to the plugin and the motion catalogue.
-- **`plan.md`** — at the app repo root, with four sections: Understanding, Approach, Open questions, Approval gate.
+- **`README.md`** — inject a provenance block immediately after the HF frontmatter, linking back to the plugin and the motion catalogue. Include a platform applicability table — Wireless / Lite / Simulation — naming for each which SDK surface works (Wireless: full; Lite: no IMU, no audio backend; Simulation: no real motors, no audio playback, GStreamer optional via `--mockup-sim --no-media --headless`).
+- **`plan.md`** — at the app repo root, **literally** following the binding plan-template skeleton from [`reachy-mini/app-development-workflow`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/app-development-workflow/de.md) § Phase 3. That spec is the canonical source of the `plan.md` schema and is a superset of Pollen's AGENTS.md plan requirements (Understanding ⊂ Scope, Approach ⊂ Motion-Inventar + IPC + Test-Strategie, Open questions ⊂ Open Questions, Approval gate ⊂ Abnahme); Pollen's AGENTS.md stays satisfied by following the workflow template.
 - **`tests/test_smoke.py`** — runs against `ReachyMini(spawn_daemon=True, use_sim=True)`, gated by GStreamer availability (skip if missing).
 
 ## Next-steps checklist (returned to the developer after scaffold)
