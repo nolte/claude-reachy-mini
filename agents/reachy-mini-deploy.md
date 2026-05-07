@@ -16,7 +16,7 @@ description: >-
   (separate skills planned), don't use for behavior / motion development
   (`reachy-mini-sdk`, `app-scaffold`), and don't use to publish to
   Hugging Face (`reachy-mini-app-assistant publish` directly, or a
-  future `behavior-publish-hf`). Returns a tight summary plus a
+  future `reachy-app-publish-hf`). Returns a tight summary plus a
   full-text log artifact under `.audits/deploy/`.
 distribution: plugin
 tools: Read, Write, Glob, Grep, Bash

@@ -19,7 +19,7 @@ Use this skill when the user wants to:
 ## When NOT to activate
 
 - editing an existing app → no scaffold needed; use `reachy-mini-sdk` knowledge
-- publishing a finished app to Hugging Face → `behavior-publish-hf` (planned), or `reachy-mini-app-assistant publish` directly
+- publishing a finished app to Hugging Face → `reachy-app-publish-hf` (planned), or `reachy-mini-app-assistant publish` directly
 - writing the actual motion / dance logic → developer's job, supported by `reachy-mini-sdk`
 - testing an app live on the device → agent `reachy-mini-on-device`
 
@@ -84,5 +84,5 @@ After step 2, post-process (these are the only files the skill itself writes):
 - SDK knowledge / idiomatic API use → `reachy-mini-sdk`
 - Home Assistant integration of the app → `home-assistant-bridge`
 - Audio / beat / tempo detection for dance apps → `audio-beat-tracking` (planned)
-- Custom Hugging Face publishing workflows beyond what `reachy-mini-app-assistant publish` does → `behavior-publish-hf` (planned)
+- Custom Hugging Face publishing workflows beyond what `reachy-mini-app-assistant publish` does → `reachy-app-publish-hf` (planned)
 - Live deployment / on-device test → agent `reachy-mini-on-device`

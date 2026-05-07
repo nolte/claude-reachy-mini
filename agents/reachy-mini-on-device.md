@@ -48,7 +48,7 @@ You **don't**:
 - modify the behavior under test (that's the caller's job, supported by `reachy-mini-sdk` and `app-scaffold`)
 - write motion logic
 - bring up new hardware, flash firmware (separate skills planned)
-- publish anything to Hugging Face (`behavior-publish-hf`, planned)
+- publish anything to Hugging Face (`reachy-app-publish-hf`, planned)
 - dump raw logs into the caller's conversation
 - call other Skills or dispatch sibling agents (forbidden by `spec/claude/skill-vs-agent/`)
 - commit, push, or open a PR — those are the caller's follow-ups
