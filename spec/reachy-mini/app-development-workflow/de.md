@@ -104,7 +104,7 @@ Diese Phase ist **das zentrale Gate** des Workflows. Vor diesem Gate gibt es nur
   - Skill/Agent-Plan: welcher Skill/Agent wird in welcher späteren Phase aufgerufen
 - **SOLLTE [SHOULD]** Open Questions explizit listen, statt sie zu erfinden — offene Punkte sind Plan-Inhalt, keine Zukunfts-Annahmen
 - **KANN [MAY]** durch frühe Skill-Konsultation entstehen (z. B. `dance-choreography` produziert ein Plan-Vorprodukt für eine Tanz-App)
-- **MUSS NICHT [MUST NOT]** Code enthalten — Pseudocode oder Schnittstellen-Skizzen sind erlaubt, ausführbarer Code ist nicht erlaubt
+- **DARF NICHT [MUST NOT]** Code enthalten — Pseudocode oder Schnittstellen-Skizzen sind erlaubt, ausführbarer Code ist nicht erlaubt
 
 #### Plan-Template-Stub (verbindlich)
 
@@ -188,7 +188,7 @@ Datum: <YYYY-MM-DD>
 - **MUSS [MUST]** Logging gemäß [`reachy-mini/app-logging`](../app-logging/de.md) Konvention verwenden (`logging.getLogger(__name__)`, kein `print(...)` außer bei expliziter Debug-Sitzung)
 - **MUSS [MUST]** den `reachy_mini`-SDK auf einen konkreten Minor-Pin festlegen
 - **SOLLTE [SHOULD]** in kleinen Schritten committen, mit aussagekräftigen Conventional-Commit-Messages
-- **MUSS NICHT [MUST NOT]** Funktionalität jenseits des Plans hinzufügen ohne Plan-Update — Scope-Creep ist eine Plan-Verletzung
+- **DARF NICHT [MUST NOT]** Funktionalität jenseits des Plans hinzufügen ohne Plan-Update — Scope-Creep ist eine Plan-Verletzung
 
 **Inputs:** Plan, Scaffold
 **Outputs:** App-Code mit allen Plan-Punkten umgesetzt
@@ -270,7 +270,7 @@ Der Source-Code **MUSS [MUST]** gegen den folgenden Reachy-spezifischen Sicherhe
 
 - **Deploy** **MUSS [MUST]** über den [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)-Agent erfolgen — er prüft Pollen-Vertrag, synct den Code, verankert die Installation in der Daemon-Umgebung
 - **Start** **MUSS [MUST]** über den [`claude/reachy-mini-start`](../../claude/reachy-mini-start/de.md)-Skill erfolgen — er respektiert App-Locks und prüft den Entry-Point-Katalog
-- **MUSS NICHT [MUST NOT]** der Deploy-Agent zum reinen Run-Zweck eingesetzt werden — Live-Trial ist Phase 8, Run-Start ist `reachy-mini-start`
+- **DARF NICHT [MUST NOT]** der Deploy-Agent zum reinen Run-Zweck eingesetzt werden — Live-Trial ist Phase 8, Run-Start ist `reachy-mini-start`
 
 **Inputs:** App-Repo mit bestandenem On-Device-Test
 **Outputs:** Auf dem Gerät installierte und gestartete App
@@ -291,7 +291,7 @@ Der Source-Code **MUSS [MUST]** gegen den folgenden Reachy-spezifischen Sicherhe
 
 - Phase 6 (Lokaler Selbst-Test) **KANN [MAY]** übersprungen werden, wenn die App ausschließlich Hardware-Effekte hat, die in Simulation nicht prüfbar sind — Begründung wandert in den Plan
 - Phase 10 (Publikation) ist optional und immer ein Phasen-Skip-Kandidat
-- Alle anderen Phasen **MUSS NICHT [MUST NOT]** übersprungen werden
+- Alle anderen Phasen **DARF NICHT [MUST NOT]** übersprungen werden
 - Insbesondere die Gates **Plan-First** (Phase 3) und **Security-Review** (Phase 7) sind nicht überspringbar — auch nicht „nur dieses eine Mal"
 
 ### Update-Workflow (für Behavior-Updates einer existierenden App)
@@ -300,7 +300,7 @@ Wird ein Behavior in einer bereits existierenden, gescaffoldeten App **erweitert
 
 - **MUSS [MUST]** mindestens die Phasen **1, 3, 5, 7, 8, 9** durchlaufen — Anforderung aufnehmen, Plan aktualisieren und neu abnehmen, implementieren, Security-Review erneut bestehen, On-Device testen, deployen und starten
 - **KANN [MAY]** Phase **2** (Domain-Discovery) auf eine Delta-Discovery reduzieren: nur die Specs werden konsultiert, deren Bereich vom Update berührt ist
-- **MUSS NICHT [MUST NOT]** Phase **4** (Scaffold) erneut durchlaufen — die App existiert bereits; ein erneutes Scaffold würde Provenienz-Marker und Plan-Historie zerstören
+- **DARF NICHT [MUST NOT]** Phase **4** (Scaffold) erneut durchlaufen — die App existiert bereits; ein erneutes Scaffold würde Provenienz-Marker und Plan-Historie zerstören
 - **KANN [MAY]** Phase **6** (Lokaler Selbst-Test) und Phase **10** (Publikation) wie im Vollworkflow überspringen, mit denselben Begründungs-Pflichten
 - **MUSS [MUST]** das `plan.md` im App-Repo **aktualisiert** und neu abgenommen werden — kein zweites `plan.md`, keine stillen Plan-Änderungen; Historie ergibt sich aus git
 - **MUSS [MUST]** der Security-Review-Report einen neuen `.audits/security-review/<YYYY-MM-DD>.md` als eigenen Eintrag erzeugen (nicht den alten überschreiben), damit Update-Reports historisch nachvollziehbar bleiben
