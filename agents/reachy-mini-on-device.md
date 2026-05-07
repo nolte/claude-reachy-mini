@@ -14,6 +14,7 @@ description: >-
   under `.audits/on-device/`.
 distribution: plugin
 tools: Read, Write, Edit, Glob, Grep, Bash
+tags: [reachy-mini, on-device, test, agent]
 ---
 
 # Reachy Mini On-Device Tester
@@ -78,10 +79,11 @@ Verify the input platform against `DaemonStatus` on connect — a mismatch is a 
 1. **connect** — for `wireless` SSH to the robot; for `lite` SSH to the host PC plus a daemon API probe; for `simulation` no-op (the `use_sim=True` constructor delivers the connection in-process). Show host fingerprint on first contact for `wireless` / `lite`; never auto-accept silently.
 2. **sync code** — `rsync` / `scp` the behavior path to the platform's deploy target (robot for `wireless`, host PC for `lite`); **skipped on `simulation`**.
 3. **install deps** — install pinned dependencies; skip when unchanged; **skipped on `simulation`**.
-4. **start behavior** — launch the behavior in the chosen trigger mode.
-5. **watch & sample** — collect logs and telemetry under timeout; insert platform-aware health checks (Wireless: IMU temp + battery; Lite: daemon effort/current; Simulation: omit).
-6. **stop** — signal the behavior to wind down cleanly; if it doesn't, escalate to emergency stop.
-7. **disconnect** — close session; never leave dangling SSH connections or orphaned processes; on `simulation` close the SDK context manager.
+4. **robot-busy check** — before `start behavior`, query the daemon for prior occupancy: `GET /api/apps/current-app-status` and `GET /api/daemon/robot-app-lock-status`. If another app is running or holds the lock, **ABORT** with a structured report naming the holder; do not force-stop someone else's work. **Skipped on `simulation`** (no daemon lock to inspect).
+5. **start behavior** — launch the behavior in the chosen trigger mode.
+6. **watch & sample** — collect logs and telemetry under timeout; insert platform-aware health checks (Wireless: IMU temp + battery; Lite: daemon effort/current; Simulation: omit). Tail the platform's canonical daemon log alongside the behavior output: on `wireless` `ssh pollen@<host> "sudo journalctl -u reachy-mini-daemon.service -f --since '<lifecycle-start>'"` (filter HTTP noise via `grep -v "uvicorn\|GET \|POST "`); on `lite` the local daemon stream from `reachy-mini-daemon --verbose` (or its `--log-file` when set); on `simulation` already in-process, no separate stream needed.
+7. **stop** — signal the behavior to wind down cleanly; on `wireless` and `lite`, before disconnect, run the **safe-torque pattern** (`goto_target(head=SLEEP_HEAD_POSE)` → `disable_motors()`) so the head reaches a mechanically safe pose under torque first. On `simulation` skip the safe-torque step. If the behavior refuses to stop, escalate to emergency stop.
+8. **disconnect** — close session; never leave dangling SSH connections or orphaned processes; on `simulation` close the SDK context manager.
 
 ## Emergency stop
 
@@ -89,8 +91,13 @@ Verify the input platform against `DaemonStatus` on connect — a mismatch is a 
   - `wireless` — timeout exceeded, IMU temperature threshold, battery brown-out, current spike, motion-limit violation, unrecoverable behavior crash, lost device link
   - `lite` — timeout exceeded, daemon effort/current threshold (when available), motion-limit violation, unrecoverable behavior crash, lost USB / SSH link
   - `simulation` — timeout exceeded, pose outside URDF range, hook exception
-- Bring the device into `INIT_HEAD_POSE` (4×4 identity, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` (verified pose constants in `reachy_mini.py`). Execute the pose reset on `simulation` too for consistency.
-- Mark the emergency stop as a distinct event in the report, including the trigger source and the platform.
+- **Escalation sequence** (in order, primary path is `stop_event`; only escalate when each step fails):
+  1. Set the behavior's `stop_event` (Pollen's app-lifecycle contract; `POST /api/apps/stop-current-app` over the REST surface). Allow a **cleanup timeout** of 2 s for the behavior's `run()` to wind itself down.
+  2. On timeout, send `SIGTERM` to the behavior process; allow another 1 s.
+  3. On second timeout, send `SIGKILL`.
+  4. Independent of which step succeeded, bring the device into `INIT_HEAD_POSE` (4×4 identity, head centred) plus `INIT_ANTENNAS_JOINT_POSITIONS` (verified pose constants in `reachy_mini.py`).
+- Execute the pose reset on `simulation` too for consistency, but skip the SIGTERM/SIGKILL steps (no behavior subprocess to kill).
+- Mark the emergency stop as a distinct event in the report, including the trigger source, the platform, and which step of the escalation finally settled the behavior.
 - Never reduce it to a log note on `wireless` or `lite` — physical safety wins.
 
 ## Output schema (returned to caller)
