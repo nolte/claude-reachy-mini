@@ -11,6 +11,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`claude/audio-beat-tracking`](claude/audio-beat-tracking/de.md) | Audio-Beat-Tracking-Skill | Audio Beat Tracking Skill | draft | unversioned |
 | [`claude/dance-choreography`](claude/dance-choreography/de.md) | Dance-Choreography-Skill | Dance Choreography Skill | draft | 2026-05-06 |
 | [`claude/home-assistant-bridge`](claude/home-assistant-bridge/de.md) | Home-Assistant-Bridge-Skill | Home Assistant Bridge Skill | draft | 2026-05-05 |
+| [`claude/reachy-app-publish-hf`](claude/reachy-app-publish-hf/de.md) | Reachy-App-Publish-HF-Skill | Reachy App Publish HF Skill | draft | unversioned |
 | [`claude/reachy-mini-deploy`](claude/reachy-mini-deploy/de.md) | Deploy-Agent für Reachy-Mini-Apps | Deploy Agent for Reachy Mini Apps | draft | 2026-05-06 |
 | [`claude/reachy-mini-on-device`](claude/reachy-mini-on-device/de.md) | On-Device-Test-Agent für Reachy Mini | On-Device Test Agent for Reachy Mini | draft | 2026-05-06 |
 | [`claude/reachy-mini-sdk`](claude/reachy-mini-sdk/de.md) | Reachy-Mini-SDK-Skill | Reachy Mini SDK Skill | draft | 2026-05-06 |
