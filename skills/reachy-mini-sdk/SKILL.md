@@ -181,6 +181,24 @@ For non-Python clients or remote control:
 - Daemon API — <https://huggingface.co/docs/reachy_mini/API/daemon>
 - JS SDK — <https://huggingface.co/docs/reachy_mini/SDK/javascript-sdk>
 
+## Method choice — `goto_target` vs. `set_target`
+
+- **`goto_target(head=<4×4>, antennas=[r, l], body_yaw, duration, method)`** — default for choreographed motions ≥ 0.5 s. Built-in interpolation (`MIN_JERK` is the default; `LINEAR`, `EASE_IN_OUT`, `CARTOON` are also available). The call blocks until the move finishes.
+- **`set_target(head, antennas, body_yaw)`** — real-time path for high-frequency loops at 50–100 Hz tick rate, **single-owner loop**. No interpolation; you supply each step yourself.
+- **MUST NOT** mix `goto_target` and `set_target` from competing call sites — they overwrite each other and produce jerky or stalled motion. Pick one method per behavior; if you need both, sequence them so they never run concurrently.
+- Wake/sleep guard: if the robot is in the sleep pose with motors off, motion calls are silently ignored. Bring the head awake first (per `reachy_mini.utils.wake_up` / equivalent) before issuing any pose targets.
+- Source: Pollen `motion-philosophy.md` and `control-loops.md`.
+
+## Safe-torque anti-jerk pattern
+
+Toggling motors cold (`enable_motors()` / `disable_motors()` straight) makes the head snap or fall. Pollen's safe-torque sequence is mandatory whenever a behavior toggles motor state:
+
+1. **Before `disable_motors()`** — `goto_target(head=SLEEP_HEAD_POSE, ...)` so the head reaches a mechanically safe pose **under torque** before torque drops.
+2. **Before `enable_motors()`** — set the goal to the *current* pose first (a short `goto_target` with `duration ≈ 0.05 s`); only then enable. This prevents motors from snapping to whatever the last commanded goal was.
+3. **Mixed-motor states** (some IDs enabled, some not — typically after a partial failure): do not patch up. Fully `disable_motors()` everything, then re-enable sequentially under the same anti-jerk rule.
+
+Source: Pollen `safe-torque.md`.
+
 ## Drift check
 
 - Re-validate every API link on each `reachy_mini` major release, or quarterly — whichever comes first.
