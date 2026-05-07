@@ -99,7 +99,7 @@ Term clarification: "triage" here means **fast classification of an observed fai
 - [ ] The skill lives at `skills/app-log-triage/SKILL.md` with valid frontmatter (`name: app-log-triage`, `description`, optional tags) and is accepted by the catalog generator
 - [ ] The `description` carries the keywords (log, triage, debug, app, Reachy Mini, classify, diagnose, failure) and explicitly calls out at least three anti-triggers
 - [ ] The pre-flight reachability check runs before every log capture and on failure returns class `connection-refused` directly, without further log action
-- [ ] The default filter `grep -v "uvicorn\|GET \|POST "` is applied to every capture
+- [ ] The default filter `grep -v "uvicorn\|GET \|POST "` is applied to every capture that actually runs (`connection-refused` skips the capture, and the filter with it)
 - [ ] The Common Issues classification covers all seven classes from [`reachy-mini/app-logging`](../../reachy-mini/app-logging/en.md) and uses the log patterns from there verbatim
 - [ ] On a match, the skill reports class + confidence + expected log pattern + match lines with context + recovery proposal
 - [ ] On no match, `unclassified` is returned with the `minimal_demo.py` sanity check as the first proposal

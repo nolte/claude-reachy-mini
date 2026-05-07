@@ -99,7 +99,7 @@ Begriffsklärung: „Triage" hier = **Schnell-Klassifikation einer aktuell beoba
 - [ ] Skill ist unter `skills/app-log-triage/SKILL.md` mit gültiger Frontmatter (`name: app-log-triage`, `description`, optionale Tags) angelegt und wird vom Katalog-Generator akzeptiert
 - [ ] Die `description` enthält die Schlüsselbegriffe (log, triage, debug, app, Reachy Mini, classify, diagnose, failure) und benennt mindestens drei Anti-Trigger explizit
 - [ ] Pre-Flight-Reachability-Check läuft vor jeder Log-Erfassung und meldet bei Fehlschlag direkt Klasse `connection-refused`, ohne weitere Log-Aktion
-- [ ] Default-Filter `grep -v "uvicorn\|GET \|POST "` ist auf jede Erfassung angewandt
+- [ ] Default-Filter `grep -v "uvicorn\|GET \|POST "` ist auf jede tatsächlich durchgeführte Erfassung angewandt (bei `connection-refused` entfällt die Erfassung, dann auch der Filter)
 - [ ] Common-Issues-Klassifikation deckt alle sieben Klassen aus [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) ab und nutzt die dort genannten Log-Muster wörtlich
 - [ ] Bei Match meldet der Skill Klasse + Vertrauen + erwartetes Log-Muster + Match-Zeilen mit Kontext + Recovery-Vorschlag
 - [ ] Bei No-Match wird `unclassified` zurückgegeben, mit `minimal_demo.py`-Sanity-Check als ersten Vorschlag
