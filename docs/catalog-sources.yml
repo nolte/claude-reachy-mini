@@ -13,4 +13,4 @@ sources:
     skills_path: skills
     agents_path: agents
     repo_url: https://github.com/nolte/claude-reachy-mini
-    branch: main
+    branch: develop
