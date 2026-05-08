@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest a new capability or improvement. Half-formed ideas welcome.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      description: Confirm you have looked for an existing request.
+      options:
+        - label: I have searched the existing issues for similar feature requests.
+          required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's the idea?
+      description: |
+        Describe the capability, improvement, or change you'd like to see. There's no required shape — sketch the user need, the proposed change, alternatives you considered, screenshots, prior discussion, or anything else that helps the conversation. This is meant for half-formed ideas as much as for finished proposals.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Optional. Links, screenshots, related issues, or constraints not covered above.
+    validations:
+      required: false
+  # ===== Claude Code plugin OPTIONAL fields (per spec, feature-request extras stay optional) =====
+  - type: dropdown
+    id: target-artefact
+    attributes:
+      label: Target artefact type
+      description: What kind of artefact would carry the proposed change? Skip if you're not sure yet.
+      options:
+        - new skill
+        - new agent
+        - revision to existing skill or agent
+        - new spec
+        - revision to existing spec
+    validations:
+      required: false
