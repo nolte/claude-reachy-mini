@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report something that does not work as expected.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      description: Confirm you have looked for an existing report.
+      options:
+        - label: I have searched the existing issues for similar bug reports.
+          required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the unexpected behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Minimal steps that consistently reproduce the issue.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste logs, stack traces, or transcripts. They will be rendered as a code block.
+      render: shell
+    validations:
+      required: false
+  # ===== Claude Code plugin fields (per project-type-fields.md) =====
+  - type: dropdown
+    id: artefact-kind
+    attributes:
+      label: Affected artefact
+      description: Which kind of plugin artefact does this bug touch?
+      options:
+        - skill
+        - agent
+        - spec
+        - plugin manifest
+        - other
+    validations:
+      required: true
+  - type: input
+    id: artefact-name
+    attributes:
+      label: Artefact name
+      placeholder: e.g. reachy-mini-sdk, dance-choreography, reachy-mini-on-device
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: Version from `.claude-plugin/plugin.json` or the marketplace entry.
+    validations:
+      required: true
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version
+      description: Output of `claude --version` or the IDE-extension version.
+    validations:
+      required: true
+  - type: textarea
+    id: transcript
+    attributes:
+      label: Session transcript
+      description: Paste the relevant turns of your Claude Code session, redacted as needed.
+      render: shell
+    validations:
+      required: false

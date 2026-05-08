@@ -1,0 +1,7 @@
+# Derivation record (filled in by the github-issue-templates-apply skill):
+#   project-type: claude-code-plugin
+#   audience-artefact: AUDIENCES.md
+#   audience-fingerprint: 286fbd9aaa31
+#   templates: [bug_report.yml, feature_request.yml]
+#   generated: 2026-05-08
+blank_issues_enabled: false
