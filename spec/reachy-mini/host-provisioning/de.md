@@ -52,7 +52,7 @@ Dieses Repository (`claude-reachy-mini`) liefert Toolbox-Inhalte (Skills, Agents
 - **MUSS [MUST]** eine systemd-Template-Unit `reachy-app@.service` definieren, die `<slug>` als Instance-Name nimmt und unter dem `pollen`-User läuft
 - **MUSS [MUST]** das Per-App-venv über `uv venv` (nicht `python -m venv`) anlegen — konsistent mit der App-Architektur-Spec
 - **DARF NICHT [MUST NOT]** in `/venvs/apps_venv/` (Pollens Shared-venv) schreiben — kollisionsfreie Trennung ist die zentrale Begründung dieses Layouts
-- **DARF NICHT [MUST NOT]** App-Quellen oder venvs unter `/home/pollen/` ablegen, weil OS-Reinstalls dort destruktiv sein können
+- **DARF NICHT [MUST NOT]** **Self-Hosted-Apps** (Geltungsbereich dieser Spec) ihre Quellen oder venvs unter `/home/pollen/` ablegen, weil OS-Reinstalls dort destruktiv sein können — Pollen-Pathway-Apps (gemanagt vom Pollen-Daemon, siehe [`spec/claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)) sind hiervon ausgenommen, weil sie dem Daemon-Default-Layout folgen und außerhalb des Geltungsbereichs dieser Spec liegen
 
 ### systemd-Service-Vertrag
 - **MUSS [MUST]** eine Template-Unit `reachy-app@.service` definieren, die für `<slug>` als ExecStart `/opt/reachy-apps/<slug>/.venv/bin/python -m <slug_underscore>.main` aufruft
