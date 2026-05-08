@@ -65,7 +65,9 @@ Begriffsklärung: „Triage" hier = **Schnell-Klassifikation einer aktuell beoba
 
 ### Klassifikation
 
-- **MUSS [MUST]** gegen jede Klasse aus [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) § Common-Issues-Triage-Katalog matchen: `connection-refused`, `app-lock-held`, `no-motion`, `jerky-motion`, `import-error`, `audio-fail`, `motors-different-states`
+- **MUSS [MUST]** gegen jede Klasse aus [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) § Common-Issues-Triage-Katalog matchen: `connection-refused`, `app-lock-held`, `no-motion`, `jerky-motion`, `import-error`, `audio-fail`, `motors-different-states`, `daemon-stale-state`, `webrtc-plugin-missing`
+- **MUSS [MUST]** bei Klasse `daemon-stale-state` (App startet mit `ConnectionError: Could not connect to daemon on localhost`, obwohl `systemctl is-active reachy-mini-daemon.service` `active` meldet) als Pre-Flight zusätzlich `ss -tln | grep ":6053"` ausführen (Wireless) — schweigt der Port, ist die Klasse bestätigt; Recovery-Empfehlung in den Report aufnehmen, **ohne** den Restart selbst auszuführen
+- **MUSS [MUST]** bei Klasse `webrtc-plugin-missing` (`RuntimeError: Failed to create webrtcsrc element. Is the GStreamer webrtc rust plugin installed?` aus dem `ReachyMini`-Konstruktor im direct-mode) im Report **explizit** vermerken, dass die Verify-Basics-First-Sanity-Probe nicht durchführbar ist und das Problem **nicht** App-bezogen ist, sondern eine Setup-Lücke der direct-mode-Umgebung; das verhindert, dass nachgelagerte Skill-Aufrufe (`reachy-mini-sdk`, `app-scaffold`) aus dem Triage-Bericht App-Code-Hypothesen ableiten
 - **MUSS [MUST]** pro Klasse das in der Wissens-Spec genannte Log-Muster verwenden, **nicht** freie Heuristik (z. B. für `app-lock-held` exakt das Pattern `RobotAppLock: rejected — held by <app_name>` über den Logger `reachy_mini.daemon.robot_app_lock`)
 - **SOLLTE [SHOULD]** bei mehreren Match-Klassen die spezifischste mit höchstem Vertrauen melden, die Alternativen mit niedrigerem Vertrauen als „candidates" auflisten
 - **MUSS [MUST]** bei No-Match die Pseudo-Klasse `unclassified` zurückgeben, **nicht** eine neue Klasse erfinden
@@ -76,6 +78,8 @@ Begriffsklärung: „Triage" hier = **Schnell-Klassifikation einer aktuell beoba
 - **MUSS [MUST]** bei Klasse `unclassified` als ersten Recovery-Vorschlag den `examples/minimal_demo.py`-Sanity-Check melden — gemäß der MUST-Klausel in [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) („vor jeder Diagnose einer App-spezifischen Failure-Klasse zuerst minimal_demo.py")
 - **SOLLTE [SHOULD]** bei Klasse `no-motion` zusätzlich den Sanity-Check als ersten Schritt empfehlen — wenn `minimal_demo.py` selbst nichts bewegt, ist das Problem nicht App-, sondern Connectivity-/Hardware-bezogen
 - **DARF NICHT [MUST NOT]** der Skill den Sanity-Check eigenständig ausführen — er ist Entwickler-Aktion; der Skill empfiehlt, listet den exakten Befehl, und meldet im nächsten Lauf das Ergebnis
+- **MUSS [MUST]** bei Empfehlung des direct-mode-Sanity-Checks die mögliche `webrtc-plugin-missing`-Edge-Case mitkommunizieren (siehe [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) § Verify-Basics-First-Heuristik): wenn die produktive App im daemon-hosting läuft, ist eine **daemon-hosted Sanity-App** aussagekräftiger als ein direct-mode-Skript — der Skill empfiehlt im Zweifel den daemon-hosting-Pfad und vermerkt, dass `gst-plugin-webrtc-rust` keine App-Voraussetzung ist
+- **SOLLTE [SHOULD]** bei aufeinanderfolgenden App-Stop/Start-Cycles (Hot-Patch-Diagnose) den Hinweis aus [`reachy-mini/app-logging`](../../reachy-mini/app-logging/de.md) § Recovery-Aktionen mitgeben: ~30 s Cooldown zwischen Cycles oder den Daemon-Stale-State-Recovery-Befehl bereit halten — das ist Vorbeuge-Empfehlung, kein Diagnose-Trigger
 
 ### Report-Format
 
