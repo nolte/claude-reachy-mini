@@ -102,12 +102,12 @@ Diese Aufgabe ist als **Agent** modelliert, weil mehrere Begründungen aus `nolt
 - Pollen-Vertragsvalidator (im Pre-Flight verwendet): `reachy-mini-app-assistant check <path>` (Teil des `reachy-mini`-Pakets)
 - App-Lifecycle-Vertrag (`stop_event`, `wrapped_run`, App-Manager): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
 - Daemon-REST-Surface (Busy-Check-Endpoints, Installed-Apps-Listing): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- Autoritatives REST-Schema: `http://<daemon-host>:8000/openapi.json` (live). Verifiziert gegen einen Wireless-Daemon: Das App-Listing erfolgt über `GET /api/apps/list-available` (alle) und `GET /api/apps/list-available/{source_kind}` (z. B. `source_kind=installed`). Dieser Endpoint-Familie ist diagnostisch — der kanonische Post-Install-Verify dieses Agents nutzt den Python-seitigen `entry_points(group='reachy_mini_apps')`-Query, nicht das REST-Listing.
 - Pollens `AGENTS.md` (Entry-Point-Group, App-Konventionen): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 - Geschwister-Agent für Live-Trials: `agents/reachy-mini-on-device.md`
 - Geschwister-Skill zum Starten der deployten App: `skills/reachy-mini-start/SKILL.md`
 
 ## Offene Fragen
-- Welcher REST-Endpoint listet die Apps, die der Daemon aktuell registriert hat? `/api/apps/installed` (oder den tatsächlichen Pfad) beim ersten Hardware-Kontakt verifizieren und im Agent-Body fixieren
 - Was ist das kanonische Deploy-Ziel auf Wireless — `~/apps/<name>/` unter dem `pollen`-User oder ein vom Daemon verwalteter Ort? Verifizieren und fixieren
 - Aktualisiert der Pollen-Daemon seine `entry_points(group='reachy_mini_apps')`-Sicht automatisch nach einem `pip install`, oder ist ein Daemon-SIGHUP / Restart nötig, damit der neue Entry-Point sichtbar wird? Falls ein Daemon-Restart nötig ist, darf dieser Agent ihn nicht ausführen; der Nutzer (oder `reachy-mini-start`) macht das
 - Stellt Pollens Daemon-Installation eine stabile ENV-Variable oder Pfad-Datei für das Venv bereit, oder müssen wir immer probieren? Probieren ist der sichere Default; eine ENV-Variable würde den Report vereinfachen
