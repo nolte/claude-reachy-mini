@@ -1,6 +1,20 @@
 ---
 name: reachy-mini-inspect
-description: Snapshot the current state of a running Reachy Mini daemon as a Markdown table directly in the conversation — daemon liveness, app-lock, motor mode, head/body/antenna pose, audio system, speaker and microphone volume, currently running app. Read-only: only GET endpoints, never POST/PUT/DELETE/PATCH, never touches the app-lock. Activate when the user says "zeig mir den Zustand", "wie steht der Reachy gerade", "Daemon-Status abfragen", "Motorposition lesen", "show robot state", "check daemon health", "where is the head pointing", or invokes the modes `quick` / `full` / `raw <endpoint>` directly. Do NOT use to start, stop, install, update, or remove an app (that's `reachy-mini-start`, `reachy-mini-deploy`, `reachy-mini-on-device`), to write motion or behavior code (`reachy-mini-sdk`, `app-scaffold`), to analyze app logs (`app-log-triage`), or to stand up an MCP server for LLM frontends (`mcp-server-bootstrap`).
+description: >-
+  Snapshot the current state of a running Reachy Mini daemon as a Markdown
+  table directly in the conversation — daemon liveness, app-lock, motor mode,
+  head/body/antenna pose, audio system, speaker and microphone volume,
+  currently running app. Read-only — only GET endpoints, never
+  POST/PUT/DELETE/PATCH, never touches the app-lock. Activate when the user
+  says "zeig mir den Zustand", "wie steht der Reachy gerade", "Daemon-Status
+  abfragen", "Motorposition lesen", "show robot state", "check daemon
+  health", "where is the head pointing", or invokes the modes `quick` /
+  `full` / `raw <endpoint>` directly. Do NOT use to start, stop, install,
+  update, or remove an app (that's `reachy-mini-start`, `reachy-mini-deploy`,
+  `reachy-mini-on-device`), to write motion or behavior code
+  (`reachy-mini-sdk`, `app-scaffold`), to analyze app logs
+  (`app-log-triage`), or to stand up an MCP server for LLM frontends
+  (`mcp-server-bootstrap`).
 tags: [reachy-mini, inspect]
 ---
 
