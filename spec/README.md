@@ -14,6 +14,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`claude/mcp-server-bootstrap`](claude/mcp-server-bootstrap/de.md) | MCP-Server-Bootstrap-Skill | MCP Server Bootstrap Skill | draft | unversioned |
 | [`claude/reachy-app-publish-hf`](claude/reachy-app-publish-hf/de.md) | Reachy-App-Publish-HF-Skill | Reachy App Publish HF Skill | draft | unversioned |
 | [`claude/reachy-mini-deploy`](claude/reachy-mini-deploy/de.md) | Deploy-Agent für Reachy-Mini-Apps | Deploy Agent for Reachy Mini Apps | draft | 2026-05-06 |
+| [`claude/reachy-mini-inspect`](claude/reachy-mini-inspect/de.md) | Read-Only-Inspect-Skill für den Reachy-Mini-Daemon | Read-only inspect skill for the Reachy Mini daemon | draft | unversioned |
 | [`claude/reachy-mini-on-device`](claude/reachy-mini-on-device/de.md) | On-Device-Test-Agent für Reachy Mini | On-Device Test Agent for Reachy Mini | draft | 2026-05-06 |
 | [`claude/reachy-mini-sdk`](claude/reachy-mini-sdk/de.md) | Reachy-Mini-SDK-Skill | Reachy Mini SDK Skill | draft | 2026-05-06 |
 | [`claude/reachy-mini-start`](claude/reachy-mini-start/de.md) | Start-Skill für Reachy-Mini-Apps | Start Skill for Reachy Mini Apps | draft | 2026-05-06 |
