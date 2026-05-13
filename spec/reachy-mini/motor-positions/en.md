@@ -320,15 +320,40 @@ API: `POST /api/motors/set_mode/{mode}` — the path parameter is an enum accept
 
 A live `goto` motion **MUST** first check `backend_status.ready == true`. If `false`, `head_joints` in `/api/state/full` is typically `null` and the `goto` API accepts motions silently (200 with UUID) without executing them. In this state, stop live tests immediately and triage via daemon restart or power-cycle.
 
-#### When a daemon restart is enough, and when it isn't
+#### When a daemon restart is enough, when a power-cycle is, and when neither is
 
-Verified on 2026-05-13 after the Phase-B incident: `POST /api/daemon/restart` cleanly restarts the daemon service (REST response within < 3 s, fresh `job_id`), but does **not** wake a Dynamixel motor backend that has been locked by overload-protect or position-error. After the restart, `backend_status.ready: false` and `head_joints: null` stayed unchanged for 60 s+; only `motor_control_mode` was reset to `disabled`, and the `head_pose` read returned a different, also stale value.
+Verified on 2026-05-13 after the Phase-B incident, in three stages with negative findings at each step:
 
-**Triage consequences:**
+**Stage 1 — daemon restart via REST.** `POST /api/daemon/restart` cleanly restarts the daemon service (REST response within < 3 s, fresh `job_id`), but does **not** wake a Dynamixel motor backend locked by overload-protect or position-error. After the restart, `backend_status.ready: false` and `head_joints: null` stayed unchanged for 60 s+; only `motor_control_mode` was reset to `disabled`, and the `head_pose` read returned a different, also stale value.
 
-- Daemon restart **MUST** be the first stage attempted — it fixes pure software hangs (connection drop, USB reconnect glitch)
-- If `backend_status.ready` is still `false` 60 s after the restart, a **hardware lock of the Dynamixel motors** is at play; a **power-cycle of the Reachy MUST** follow
-- A second restart iteration **MUST NOT** happen automatically — it cannot release a hardware lock, only burn time
+**Stage 2 — power-cycle of the Reachy.** Physically disconnect power, wait ≥ 30 s, reconnect, allow ~1 minute boot time. The daemon comes back cleanly (`state: running`, a fresh `version` read is possible) — **`backend.ready` can still remain `false`** if the Dynamixel motors or the U2D2 USB interface are in a state that a boot does not clear.
+
+**Stage 3 — hardware recovery outside REST reach.** When the pre-flight gates G1+G2 stay red even after a power-cycle, REST-only recovery is exhausted. Required steps:
+
+- SSH into the Reachy: read `journalctl -u reachy-mini-daemon -n 200` — the daemon logs name explicit bus errors that never reach `backend_status.error` when the bus is "silent dead"
+- Dynamixel EEPROM reset via the Pollen CLI / `reachy_mini` Python scripts on the device — a position-error stored in motor EEPROM survives a power-cycle and has to be cleared explicitly with a Dynamixel protocol command
+- Mechanical inspection by the operator: check cables and connectors (U2D2 adapter, antenna harnesses) for collision damage
+- Physical battery-status check (LED indicator) — a separately tripped battery protection on the motor rail can produce the same symptom
+- If symptom persists: contact Pollen support; a motor backend that stays locked after self-collision is a plausible warranty case
+
+**Diagnostic pattern "silent dead" (identifiable from REST alone):**
+
+The hallmark of a hardware lock at the bus interface is the **combination** of the following values in `GET /api/daemon/status`:
+
+- `backend_status.ready: false`
+- `backend_status.last_alive: null`
+- `backend_status.error: null`
+- `backend_status.control_loop_stats.nb_error: 0`
+- `backend_status.control_loop_stats.mean_control_loop_frequency ≈ 50 Hz` (the daemon keeps polling)
+
+Plus: three back-to-back `GET /api/state/full` reads return **byte-identical** `head_pose`, `body_yaw`, and `antennas_position` fields. That is the cache of the last successful bus read, not a live read. **When this pattern is present, recovery is at Stage 3, not Stage 1 or 2.**
+
+**Triage rules (binding):**
+
+- Stage 1 (daemon restart) **MUST** be attempted first — it fixes pure software hangs after a connection drop or USB reconnect glitch
+- If `backend.ready` is still `false` 60 s after Stage 1, Stage 2 (power-cycle) **MUST** follow; a second restart iteration **MUST NOT** happen automatically
+- If the "silent dead" pattern is present after a power-cycle and boot, escalation to Stage 3 (hardware recovery outside REST) is **MUSTed**; further REST restarts **MUST NOT** be attempted
+- In neither Stage 2 nor Stage 3 **MAY** a `POST /api/move/goto` be issued while pre-flight gates G1+G2 are red — that is a direct violation of Layer 6 §"Hard pre-flight"
 
 ### Layer 6 — live verification methodology
 
@@ -418,7 +443,8 @@ Once T1–T8 have run successfully and the discrepancies are measured, Layer 2 �
 - [ ] The Phase-B incident from 2026-05-12 is documented as a self-collision warning with sequence and aftermath (`backend_status.ready: false`, `head_joints: null`)
 - [ ] Motor mode names are correctly named: `enabled` / `disabled` / `gravity_compensation`, not `stiff` / `compliant`
 - [ ] The `backend_status.ready` check is named as a mandatory pre-flight before any live motion
-- [ ] Daemon restart vs. power-cycle is described as a two-stage recovery triage (daemon restart first, power-cycle when the backend stays unresponsive for 60 s+)
+- [ ] Three-stage recovery triage is described: daemon restart → power-cycle → hardware recovery outside REST (SSH, Dynamixel EEPROM reset, mechanical inspection, Pollen support)
+- [ ] The diagnostic "silent dead" pattern is explicitly named (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, three byte-identical state reads in a row) as the indicator that recovery is at Stage 3
 - [ ] Layer 6 §"Live verification methodology" contains the binding test set T1–T8 with safety margins to the Pollen nominal range
 - [ ] Layer 6 names four pre-flight gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) and abort criteria
 - [ ] Layer 6 explicitly forbids IK-polytope boundary values as live targets

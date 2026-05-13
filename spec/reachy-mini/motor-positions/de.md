@@ -320,15 +320,40 @@ API: `POST /api/motors/set_mode/{mode}` — der Pfad-Parameter ist eine Enum, di
 
 Eine Live-`goto`-Bewegung **MUSS** vorab `backend_status.ready == true` prüfen. Wenn `false`, ist `head_joints` in `/api/state/full` typischerweise `null` und die `goto`-API akzeptiert Bewegungen still (200 mit UUID), ohne sie auszuführen. In diesem Zustand stoppt man Live-Tests sofort und triagiert per Daemon-Restart oder Power-Cycle.
 
-#### Wann Daemon-Restart reicht und wann nicht
+#### Wann Daemon-Restart reicht, wann Power-Cycle, und wann nichts davon
 
-Geprüft 2026-05-13 nach dem Phase-B-Vorfall: `POST /api/daemon/restart` startet den Daemon-Service sauber neu (REST-Antwort innerhalb < 3 s, neue `job_id`), reaktiviert aber **nicht** ein durch Overload-Protect oder Position-Error gelocktes Dynamixel-Motor-Backend. Nach dem Restart blieb `backend_status.ready: false` und `head_joints: null` für 60 s+ unverändert; einzig `motor_control_mode` wurde auf `disabled` zurückgesetzt und die `head_pose`-Lesung lieferte einen anderen, ebenfalls stale Wert.
+Verifiziert 2026-05-13 nach dem Phase-B-Vorfall, in drei Stufen mit jeweils negativem Befund:
 
-**Konsequenz für die Recovery-Triage:**
+**Stufe 1 — Daemon-Restart per REST.** `POST /api/daemon/restart` startet den Daemon-Service sauber neu (REST-Antwort innerhalb < 3 s, neue `job_id`), reaktiviert aber **nicht** ein durch Overload-Protect oder Position-Error gelocktes Dynamixel-Motor-Backend. Nach dem Restart blieb `backend_status.ready: false` und `head_joints: null` für 60 s+ unverändert; einzig `motor_control_mode` wurde auf `disabled` zurückgesetzt und die `head_pose`-Lesung lieferte einen anderen, ebenfalls stale Wert.
 
-- Daemon-Restart **MUSS** als erste Stufe versucht werden — er behebt reine Software-Hänger (z. B. nach Connection-Drop, USB-Reconnect-Glitch)
-- Wenn `backend_status.ready` 60 s nach dem Restart immer noch `false` ist, liegt ein **Hardware-Lock der Dynamixel-Motoren** vor; dann **MUSS** ein Power-Cycle des Reachy folgen
-- Eine zweite Restart-Iteration **DARF NICHT** automatisch erfolgen — sie würde den Hardware-Lock nicht lösen, sondern nur Zeit verbrauchen
+**Stufe 2 — Power-Cycle des Reachy.** Strom physisch trennen, ≥ 30 s warten, wieder einschalten, ~1 Minute Boot-Zeit. Daemon kommt sauber hoch (`state: running`, neue `version`-Lesung möglich) — **`backend.ready` kann trotzdem `false` bleiben**, wenn die Dynamixel-Motoren oder die U2D2-USB-Schnittstelle in einem Zustand sind, den ein Boot nicht löst.
+
+**Stufe 3 — Hardware-Recovery außerhalb REST-Reichweite.** Wenn auch nach Power-Cycle die Pre-Flight-Gates G1+G2 rot bleiben, ist eine REST-only-Recovery aufgebraucht. Erforderlich sind:
+
+- SSH zum Reachy: `journalctl -u reachy-mini-daemon -n 200` lesen — die Daemon-Logs nennen explizite Bus-Fehler, die in `backend_status.error` nicht auftauchen, wenn der Bus „silent dead" ist
+- Dynamixel-EEPROM-Reset über das Pollen-CLI / `reachy_mini`-Python-Skripte am Gerät — ein Position-Error im Motor-EEPROM überlebt einen Power-Cycle und muss explizit per Dynamixel-Protokoll-Befehl gelöscht werden
+- Mechanische Inspektion durch den Operator: Kabel und Stecker (U2D2-Adapter, Antennen-Kabelbäume) nach Kollisions-Schaden absuchen
+- Akku-Status physisch prüfen (LED-Anzeige) — ein separat ausgelöster Akku-Schutz für die Motor-Schiene kann das Symptom genauso erzeugen
+- Bei anhaltendem Symptom: Pollen-Support kontaktieren; ein nach Selbstkollision persistent gelocktes Motor-Backend ist plausibler Garantie-Fall
+
+**Diagnostisches Muster „silent dead" (vom Bus identifizierbar via REST):**
+
+Das Charakteristikum eines Hardware-Locks an der Bus-Schnittstelle ist die **Kombination** der folgenden Werte in `GET /api/daemon/status`:
+
+- `backend_status.ready: false`
+- `backend_status.last_alive: null`
+- `backend_status.error: null`
+- `backend_status.control_loop_stats.nb_error: 0`
+- `backend_status.control_loop_stats.mean_control_loop_frequency ≈ 50 Hz` (Daemon polled aktiv weiter)
+
+Plus: drei nacheinander folgende `GET /api/state/full`-Lesungen liefern **byte-identische** `head_pose`-, `body_yaw`- und `antennas_position`-Felder. Das ist der Cache vom letzten erfolgreichen Bus-Read, nicht eine Live-Lesung. **Wenn dieses Muster vorliegt, ist die Recovery in Stufe 3, nicht Stufe 1 oder 2.**
+
+**Triage-Regeln (verbindlich):**
+
+- Stufe 1 (Daemon-Restart) **MUSS** als erste versucht werden — sie behebt reine Software-Hänger nach Connection-Drop oder USB-Reconnect-Glitch
+- Wenn 60 s nach Stufe 1 `backend.ready` immer noch `false` ist, **MUSS** Stufe 2 (Power-Cycle) folgen; eine zweite Restart-Iteration **DARF NICHT** automatisch erfolgen
+- Wenn nach Power-Cycle und Boot das „silent dead"-Muster vorliegt, **MUSS** auf Stufe 3 (Hardware-Recovery außerhalb REST) eskaliert werden; weitere REST-Restarts **DÜRFEN NICHT** versucht werden
+- In keiner der Stufen 2 und 3 **DARF** ein `POST /api/move/goto` abgesetzt werden, solange die Pre-Flight-Gates G1+G2 rot sind — das ist ein direkter Verstoß gegen Schicht 6 §"Hard-Pre-Flight"
 
 ### Schicht 6 — Live-Verifikations-Methodik
 
@@ -418,7 +443,8 @@ Sobald T1–T8 erfolgreich gelaufen sind und die Diskrepanzen vermessen sind, wi
 - [ ] Phase-B-Vorfall vom 2026-05-12 ist als Selbstkollisions-Warnung mit Sequenz und Folgezustand (`backend_status.ready: false`, `head_joints: null`) dokumentiert
 - [ ] Motor-Mode-Namen sind korrekt benannt: `enabled` / `disabled` / `gravity_compensation`, nicht `stiff` / `compliant`
 - [ ] `backend_status.ready`-Check ist als Pre-Flight-Pflicht vor jeder Live-Bewegung benannt
-- [ ] Daemon-Restart vs. Power-Cycle als zwei-stufige Recovery-Triage ist beschrieben (Daemon-Restart zuerst, Power-Cycle bei nicht-reaktivem Backend nach 60 s)
+- [ ] Drei-stufige Recovery-Triage ist beschrieben: Daemon-Restart → Power-Cycle → Hardware-Recovery außerhalb REST (SSH, Dynamixel-EEPROM-Reset, mechanische Inspektion, Pollen-Support)
+- [ ] Das diagnostische „silent dead"-Muster ist explizit benannt (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, drei byte-identische state-Reads in Folge) als Indikator, dass Recovery in Stufe 3 liegt
 - [ ] Schicht 6 §"Live-Verifikations-Methodik" enthält das verbindliche Test-Set T1–T8 mit Sicherheitsmargen zu Pollen-Nominal-Range
 - [ ] Schicht 6 nennt vier Pre-Flight-Gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) und Abbruch-Kriterien
 - [ ] Schicht 6 verbietet explizit IK-Polytop-Grenzwerte als Live-Targets
