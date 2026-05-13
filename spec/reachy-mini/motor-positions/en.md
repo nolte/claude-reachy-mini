@@ -301,9 +301,9 @@ Correction to the `reachy-mini/control-surface` spec, which named the modes `sti
 |---|---|---|
 | `enabled` | Default; `set_target` and `goto` are executed | Motors actively hold the setpoint pose ("stiff") |
 | `disabled` | Motors released; `goto` is accepted but does not move | Robot is freely movable by hand; gravity pulls the head down |
-| `gravity_compensation` | In theory: hold the current pose against gravity without active setpoint | ⚠ TBD: responded with `500 Internal Server Error` on 2026-05-12 when switched from `disabled`; possibly only valid when coming from `enabled` |
+| `gravity_compensation` | Holds the current pose against gravity without an active setpoint | **Only available with `kinematics_engine=Placo`.** With the default engine `AnalyticalKinematics`, `set_mode/gravity_compensation` returns `500 Internal Server Error` with `RuntimeError: Gravity compensation mode is only supported with the Placo kinematics engine.` (verified via SSH daemon log 2026-05-13, source: `reachy_mini/daemon/backend/robot/backend.py:563`) |
 
-API: `POST /api/motors/set_mode/{mode}` — the path parameter is an enum accepting only those three values; invalid names return **422 Unprocessable Entity**. `GET /api/motors/status` returns `{"mode": "<current_mode>"}`.
+API: `POST /api/motors/set_mode/{mode}` — the path parameter is an enum accepting only those three values; invalid names return **422 Unprocessable Entity**. `GET /api/motors/status` returns `{"mode": "<current_mode>"}`. Check which engine is active with `GET /api/kinematics/info`; with `AnalyticalKinematics`, `gravity_compensation` is practically unusable — recovery triage (see below) **MUST NOT** rely on this mode.
 
 #### Backend status — when the Reachy stops responding
 
@@ -346,14 +346,28 @@ The hallmark of a hardware lock at the bus interface is the **combination** of t
 - `backend_status.control_loop_stats.nb_error: 0`
 - `backend_status.control_loop_stats.mean_control_loop_frequency ≈ 50 Hz` (the daemon keeps polling)
 
-Plus: three back-to-back `GET /api/state/full` reads return **byte-identical** `head_pose`, `body_yaw`, and `antennas_position` fields. That is the cache of the last successful bus read, not a live read. **When this pattern is present, recovery is at Stage 3, not Stage 1 or 2.**
+Plus: three back-to-back `GET /api/state/full` reads return **byte-identical** `head_pose`, `body_yaw`, and `antennas_position` fields, **or** they show micro-drift in the range of ≈ 0.001 rad (≈ 0.06°). Micro-drift combined with `last_alive: null` and `head_joints: null` is a **partial live read**: the daemon reads the forward kinematics of the joints in a separate path, but the main loop that sets `last_alive` and populates `head_joints` never completed a successful iteration. **Both sub-patterns confirm Stage-3 recovery.**
+
+**Diagnostic explanation:** the `mean_control_loop_frequency ≈ 50 Hz` value is **not** proof that the polling loop is running. The field is computed from `_stats["timestamps"]` diffs and can be a stale cache from previous sessions, or the frequency reflects the outer daemon tick without a successful bus read per tick. **`last_alive` is authoritative**: while it stays `null`, the loop is **not** alive at the bus.
 
 **Triage rules (binding):**
 
-- Stage 1 (daemon restart) **MUST** be attempted first — it fixes pure software hangs after a connection drop or USB reconnect glitch
+- Stage 1 (daemon restart via `POST /api/daemon/restart`) **MUST** be attempted first — it fixes pure software hangs after a connection drop or USB reconnect glitch
 - If `backend.ready` is still `false` 60 s after Stage 1, Stage 2 (power-cycle) **MUST** follow; a second restart iteration **MUST NOT** happen automatically
-- If the "silent dead" pattern is present after a power-cycle and boot, escalation to Stage 3 (hardware recovery outside REST) is **MUSTed**; further REST restarts **MUST NOT** be attempted
+- If the "silent dead" pattern is present after a power-cycle and boot, escalation to Stage 3 (hardware recovery outside REST) **MUST** happen
+- **`POST /api/motors/set_mode/enabled` does NOT reactivate the backend polling loop** when the loop is blocked at its pre-loop init step (FK/IK with `no_iterations=20` against a post-collision-shifted platform pose, see `reachy_mini/daemon/backend/robot/backend.py` `run()`). Even after `enabled`, `last_alive` stays `null` and `head_joints` stays `null`. **An additional `systemctl restart reachy-mini-daemon.service` over SSH is equally ineffective in this situation** — verified 2026-05-13.
 - In neither Stage 2 nor Stage 3 **MAY** a `POST /api/move/goto` be issued while pre-flight gates G1+G2 are red — that is a direct violation of Layer 6 §"Hard pre-flight"
+
+#### Stage-3 recovery paths (outside REST/SSH reach)
+
+When the "silent dead" pattern persists after a power-cycle plus service restart, walk these paths in order — all require physical access to the Reachy:
+
+1. **Daemon stack dump via `py-spy`** (if installed on the Reachy): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon)` yields the current Python stack of the hanging thread and reveals **which function** is blocking the init step
+2. **Search the daemon logs for non-RuntimeError exceptions**: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — exceptions outside the loop's try/except are logged but only kill the backend thread; they never reach `backend_status.error`
+3. **Dynamixel Wizard (Robotis)** over a UART/USB adapter to the motor bus: ping every motor (IDs 10–18) individually and read the hardware-error register; a residual position error in EEPROM is **not** always cleared by a hardware reboot — it needs an explicit `Reboot` command per motor, or an EEPROM reset
+4. **Contact Pollen Robotics support** — a backend lock that persists through power-cycle and service restart after self-collision is a plausible warranty case. Include in the ticket: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, plus the collision sequence from Layer 4 §"Phase-B live incident 2026-05-12"
+
+These four paths are **diagnostic**, not guaranteed remedies. If (4) also yields nothing, a hardware swap is likely required.
 
 ### Layer 6 — live verification methodology
 
@@ -443,8 +457,11 @@ Once T1–T8 have run successfully and the discrepancies are measured, Layer 2 �
 - [ ] The Phase-B incident from 2026-05-12 is documented as a self-collision warning with sequence and aftermath (`backend_status.ready: false`, `head_joints: null`)
 - [ ] Motor mode names are correctly named: `enabled` / `disabled` / `gravity_compensation`, not `stiff` / `compliant`
 - [ ] The `backend_status.ready` check is named as a mandatory pre-flight before any live motion
-- [ ] Three-stage recovery triage is described: daemon restart → power-cycle → hardware recovery outside REST (SSH, Dynamixel EEPROM reset, mechanical inspection, Pollen support)
-- [ ] The diagnostic "silent dead" pattern is explicitly named (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, three byte-identical state reads in a row) as the indicator that recovery is at Stage 3
+- [ ] Three-stage recovery triage is described: daemon restart → power-cycle → hardware recovery outside REST (py-spy, daemon log grep, Dynamixel Wizard, Pollen support)
+- [ ] The diagnostic "silent dead" pattern is explicitly named (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, three byte-identical **or** micro-drifting state reads in a row) as the indicator that recovery is at Stage 3
+- [ ] `last_alive` is named as the authoritative truth field for "loop is live at the bus" — `mean_control_loop_frequency` alone is not enough
+- [ ] `set_mode/enabled` is documented as NOT sufficient to reactivate the backend when the pre-loop FK/IK init is hanging (verified 2026-05-13)
+- [ ] `gravity_compensation` is marked with the `kinematics_engine=Placo` constraint; with `AnalyticalKinematics` it is unusable (source: backend.py:563)
 - [ ] Layer 6 §"Live verification methodology" contains the binding test set T1–T8 with safety margins to the Pollen nominal range
 - [ ] Layer 6 names four pre-flight gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) and abort criteria
 - [ ] Layer 6 explicitly forbids IK-polytope boundary values as live targets

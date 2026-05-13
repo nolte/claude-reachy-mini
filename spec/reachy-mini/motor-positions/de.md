@@ -301,9 +301,9 @@ Korrektur zur `reachy-mini/control-surface`-Spec, die Modi `stiff` / `compliant`
 |---|---|---|
 | `enabled` | Default; `set_target` und `goto` werden gefahren | Motoren halten aktiv die Sollwert-Pose („stiff") |
 | `disabled` | Motoren entlastet; `goto` wird angenommen, fährt aber nicht | Roboter ist frei beweglich von Hand; Schwerkraft drückt den Kopf nach unten |
-| `gravity_compensation` | Theoretisch: hält aktuelle Pose gegen Schwerkraft ohne aktiven Sollwert | ⚠ TBD: hat in 2026-05-12 mit `500 Internal Server Error` geantwortet, wenn aus `disabled` umgeschaltet; möglicherweise nur aus `enabled` heraus zulässig |
+| `gravity_compensation` | Hält die aktuelle Pose gegen Schwerkraft ohne aktiven Sollwert | **Nur mit `kinematics_engine=Placo` verfügbar.** Bei der Default-Engine `AnalyticalKinematics` antwortet `set_mode/gravity_compensation` mit `500 Internal Server Error` und `RuntimeError: Gravity compensation mode is only supported with the Placo kinematics engine.` (verifiziert via SSH-Daemon-Log 2026-05-13, Source: `reachy_mini/daemon/backend/robot/backend.py:563`) |
 
-API: `POST /api/motors/set_mode/{mode}` — der Pfad-Parameter ist eine Enum, die nur diese drei Werte akzeptiert; falsche Namen geben **422 Unprocessable Entity**. `GET /api/motors/status` liefert `{"mode": "<aktueller_mode>"}`.
+API: `POST /api/motors/set_mode/{mode}` — der Pfad-Parameter ist eine Enum, die nur diese drei Werte akzeptiert; falsche Namen geben **422 Unprocessable Entity**. `GET /api/motors/status` liefert `{"mode": "<aktueller_mode>"}`. Welche Engine aktiv ist, prüft man mit `GET /api/kinematics/info`; mit `AnalyticalKinematics` ist `gravity_compensation` praktisch nicht nutzbar — die Recovery-Triage (siehe unten) **DARF NICHT** auf diesen Mode bauen.
 
 #### Backend-Status — wann der Reachy nicht reagiert
 
@@ -346,14 +346,28 @@ Das Charakteristikum eines Hardware-Locks an der Bus-Schnittstelle ist die **Kom
 - `backend_status.control_loop_stats.nb_error: 0`
 - `backend_status.control_loop_stats.mean_control_loop_frequency ≈ 50 Hz` (Daemon polled aktiv weiter)
 
-Plus: drei nacheinander folgende `GET /api/state/full`-Lesungen liefern **byte-identische** `head_pose`-, `body_yaw`- und `antennas_position`-Felder. Das ist der Cache vom letzten erfolgreichen Bus-Read, nicht eine Live-Lesung. **Wenn dieses Muster vorliegt, ist die Recovery in Stufe 3, nicht Stufe 1 oder 2.**
+Plus: drei nacheinander folgende `GET /api/state/full`-Lesungen liefern **byte-identische** `head_pose`-, `body_yaw`- und `antennas_position`-Felder, **oder** sie zeigen Mikro-Drift im Bereich von ≈ 0.001 rad (≈ 0.06°). Mikro-Drift bei gleichzeitigem `last_alive: null` und `head_joints: null` ist ein **partieller Live-Read**: der Daemon liest in einem separaten Pfad die Forward-Kinematik der Joints aus, aber die Hauptschleife, die `last_alive` setzt und `head_joints` populiert, ist nie erfolgreich durchgelaufen. **Beide Sub-Muster bestätigen Recovery-Stufe 3.**
+
+**Diagnostische Erklärung:** der `mean_control_loop_frequency ≈ 50 Hz`-Wert ist **kein** Beweis, dass die Polling-Schleife läuft. Das Feld wird aus `_stats["timestamps"]`-Diffs berechnet und kann ein stale-Cache von früheren Sessions sein, oder die Frequenz reflektiert den äußeren Daemon-Tick ohne erfolgreichen Bus-Read pro Tick. **Authoritativ ist `last_alive`**: solange das `null` ist, ist die Schleife **nicht** erfolgreich am Bus.
 
 **Triage-Regeln (verbindlich):**
 
-- Stufe 1 (Daemon-Restart) **MUSS** als erste versucht werden — sie behebt reine Software-Hänger nach Connection-Drop oder USB-Reconnect-Glitch
+- Stufe 1 (Daemon-Restart per `POST /api/daemon/restart`) **MUSS** als erste versucht werden — sie behebt reine Software-Hänger nach Connection-Drop oder USB-Reconnect-Glitch
 - Wenn 60 s nach Stufe 1 `backend.ready` immer noch `false` ist, **MUSS** Stufe 2 (Power-Cycle) folgen; eine zweite Restart-Iteration **DARF NICHT** automatisch erfolgen
-- Wenn nach Power-Cycle und Boot das „silent dead"-Muster vorliegt, **MUSS** auf Stufe 3 (Hardware-Recovery außerhalb REST) eskaliert werden; weitere REST-Restarts **DÜRFEN NICHT** versucht werden
+- Wenn nach Power-Cycle und Boot das „silent dead"-Muster vorliegt, **MUSS** auf Stufe 3 (Hardware-Recovery außerhalb REST) eskaliert werden
+- **`POST /api/motors/set_mode/enabled` reaktiviert den Backend-Polling-Loop NICHT**, wenn dieser im Pre-Loop-Init-Schritt blockiert ist (FK/IK mit `no_iterations=20` auf eine nach Kollision verschobene Plattform-Pose, siehe `reachy_mini/daemon/backend/robot/backend.py` `run()`). Auch nach `enabled` bleibt `last_alive: null` und `head_joints: null`. **Eine zusätzliche `systemctl restart reachy-mini-daemon.service` per SSH ist in dieser Situation gleich wirkungslos wie der REST-Restart** — verifiziert 2026-05-13.
 - In keiner der Stufen 2 und 3 **DARF** ein `POST /api/move/goto` abgesetzt werden, solange die Pre-Flight-Gates G1+G2 rot sind — das ist ein direkter Verstoß gegen Schicht 6 §"Hard-Pre-Flight"
+
+#### Stufe-3-Recovery-Pfade (außerhalb REST/SSH-Reichweite)
+
+Wenn auch nach Power-Cycle + Service-Restart das „silent dead"-Muster anhält, sind diese Pfade in Reihenfolge zu prüfen — sie alle erfordern physikalischen Zugriff zum Reachy:
+
+1. **Daemon-Stack-Dump per `py-spy`** (falls auf dem Reachy installiert): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon)` liefert den aktuellen Python-Stack des hängenden Threads und zeigt, **welche Funktion** den Init-Schritt blockiert
+2. **Daemon-Logs für nicht-RuntimeError-Exceptions** durchsuchen: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — Exceptions außerhalb des Loop-Try/Catch werden zwar geloggt, killen aber nur den Backend-Thread und kommen nicht in `backend_status.error` an
+3. **Dynamixel-Wizard (Robotis)** über UART/USB-Adapter an den Motoren-Bus: jeden Motor (IDs 10–18) einzeln pingen und das Hardware-Error-Register prüfen; ein verbleibender Position-Error im EEPROM wird durch Hardware-Reboot **nicht** zwangsläufig gelöscht — er braucht einen expliziten `Reboot`-Befehl pro Motor oder ein EEPROM-Reset
+4. **Pollen Robotics Support kontaktieren** — eine durch Selbstkollision induzierte persistente Backend-Lock-Lage, die nach Power-Cycle und Service-Restart fortbesteht, ist plausibler Garantie-Fall. Beim Support-Ticket angeben: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, plus die Kollisions-Sequenz aus Schicht 4 §"Phase-B-Live-Vorfall 2026-05-12"
+
+Diese vier Pfade sind **diagnostisch**, nicht garantiert wirksam. Wenn (4) auch nichts bringt, ist mit hoher Wahrscheinlichkeit ein Hardware-Tausch nötig.
 
 ### Schicht 6 — Live-Verifikations-Methodik
 
@@ -443,8 +457,11 @@ Sobald T1–T8 erfolgreich gelaufen sind und die Diskrepanzen vermessen sind, wi
 - [ ] Phase-B-Vorfall vom 2026-05-12 ist als Selbstkollisions-Warnung mit Sequenz und Folgezustand (`backend_status.ready: false`, `head_joints: null`) dokumentiert
 - [ ] Motor-Mode-Namen sind korrekt benannt: `enabled` / `disabled` / `gravity_compensation`, nicht `stiff` / `compliant`
 - [ ] `backend_status.ready`-Check ist als Pre-Flight-Pflicht vor jeder Live-Bewegung benannt
-- [ ] Drei-stufige Recovery-Triage ist beschrieben: Daemon-Restart → Power-Cycle → Hardware-Recovery außerhalb REST (SSH, Dynamixel-EEPROM-Reset, mechanische Inspektion, Pollen-Support)
-- [ ] Das diagnostische „silent dead"-Muster ist explizit benannt (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, drei byte-identische state-Reads in Folge) als Indikator, dass Recovery in Stufe 3 liegt
+- [ ] Drei-stufige Recovery-Triage ist beschrieben: Daemon-Restart → Power-Cycle → Hardware-Recovery außerhalb REST (py-spy, Daemon-Log-Grep, Dynamixel-Wizard, Pollen-Support)
+- [ ] Das diagnostische „silent dead"-Muster ist explizit benannt (ready=false, last_alive=null, error=null, nb_error=0, freq≈50 Hz, drei byte-identische **oder** mikro-driftende state-Reads in Folge) als Indikator, dass Recovery in Stufe 3 liegt
+- [ ] `last_alive` ist als authoritative Truth-Field für „Loop läuft am Bus" markiert — `mean_control_loop_frequency` allein reicht nicht
+- [ ] `set_mode/enabled` ist als NICHT ausreichend zur Backend-Reaktivierung dokumentiert, wenn der Pre-Loop-FK/IK-Init hängt (verifiziert 2026-05-13)
+- [ ] `gravity_compensation` ist mit der Bedingung `kinematics_engine=Placo` versehen; bei `AnalyticalKinematics` ist es nicht nutzbar (Source: backend.py:563)
 - [ ] Schicht 6 §"Live-Verifikations-Methodik" enthält das verbindliche Test-Set T1–T8 mit Sicherheitsmargen zu Pollen-Nominal-Range
 - [ ] Schicht 6 nennt vier Pre-Flight-Gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) und Abbruch-Kriterien
 - [ ] Schicht 6 verbietet explizit IK-Polytop-Grenzwerte als Live-Targets
