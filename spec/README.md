@@ -22,9 +22,11 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`reachy-mini/app-development-workflow`](reachy-mini/app-development-workflow/de.md) | Entwicklungs-Workflow für Reachy-Mini-Apps | Development Workflow for Reachy Mini Apps | draft | unversioned |
 | [`reachy-mini/app-logging`](reachy-mini/app-logging/de.md) | Logging und Fehleranalyse während der App-Entwicklung | Logging and Failure Analysis During App Development | draft | unversioned |
 | [`reachy-mini/control-surface`](reachy-mini/control-surface/de.md) | Steuerungs-Oberfläche und Bewegungs-Design des Reachy Mini | Reachy Mini Control Surface and Motion Design | draft | 2026-05-05 |
+| [`reachy-mini/daemon-rest-api`](reachy-mini/daemon-rest-api/de.md) | REST-API des Reachy-Mini-Daemons | Reachy Mini daemon REST API | draft | unversioned |
 | [`reachy-mini/ha-integration`](reachy-mini/ha-integration/de.md) | Home-Assistant-Integration: Architektur | Home Assistant Integration: Architecture | draft | 2026-05-05 |
 | [`reachy-mini/host-provisioning`](reachy-mini/host-provisioning/de.md) | Host-Provisioning: WiFi, Filesystem-Layout und App-Distribution | Host Provisioning: WiFi, Filesystem Layout, and App Distribution | draft | unversioned |
 | [`reachy-mini/mcp-server`](reachy-mini/mcp-server/de.md) | MCP-Server für Reachy Mini | MCP Server for Reachy Mini | draft | unversioned |
+| [`reachy-mini/motor-positions`](reachy-mini/motor-positions/de.md) | Motor-Positionen, Limits und kanonische Posen des Reachy Mini | Reachy Mini motor positions, limits, and canonical poses | draft | unversioned |
 | [`reachy-mini/motions/agreeing-nod`](reachy-mini/motions/agreeing-nod/de.md) | Bewegungsablauf: Zustimmen / Nicken (`agreeing-nod`) | Motion Sequence: Agreeing / Nod (`agreeing-nod`) | draft | 2026-05-05 |
 | [`reachy-mini/motions/alarm`](reachy-mini/motions/alarm/de.md) | Bewegungsablauf: Alarm (`alarm`) | Motion Sequence: Alarm (`alarm`) | draft | 2026-05-05 |
 | [`reachy-mini/motions/alert-listening`](reachy-mini/motions/alert-listening/de.md) | Bewegungsablauf: Aufmerksam Hörend (`alert-listening`) | Motion Sequence: Alert Listening (`alert-listening`) | draft | 2026-05-05 |
