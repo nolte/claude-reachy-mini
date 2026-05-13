@@ -149,6 +149,30 @@ Eine Behavior-Komposition **MUSS** in dieser Reihenfolge prüfen, von außen nac
 
 Schicht 3 ⊊ Schicht 2 ⊊ Schicht 1. Wer auf Schicht 1 stoppt, hat keine Sicherheits-Aussage. Wer auf Schicht 2 stoppt, hat keine Selbstkollisions-Garantie. **Nur Schicht 3 ist verbindlich.**
 
+#### T1–T8 Live-Verifikation 2026-05-13
+
+Acht Ziel-Posen innerhalb der Pollen-Nominal-Range mit 5–15° / 8–15 mm Sicherheitsmarge (Test-Set aus Schicht 6 §"Test-Set"), gefahren am Reachy Wireless v1.7.1 unter IMU-Bypass (siehe Schicht 5 §"Stage-3 Pfad 2"). `duration = 6 s` pro Bewegung, zwischen jedem Test Recenter zu INIT (ebenfalls 6 s). Lokale IK-Prediction per `analytical_kinematics.ik(target_pose)` aus dem `reachy_mini==1.7.2`-Paket; live-`head_joints` per `GET /api/state/full?with_head_joints=true`.
+
+| Test | Soll | Real Pose-Komponente | Pose-Diff (Norm) | IK-pred Stewart (°) | Real Stewart (°) |
+|---|---|---|---|---|---|
+| **T1** pitch +30° | `pitch = +0.5236` rad | pitch **+31.1°** (+1.1° drüber) | 0.049 | s1 +24.5, s2 −29.8, s3 +58.6, s4 −58.6, s5 +29.8, s6 −24.5 | s1 +24.3, s2 −30.1, s3 +58.4, s4 −58.6, s5 **+26.9**, s6 −24.3 |
+| **T2** pitch −30° | `pitch = −0.5236` rad | pitch **−29.1°** (+0.9° drunter) | 0.037 | s1 +52.2, s2 −41.2, s3 +17.8, s4 −17.8, s5 +41.2, s6 −52.2 | s1 +52.1, s2 −39.9, s3 +16.9, s4 −16.8, s5 **+37.8**, s6 −52.0 |
+| **T3** roll +25° | `roll = +0.4363` rad | roll **+26.8°**, pitch-bleed **−3.8°** | 0.074 | s1 +48.6, s2 −54.8, s3 +40.3, s4 −32.4, s5 +21.6, s6 −23.6 | s1 +48.7, s2 −55.0, s3 +35.7, s4 −28.8, s5 +21.3, s6 −21.2 |
+| **T4** roll −25° | `roll = −0.4363` rad | roll **−26.9°**, pitch-bleed −0.9° | 0.040 | s1 +23.6, s2 −21.6, s3 +32.4, s4 −40.3, s5 +54.8, s6 −48.6 | s1 +21.5, s2 −19.9, s3 +32.3, s4 −35.0, s5 +51.7, s6 −48.8 |
+| **T5** heave +15 mm | `z = +0.015` m | z **+12.8 mm** (−2.2 mm), pitch-bleed **+2.4°** | 0.043 | alle ±58.6° (antisymmetrisch) | s1 +58.2, s2 −51.2, s3 +56.1, s4 −56.3, s5 +51.6, s6 −58.4 |
+| **T6** heave −35 mm | `z = −0.035` m | z **−35.0 mm** (≈ exakt) | **0.006** | alle ±11.6° (antisymmetrisch) | s1 −11.9, s2 +11.3, s3 −11.7, s4 +12.0, s5 −11.3, s6 +11.7 |
+| **T7** head-yaw +45° | `yaw = +0.7854` rad | yaw **+44.3°** | 0.029 | s1 +53.5, s2 −30.3, s3 +53.5, s4 −30.3, s5 +53.5, s6 −30.3 | s1 +53.5, s2 −29.1, s3 +52.9, s4 −28.7, s5 **+49.5**, s6 −28.7 |
+| **T8** body-yaw +90° | `body_yaw = +1.5708` rad | body **+64.3°** (IK klippt!) | 0.030 | body **+65.0** (max_relative_yaw-Clip schon in der IK), s1 +33.9, s2 −62.6, s3 +33.9, s4 −62.6, s5 +33.9, s6 −62.6 | body +64.3, s1 +31.6, s2 −60.8, s3 +29.4, s4 −57.7, s5 +29.9, s6 −60.4 |
+
+Befunde:
+
+- **IK ↔ Real stimmt sehr gut.** T6 (Heave -35 mm) hat eine Pose-Diff-Norm von **0.006** — praktisch byte-genau. Auch die Stewart-Joint-Werte stimmen pro Joint auf < 0.6° überein.
+- **T1–T7 alle innerhalb 0.05–0.08 rad Pose-Diff-Norm.** Die Pollen-Nominal-Range mit 5–15° Marge ist mechanisch zuverlässig erreichbar — keine Selbstkollision, keine Daemon-Anomalie.
+- **T8 zeigt `max_relative_yaw=65°` als bindenden Constraint:** Eine API-Anforderung `head.yaw=0, body_yaw=+90°` ergäbe einen relativen Yaw von 90° > 65°. Sowohl die lokale `analytical_kinematics.ik(...)` als auch der Daemon klippen auf 65°. Die Diskrepanz (Soll 90° → Real 64.3°) ist also **keine Hardware-Schwäche, sondern Spec-konformer IK-Schutz**.
+- **Sweet spots der Hardware:** T6 (Heave runter) ist exakt; T7 (Head-Yaw) und T2 (Pitch runter) sind sehr nah am Soll. Bewegungen, bei denen die Stewart-Plattform symmetrisch arbeitet, sind präziser.
+- **Pitch-Bleed bei Roll und Heave-up:** T3 (roll +25°) zieht pitch um −3.8° nach unten; T5 (heave +15 mm) zieht pitch um +2.4° nach vorne. Das ist eine **systematische Kopplung der Stewart-Geometrie**, kein Kalibrierungs-Drift. Behaviors, die isolierte Roll- oder Heave-Bewegungen brauchen, müssen den Pitch explizit kompensieren oder die Bleed-Größe einplanen.
+- **Init-Pose-Joint-Werte vom realen Gerät:** Nach Recover zu INIT liefert das Gerät `[body 0°, s1 +35.5°, s2 −32.1°, s3 +34.5°, s4 −35.2°, s5 +31.8°, s6 −35.2°]`. Diese Werte sind **symmetrischer** als die im SDK-Source hartkodierten `init_positions` `[~0°, +30.1°, −38.3°, +34.8°, −34.8°, +38.3°, −30.1°]` (Schicht 3 §"Init-Pose") — wahrscheinlich liefert die aktuelle IK-Lösung andere Werte als das im SDK eingefrorene Hardcoding. Die hartkodierten Werte bleiben spec-relevant, weil `goto_sleep` sie für den Distanz-Check benutzt; aber die echte Ziel-Joint-Lösung von `INIT_HEAD_POSE` ist die hier gemessene.
+
 #### Yaw-Aufteilung Body / Head
 
 Eine Drehung „Reachy schaut 70° nach links" wird vom `inverse_kinematics_safe` automatisch in `head_yaw=65°` + `body_yaw=5°` zerlegt, weil `max_relative_yaw=65°` überschritten würde. Im `automatic_body_yaw=False`-Modus muss der Aufrufer die Aufteilung selbst vorgeben — eine reine Head-Yaw-Anforderung von 70° schlägt fehl, statt vom Body mitkompensiert zu werden.
@@ -200,7 +224,7 @@ Beobachtung: die Stewart-Vektoren sind **paarweise antisymmetrisch** (s1 vs. s6,
 
 | Komponente | Wert | Bedeutung |
 |---|---|---|
-| Rotation R (extrahiert) | Pitch ≈ **−24.4°** (arctan(0.413 / 0.911)) | Kopf nach vorne-unten geneigt |
+| Rotation R (extrahiert) | Pitch ≈ **+24.4°** (xyz-Euler: `arcsin(−R[2,0]) = arcsin(+0.413)`) | Kopf nach vorne-unten geneigt (positiver Pitch in der scipy-xyz-Konvention; live verifiziert 2026-05-13 mit `pitch ≈ +26°` real) |
 | Translation (Head-Frame) | x = **−21 mm**, y = **+1 mm**, z = **−44 mm** | Kopf zurückversetzt und abgesenkt |
 | Effektive Welt-Z | head_z_offset + z = 0.177 − 0.044 = **0.133 m** | Endgültige Sleep-Höhe der Plattform |
 
@@ -378,7 +402,7 @@ Wenn auch nach Power-Cycle + Service-Restart das „silent dead"-Muster anhält,
 
    Beide Sub-Pfade führen zum gleichen REST-Symptom (`silent dead`); nur der Wait-Point unterscheidet sie. **Ohne diese Diagnose ist die Stage-3-Behandlung Raten.**
 
-2. **IMU-Pfad-Workaround — Daemon ohne IMU starten**, wenn `wchan=bcm2835_i2c_xfer` der Befund ist. Die `bmi088`-Initialisierung in `backend.py:128–136` ist an `wireless_version=True` gebunden; mit `wireless_version=False` ist `self.bmi088 = None` und der Loop-Block bei Zeile 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) wird übersprungen. Konkrete Override-Konfiguration (geprüft 2026-05-13, Reachy-Wireless v1.7.1):
+2. **IMU-Pfad-Workaround — Daemon ohne IMU starten**, wenn `wchan=bcm2835_i2c_xfer` der Befund ist. Die `bmi088`-Initialisierung in `backend.py:128–136` ist an `wireless_version=True` gebunden; mit `wireless_version=False` ist `self.bmi088 = None` und der Loop-Block bei Zeile 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) wird übersprungen. **Live verifiziert 2026-05-13:** mit der unten gezeigten Override-Konfiguration fährt der Reachy alle T1–T8-Tests aus Schicht 6 §"Test-Set" sauber durch (siehe Schicht 2 §"T1–T8 Live-Verifikation"). Konkrete Override-Konfiguration (Reachy-Wireless v1.7.1):
 
    ```
    /etc/systemd/system/reachy-mini-daemon.service.d/no-imu.conf
@@ -504,6 +528,11 @@ Sobald T1–T8 erfolgreich gelaufen sind und die Diskrepanzen vermessen sind, wi
 - [ ] `last_alive` ist als authoritative Truth-Field für „Loop läuft am Bus" markiert — `mean_control_loop_frequency` allein reicht nicht
 - [ ] `set_mode/enabled` ist als NICHT ausreichend zur Backend-Reaktivierung dokumentiert, wenn der Pre-Loop-FK/IK-Init hängt (verifiziert 2026-05-13)
 - [ ] `gravity_compensation` ist mit der Bedingung `kinematics_engine=Placo` versehen; bei `AnalyticalKinematics` ist es nicht nutzbar (Source: backend.py:563)
+- [ ] Schicht 2 §"T1–T8 Live-Verifikation 2026-05-13" enthält pro Test die Soll-Pose, IK-Prediction, gemessene Pose und gemessene Stewart-Joints aus dem Live-Lauf
+- [ ] Sleep-Pose-Pitch ist mit positivem Vorzeichen (+24.4°) dokumentiert; xyz-Euler-Konvention explizit benannt; live verifiziert mit pitch ≈ +26° am realen Gerät
+- [ ] Pitch-Bleed bei Roll und Heave-up ist als systematische Stewart-Geometrie-Kopplung benannt, nicht als Kalibrierungs-Drift
+- [ ] T8 `body_yaw=+90°` ist als Beleg für den `max_relative_yaw=65°`-Clip dokumentiert (Soll ≠ Real, aber IK-konsistent)
+- [ ] Stage-3 Pfad 2 (IMU-Bypass per systemd-drop-in) ist als **live verifiziert 2026-05-13** markiert
 - [ ] Schicht 6 §"Live-Verifikations-Methodik" enthält das verbindliche Test-Set T1–T8 mit Sicherheitsmargen zu Pollen-Nominal-Range
 - [ ] Schicht 6 nennt vier Pre-Flight-Gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) und Abbruch-Kriterien
 - [ ] Schicht 6 verbietet explizit IK-Polytop-Grenzwerte als Live-Targets

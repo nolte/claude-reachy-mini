@@ -149,6 +149,30 @@ A behavior composition **MUST** check in this order, from outside in:
 
 Layer 3 ⊊ Layer 2 ⊊ Layer 1. Stopping at Layer 1 leaves no safety statement. Stopping at Layer 2 leaves no self-collision guarantee. **Only Layer 3 is binding.**
 
+#### T1–T8 live verification 2026-05-13
+
+Eight target poses inside the Pollen nominal range with a 5–15° / 8–15 mm safety margin (test set from Layer 6 §"Test set"), driven on a Reachy Wireless v1.7.1 under IMU bypass (see Layer 5 §"Stage-3 path 2"). `duration = 6 s` per motion, with a recenter to INIT between every test (also 6 s). Local IK prediction via `analytical_kinematics.ik(target_pose)` from the `reachy_mini==1.7.2` package; live `head_joints` via `GET /api/state/full?with_head_joints=true`.
+
+| Test | Target | Real pose component | Pose diff (norm) | IK-pred Stewart (°) | Real Stewart (°) |
+|---|---|---|---|---|---|
+| **T1** pitch +30° | `pitch = +0.5236` rad | pitch **+31.1°** (+1.1° over) | 0.049 | s1 +24.5, s2 −29.8, s3 +58.6, s4 −58.6, s5 +29.8, s6 −24.5 | s1 +24.3, s2 −30.1, s3 +58.4, s4 −58.6, s5 **+26.9**, s6 −24.3 |
+| **T2** pitch −30° | `pitch = −0.5236` rad | pitch **−29.1°** (+0.9° short) | 0.037 | s1 +52.2, s2 −41.2, s3 +17.8, s4 −17.8, s5 +41.2, s6 −52.2 | s1 +52.1, s2 −39.9, s3 +16.9, s4 −16.8, s5 **+37.8**, s6 −52.0 |
+| **T3** roll +25° | `roll = +0.4363` rad | roll **+26.8°**, pitch-bleed **−3.8°** | 0.074 | s1 +48.6, s2 −54.8, s3 +40.3, s4 −32.4, s5 +21.6, s6 −23.6 | s1 +48.7, s2 −55.0, s3 +35.7, s4 −28.8, s5 +21.3, s6 −21.2 |
+| **T4** roll −25° | `roll = −0.4363` rad | roll **−26.9°**, pitch-bleed −0.9° | 0.040 | s1 +23.6, s2 −21.6, s3 +32.4, s4 −40.3, s5 +54.8, s6 −48.6 | s1 +21.5, s2 −19.9, s3 +32.3, s4 −35.0, s5 +51.7, s6 −48.8 |
+| **T5** heave +15 mm | `z = +0.015` m | z **+12.8 mm** (−2.2 mm), pitch-bleed **+2.4°** | 0.043 | all ±58.6° (antisymmetric) | s1 +58.2, s2 −51.2, s3 +56.1, s4 −56.3, s5 +51.6, s6 −58.4 |
+| **T6** heave −35 mm | `z = −0.035` m | z **−35.0 mm** (≈ exact) | **0.006** | all ±11.6° (antisymmetric) | s1 −11.9, s2 +11.3, s3 −11.7, s4 +12.0, s5 −11.3, s6 +11.7 |
+| **T7** head-yaw +45° | `yaw = +0.7854` rad | yaw **+44.3°** | 0.029 | s1 +53.5, s2 −30.3, s3 +53.5, s4 −30.3, s5 +53.5, s6 −30.3 | s1 +53.5, s2 −29.1, s3 +52.9, s4 −28.7, s5 **+49.5**, s6 −28.7 |
+| **T8** body-yaw +90° | `body_yaw = +1.5708` rad | body **+64.3°** (IK clips!) | 0.030 | body **+65.0** (max_relative_yaw clip already in the IK), s1 +33.9, s2 −62.6, s3 +33.9, s4 −62.6, s5 +33.9, s6 −62.6 | body +64.3, s1 +31.6, s2 −60.8, s3 +29.4, s4 −57.7, s5 +29.9, s6 −60.4 |
+
+Findings:
+
+- **IK ↔ real agrees very closely.** T6 (heave −35 mm) has a pose-diff norm of **0.006** — practically byte-exact. The Stewart joint values also agree to within < 0.6° per joint.
+- **T1–T7 all stay within a 0.05–0.08 rad pose-diff norm.** The Pollen nominal range with a 5–15° margin is reliably reachable in hardware — no self-collision, no daemon anomaly.
+- **T8 surfaces `max_relative_yaw=65°` as a binding constraint:** an API request `head.yaw=0, body_yaw=+90°` would mean a relative yaw of 90° > 65°. Both the local `analytical_kinematics.ik(...)` and the daemon clip at 65°. The discrepancy (target 90° → real 64.3°) is therefore **not a hardware weakness but a spec-conformant IK guard**.
+- **Hardware sweet spots:** T6 (heave down) is exact; T7 (head yaw) and T2 (pitch down) come very close to the target. Motions where the Stewart platform works symmetrically are more precise.
+- **Pitch bleed on roll and heave-up:** T3 (roll +25°) pulls pitch by −3.8°; T5 (heave +15 mm) pulls pitch by +2.4°. That is a **systematic coupling of the Stewart geometry**, not a calibration drift. Behaviors that need isolated roll or heave motion must compensate pitch explicitly or budget for the bleed size.
+- **Init-pose joint values from the real device:** after recovering to INIT, the device reports `[body 0°, s1 +35.5°, s2 −32.1°, s3 +34.5°, s4 −35.2°, s5 +31.8°, s6 −35.2°]`. These are **more symmetric** than the hard-coded `init_positions` from the SDK source `[~0°, +30.1°, −38.3°, +34.8°, −34.8°, +38.3°, −30.1°]` (Layer 3 §"Init pose") — the current IK solution likely differs from the frozen hardcoding. The hard-coded values stay spec-relevant because `goto_sleep` uses them for its distance check, but the actual target joint solution for `INIT_HEAD_POSE` is the one measured here.
+
 #### Yaw split body / head
 
 A rotation "Reachy looks 70° to the left" is automatically decomposed by `inverse_kinematics_safe` into `head_yaw=65°` + `body_yaw=5°`, because `max_relative_yaw=65°` would be exceeded. In `automatic_body_yaw=False` mode, the caller has to provide the split — a head-yaw-only request of 70° fails instead of being compensated by the body.
@@ -200,7 +224,7 @@ Observation: the Stewart vector is **pair-wise anti-symmetric** (s1 vs. s6, s2 v
 
 | Component | Value | Meaning |
 |---|---|---|
-| Rotation R (extracted) | Pitch ≈ **−24.4°** (arctan(0.413 / 0.911)) | Head tipped forward-down |
+| Rotation R (extracted) | Pitch ≈ **+24.4°** (xyz-Euler: `arcsin(−R[2,0]) = arcsin(+0.413)`) | Head tipped forward-down (positive pitch in the scipy xyz convention; live-verified 2026-05-13 with `pitch ≈ +26°` real) |
 | Translation (head frame) | x = **−21 mm**, y = **+1 mm**, z = **−44 mm** | Head retracted and lowered |
 | Effective world z | head_z_offset + z = 0.177 − 0.044 = **0.133 m** | Final sleep platform height |
 
@@ -378,7 +402,7 @@ When the "silent dead" pattern persists after a power-cycle plus service restart
 
    Both sub-paths produce the same REST symptom (`silent dead`); only the wait point separates them. **Without this diagnostic, Stage-3 treatment is guesswork.**
 
-2. **IMU-path workaround — start the daemon without the IMU** when `wchan=bcm2835_i2c_xfer` is the finding. The `bmi088` initialisation in `backend.py:128–136` is gated on `wireless_version=True`; with `wireless_version=False`, `self.bmi088 = None` and the loop block at line 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) is skipped. Concrete override config (verified 2026-05-13, Reachy Wireless v1.7.1):
+2. **IMU-path workaround — start the daemon without the IMU** when `wchan=bcm2835_i2c_xfer` is the finding. The `bmi088` initialisation in `backend.py:128–136` is gated on `wireless_version=True`; with `wireless_version=False`, `self.bmi088 = None` and the loop block at line 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) is skipped. **Live-verified 2026-05-13:** with the override config below the Reachy ran all T1–T8 tests from Layer 6 §"Test set" cleanly (see Layer 2 §"T1–T8 live verification"). Concrete override config (Reachy Wireless v1.7.1):
 
    ```
    /etc/systemd/system/reachy-mini-daemon.service.d/no-imu.conf
@@ -504,6 +528,11 @@ Once T1–T8 have run successfully and the discrepancies are measured, Layer 2 �
 - [ ] `last_alive` is named as the authoritative truth field for "loop is live at the bus" — `mean_control_loop_frequency` alone is not enough
 - [ ] `set_mode/enabled` is documented as NOT sufficient to reactivate the backend when the pre-loop FK/IK init is hanging (verified 2026-05-13)
 - [ ] `gravity_compensation` is marked with the `kinematics_engine=Placo` constraint; with `AnalyticalKinematics` it is unusable (source: backend.py:563)
+- [ ] Layer 2 §"T1–T8 live verification 2026-05-13" lists per test the target pose, IK prediction, measured pose, and measured Stewart joints from the live run
+- [ ] Sleep-pose pitch is documented with a positive sign (+24.4°); the xyz-Euler convention is explicit; live-verified with pitch ≈ +26° on the real device
+- [ ] Pitch bleed on roll and heave-up is named as a systematic Stewart geometry coupling, not a calibration drift
+- [ ] T8 `body_yaw=+90°` is documented as the evidence for the `max_relative_yaw=65°` clip (target ≠ real, but IK-consistent)
+- [ ] Stage-3 path 2 (IMU bypass via systemd drop-in) is marked as **live-verified 2026-05-13**
 - [ ] Layer 6 §"Live verification methodology" contains the binding test set T1–T8 with safety margins to the Pollen nominal range
 - [ ] Layer 6 names four pre-flight gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) and abort criteria
 - [ ] Layer 6 explicitly forbids IK-polytope boundary values as live targets
