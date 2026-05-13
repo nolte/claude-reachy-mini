@@ -1,0 +1,363 @@
+# Reachy Mini motor positions, limits, and canonical poses
+
+Status: draft
+
+## Context
+
+Anyone moving a Reachy Mini needs two kinds of answers that today are scattered across docs or not answered at all: *which position is each individual motor allowed to reach?* and *which combinations of those positions are actually valid — physically reachable, mechanically safe, solvable by the SDK IK?* The [`reachy-mini/control-surface`](../control-surface/en.md) spec answers the first question at a high level (inventory, nominal operations range) and characterises the Stewart joint limits only as "asymmetric per joint". Concrete per-motor values, canonical rest poses with their exact joint vectors, and the combinatorial conflict shapes are intentionally out of its scope. This spec fills that gap.
+
+It is consumed by the [`reachy-mini-sdk`](../../claude/reachy-mini-sdk/en.md) skill when snippets are validated against limits, by [`dance-choreography`](../../claude/dance-choreography/en.md) when composing extreme poses, by [`reachy-mini-inspect`](../../claude/reachy-mini-inspect/en.md) when sanity-checking state reads, and by any future `app-scaffold` template as the source of truth for pose defaults. Values are verified as of 2026-05-12 against a running Wireless daemon and the Pollen SDK source on [`main`](https://github.com/pollen-robotics/reachy_mini).
+
+One headline finding up front: the daemon reports `engine: AnalyticalKinematics, collision check: false`. The SDK validates a pose **only** against the inverse-kinematics polytope, not against self-collision, antenna mechanical end-stops, or cable harness clearance. A pose the IK accepts is *kinematically reachable* — not automatically *mechanically safe*. The spec keeps that distinction explicit throughout.
+
+## Goals
+
+- For every motor / joint, document the exact values from the live URDF — lower limit, upper limit, velocity, effort — with a clear note that the URDF (mechanical limit) takes precedence over `kinematics_data.json` (software limit ±π)
+- Mirror the canonical poses from the SDK source verbatim (`INIT_HEAD_POSE`, `INIT_ANTENNAS_JOINT_POSITIONS`, `SLEEP_HEAD_POSE`, `SLEEP_ANTENNAS_JOINT_POSITIONS`, plus the hard-coded joint vectors for each), including the `wake_up` and `goto_sleep` trajectories
+- Separate the three layers of validity cleanly: joint limit (URDF), kinematic reachability (IK polytope), mechanical safety (empirical)
+- Name the known conflict shapes that follow from the Stewart-platform geometry so a composition can flag them as "IK-unsolvable" early, without consulting the device
+- Tag every value with date and source so a later URDF or SDK change surfaces immediately in a follow-up audit
+
+## Non-Goals
+
+- Motion composition, easing profiles, anticipation / follow-through — belongs to [`reachy-mini/control-surface`](../control-surface/en.md) §"Motion design"
+- Concrete choreographies — belongs to [`reachy-mini/motions/`](../motions/) (one file per motion) and to the [`dance-choreography`](../../claude/dance-choreography/en.md) skill
+- Implementation guidance for a skill or agent — this spec is a normative knowledge base, not an operations recipe
+- Audio, vision, or LED control — other subsystems
+- A self-collision algorithm or URDF-based mesh check — explicitly absent from the SDK; until that is retrofitted, the spec stays at "known risks" enumeration
+- Hardware bring-up, calibration, firmware flash — separate skills (planned)
+- Simulation-only values when they diverge from hardware — the sim shares the URDF limits, but electromechanical behaviour (effort, velocity under load) is sim-irrelevant
+
+## Requirements
+
+### Layer 1 — joint limits per motor (from the live URDF)
+
+Values fetched on 2026-05-12 from `http://reachy-mini.local:8000/api/kinematics/urdf`, generated from [`src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf) (onshape-to-robot pipeline).
+
+#### Active joints (steerable, mechanical limits)
+
+| Joint | Type | Min (rad) | Max (rad) | Min (deg) | Max (deg) | Velocity (rad/s) | Effort (N·m) | Motor |
+|---|---|---|---|---|---|---|---|---|
+| `stewart_1` | revolute | −0.8378 | +1.3963 | **−48°** | **+80°** | 8 | 10 | XL330-M288-T |
+| `stewart_2` | revolute | −1.3963 | +1.2217 | **−80°** | **+70°** | 8 | 10 | XL330-M288-T |
+| `stewart_3` | revolute | −0.8378 | +1.3963 | **−48°** | **+80°** | 8 | 10 | XL330-M288-T |
+| `stewart_4` | revolute | −1.3963 | +0.8378 | **−80°** | **+48°** | 8 | 10 | XL330-M288-T |
+| `stewart_5` | revolute | −1.2217 | +1.3963 | **−70°** | **+80°** | 8 | 10 | XL330-M288-T |
+| `stewart_6` | revolute | −1.3963 | +0.8378 | **−80°** | **+48°** | 8 | 10 | XL330-M288-T |
+| `right_antenna` | revolute | −π | +π | −180° | +180° | 8 | 10 | XL330-M077-T |
+| `left_antenna` | revolute | −π | +π | −180° | +180° | 8 | 10 | XL330-M077-T |
+| `yaw_body` | revolute | −2.7925 | +2.7925 | **−160°** | **+160°** | 8 | 10 | XC330-M288-PG (custom) |
+
+#### Stewart asymmetry pattern
+
+The six Stewart actuators are arranged in mirrored pairs. That produces a strict asymmetry pattern that the `control-surface` spec only hinted at:
+
+| Pair | Joints | Lower–Upper (deg) | Interpretation |
+|---|---|---|---|
+| **A** | `stewart_1`, `stewart_3` | **−48° / +80°** | More travel "up/inward", less "down/outward" |
+| **B** | `stewart_4`, `stewart_6` | **−80° / +48°** | Mirror image of pair A |
+| **C-1** | `stewart_2` | **−80° / +70°** | Nearly symmetric, slightly biased downward |
+| **C-2** | `stewart_5` | **−70° / +80°** | Mirror image of `stewart_2` |
+
+Consequence: a head pose that drives stewart_1 to +80° also taxes stewart_4 in the same direction; because stewart_4 can only go to +48° there, the symmetric maximum head deflection toward one side is **tighter** than toward the other. The effective pitch/roll range therefore depends on the yaw direction.
+
+#### Software limit (`kinematics_data.json`) vs. mechanical limit (URDF)
+
+The [`assets/kinematics_data.json`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/assets/kinematics_data.json) file lists `limits: [-π, +π]` for every Stewart motor (i.e. ±180°). That is **not** the mechanical limit — it is a software default bound on the IK solver. **The URDF is authoritative.** Anyone validating a value against limits uses the URDF table above, not the JSON.
+
+#### Passive joints (kinematically required, not steerable)
+
+The URDF additionally declares 21 passive revolute joints (`passive_1_x/y/z` … `passive_7_x/y/z`) with limits `±π`, velocity `1e+08` (effectively unbounded), and effort `10` N·m. Those are the ball joints of the Stewart attachment, required to close the kinematic loops. They never appear in the REST API or the Python SDK as a steerable quantity — they are set implicitly by the IK and are listed here only for completeness.
+
+### Layer 2 — inverse kinematics and workspace
+
+Engine: `AnalyticalKinematics` (Rust core with Python bindings, source: [`src/reachy_mini/kinematics/analytical_kinematics.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/kinematics/analytical_kinematics.py)). Live identification: `GET /api/kinematics/info` returns `{"engine":"AnalyticalKinematics","collision check":false}`.
+
+#### Kinematic parameters
+
+From [`assets/kinematics_data.json`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/assets/kinematics_data.json):
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `motor_arm_length` | 40 mm | Motor horn lever length |
+| `rod_length` | 85 mm | Rigid rod motor-horn → platform |
+| `head_z_offset` | 177 mm | Vertical offset from the Stewart base frame to the head frame; the IK adds this to any z-component internally |
+
+#### IK-internal safety thresholds
+
+From `analytical_kinematics.py`, in the `inverse_kinematics_safe` path (active when `automatic_body_yaw=True`):
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `max_relative_yaw` | `np.deg2rad(65)` = **±65°** | Maximum yaw angle of the head frame *relative* to the body yaw; if a target pose exceeds it, the body yaw is rotated along |
+| `max_body_yaw` | `np.deg2rad(160)` = **±160°** | Maximum body yaw; identical to the URDF limit on `yaw_body` |
+
+In the `automatic_body_yaw=False` path, the body yaw is set by the caller and the IK fails when the Stewart solution falls outside the URDF polytope — no auto-adjustment.
+
+#### Workspace polytope
+
+The reachable head-pose space is the set of all 4×4 transforms whose inverse-kinematics Stewart solution falls inside the URDF limits. There is no closed-form expression because the six Stewart limits are asymmetric and the solver is an analytic Stewart inversion. Empirically — backed by the `control-surface` doc and the Pollen datasheet table (`platforms/reachy_mini/hardware`) — the following counts as the **nominal operations range**:
+
+| Axis | Min | Max | Source |
+|---|---|---|---|
+| Head roll (Rx) | −40° | +40° | Pollen `dof_table.png` |
+| Head pitch (Ry) | −40° | +40° | Pollen `dof_table.png` |
+| Head yaw (Rz, relative to body) | −60° | +60° | Pollen `dof_table.png` (tighter), `max_relative_yaw` IK-internal +65° |
+| Body yaw (Rz) | −155° | +155° | Pollen `dof_table.png` (tighter), URDF +160° |
+| Right antenna (R) | −180° | +180° | URDF |
+| Left antenna (R) | −180° | +180° | URDF |
+| Head translation x | ≈ −20 … +20 mm | ⚠ TBD: measure on the real device | IK polytope |
+| Head translation y | ≈ −20 … +20 mm | ⚠ TBD: measure on the real device | IK polytope |
+| Head translation z | ≈ −45 … +45 mm relative to head_z_offset | ⚠ TBD | IK polytope |
+
+The translation ranges are extrapolated from the SLEEP-pose values (see Layer 3) and are **not** verified; a follow-up audit on hardware can pin them.
+
+#### IK bisection — measured polytope boundaries (Phase A)
+
+Bisection sweep against `AnalyticalKinematics.ik(...)` run locally with `reachy_mini==1.7.2` (2026-05-12). Bisection ε = 1e-4, stop criterion: the IK rejects **or** at least one Stewart joint crosses the URDF limit.
+
+| Axis | Δ_max (IK + URDF-conformant) | limit-triggering joint | s1 (°) | s2 (°) | s3 (°) | s4 (°) | s5 (°) | s6 (°) | body (°) |
+|---|---|---|---|---|---|---|---|---|---|
+| `tx_pos` | +50.88 mm | s3, s4 (±80°) | +25.85 | −77.09 | +79.95 | −79.95 | +77.09 | −25.85 | 0 |
+| `tx_neg` | −46.78 mm | s1, s6 (±80°) | +79.91 | −32.10 | +50.05 | −50.05 | +32.10 | −79.91 | 0 |
+| `ty_pos` | +47.56 mm | s5 (+80°) | +64.25 | −35.50 | +23.69 | −78.49 | +79.99 | −50.45 | 0 |
+| `ty_neg` | −47.56 mm | s2 (−80°) | +50.45 | −79.99 | +78.49 | −23.69 | +35.50 | −64.25 | 0 |
+| **`tz_pos`** (head fully up) | **+23.05 mm** | all six simultaneously | +79.70 | −79.70 | +79.70 | −79.70 | +79.70 | −79.70 | 0 |
+| `tz_neg` (head fully down) | −50.78 mm | s1, s3 (−48°) + s4, s6 (+48°) | −47.83 | +47.83 | −47.83 | +47.83 | −47.83 | +47.83 | 0 |
+| `roll_pos` | +47.71° | s2 (−80°) | +60.44 | −80.00 | +44.34 | −30.67 | +14.01 | −13.90 | 0 |
+| `roll_neg` | −47.71° | s5 (+80°) | +13.90 | −14.01 | +30.67 | −44.34 | +80.00 | −60.44 | 0 |
+| `pitch_pos` (head tilted up) | **+48.01°** | s3, s4 (±80°) | +21.26 | −26.33 | +80.00 | −80.00 | +26.33 | −21.26 | 0 |
+| `pitch_neg` (head tilted forward/down) | **−72.43°** | s1 (+80°), s6 (−80°) | +80.00 | −45.01 | +6.55 | −6.55 | +45.01 | −80.00 | 0 |
+| `yaw_pos` | +90° (probe cap) | none — IK accepts more | +62.57 | −33.89 | +62.57 | −33.89 | +62.57 | −33.89 | +25.00 |
+| `yaw_neg` | −90° (probe cap) | none | +33.89 | −62.57 | +33.89 | −62.57 | +33.89 | −62.57 | −25.00 |
+
+Observations:
+
+- **Pitch is markedly asymmetric**: +48° ("head up") versus −72° ("head forward"). That reflects the mirrored-pair Stewart actuator arrangement.
+- **Max heave ("head fully up") = +23.05 mm** with all six Stewart joints at their own ±80° limit, pair-wise anti-symmetric. Heave downward reaches significantly further (−50.78 mm) thanks to the opposite limit asymmetry.
+- **Yaw stays unconstrained by URDF**: the IK accepts head-yaw past the probe cap of 90°; the theoretical maximum is `max_relative_yaw + max_body_yaw` = 65° + 160° = **225°**.
+
+> **⚠ WARNING — these values are NOT mechanically safe.** They are the mathematical polytope boundary of the analytical IK *while respecting the URDF limits*. A real motion to the IK boundary can trigger self-collision — see Layer 4 §"Phase-B live incident 2026-05-12". The binding range for composition is the **Pollen nominal operations range** (±40° pitch/roll), not this table. This table documents *what the IK would accept*, not *what the hardware can take*.
+
+#### Three layers of validity — order of checking
+
+A behavior composition **MUST** check in this order, from outside in:
+
+1. **IK polytope** (software default, mathematical). Accepts even poses outside the URDF limits because the solver only knows the `kinematics_data.json` limits (±π). **Not** enough as a safety gate on its own.
+2. **URDF mechanical limits** (Layer 1). These describe the real motor travel. A pose that drives a Stewart joint past this limit gets clipped by the motor — or, as the `set_mode/enabled` path showed, silently ignored by the `goto` API.
+3. **Pollen nominal operations range** (Pollen datasheet, ±40° pitch/roll, ±60° head-yaw, ±155° body-yaw). The *recommended* range in which the hardware operates reliably, without self-collision and without mechanical stress. **This is binding for every motion composition.**
+
+Layer 3 ⊊ Layer 2 ⊊ Layer 1. Stopping at Layer 1 leaves no safety statement. Stopping at Layer 2 leaves no self-collision guarantee. **Only Layer 3 is binding.**
+
+#### Yaw split body / head
+
+A rotation "Reachy looks 70° to the left" is automatically decomposed by `inverse_kinematics_safe` into `head_yaw=65°` + `body_yaw=5°`, because `max_relative_yaw=65°` would be exceeded. In `automatic_body_yaw=False` mode, the caller has to provide the split — a head-yaw-only request of 70° fails instead of being compensated by the body.
+
+### Layer 3 — canonical poses from the SDK source
+
+Values taken verbatim from [`src/reachy_mini/reachy_mini.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py) and [`src/reachy_mini/kinematics/analytical_kinematics.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/kinematics/analytical_kinematics.py), state `main` 2026-05-12.
+
+#### Init pose (`wake_up` end-state, neutral reference)
+
+`INIT_HEAD_POSE`:
+
+```
+np.eye(4)          # 4×4 identity matrix
+# Rotation: none (roll = pitch = yaw = 0)
+# Translation (head frame): (0, 0, 0) m
+# Effective world translation: (0, 0, head_z_offset) = (0, 0, 0.177) m
+```
+
+`INIT_ANTENNAS_JOINT_POSITIONS`:
+
+| Antenna | rad | deg |
+|---|---|---|
+| `right_antenna` | −0.1745 | **−10°** |
+| `left_antenna` | +0.1745 | **+10°** |
+
+Reason from the SDK source: *"~10° offset to reduce shaking at vertical"* — both antennas are deliberately leaned slightly outward to avoid vertical micro-tremor from motor backlash. **A true 0/0 antenna pose is explicitly not the default rest state.**
+
+Hard-coded IK solution for `INIT_HEAD_POSE` (used in the SDK source as fallback when the daemon cannot yet supply a pose):
+
+```
+[body_yaw, stewart_1, stewart_2, stewart_3, stewart_4, stewart_5, stewart_6] =
+[6.96e-07, +0.5252, −0.6687, +0.6067, −0.6067, +0.6687, −0.5252]    # rad
+[~0°,      +30.09°, −38.31°, +34.76°, −34.76°, +38.31°, −30.09°]    # deg
+```
+
+Observation: the Stewart vector is **pair-wise anti-symmetric** (s1 vs. s6, s2 vs. s5, s3 vs. s4) — confirming the mirror-pair arrangement of the actuators.
+
+#### Sleep pose (`goto_sleep` end-state)
+
+`SLEEP_HEAD_POSE`:
+
+```
+[[ 0.911,  0.004,  0.413, -0.021],
+ [-0.004,  1.0,   -0.001,  0.001],
+ [-0.413, -0.001,  0.911, -0.044],
+ [ 0.0,    0.0,    0.0,    1.0  ]]
+```
+
+| Component | Value | Meaning |
+|---|---|---|
+| Rotation R (extracted) | Pitch ≈ **−24.4°** (arctan(0.413 / 0.911)) | Head tipped forward-down |
+| Translation (head frame) | x = **−21 mm**, y = **+1 mm**, z = **−44 mm** | Head retracted and lowered |
+| Effective world z | head_z_offset + z = 0.177 − 0.044 = **0.133 m** | Final sleep platform height |
+
+`SLEEP_ANTENNAS_JOINT_POSITIONS`:
+
+| Antenna | rad | deg | Distance to limit |
+|---|---|---|---|
+| `right_antenna` | **−3.05** | **−174.7°** | 5.3° short of the ±180° stop |
+| `left_antenna` | **+3.05** | **+174.7°** | 5.3° short of the ±180° stop |
+
+So the antennas fold back almost entirely — they sit practically against their mechanical stops. The 5.3° margin is intentional: if encoder drift accumulates during sleep, the antennas do not end up wedged against the stop.
+
+Hard-coded IK solution for `SLEEP_HEAD_POSE`:
+
+```
+[body_yaw, stewart_1, stewart_2, stewart_3, stewart_4, stewart_5, stewart_6] =
+[0.0, −0.9848, +1.2625, −0.2439, +0.2056, −1.2364, +1.0032]    # rad
+[0°,  −56.43°, +72.32°, −13.97°, +11.78°, −70.84°, +57.48°]    # deg
+```
+
+Observation: `stewart_2` reaches **+72.32°**, which is only 2.32° **above** its URDF maximum of +70° — **this is a discrepancy** worth attention. ⚠ TBD: confirm whether the SDK constant or the URDF limit needs to be corrected; if the sleep pose sits beyond a kinematic limit, it may fail on some units with slightly different calibration. `stewart_5` shows the same pattern at −70.84°, just past its −70° URDF limit — also TBD.
+
+#### `wake_up` trajectory
+
+From `ReachyMini.wake_up()` (`reachy_mini.py:575`):
+
+1. `goto_target(INIT_HEAD_POSE, antennas=INIT_ANTENNAS_JOINT_POSITIONS, duration=2.0 s)` — from any pose to neutral
+2. `time.sleep(0.1)`
+3. Sound `wake_up.wav` (a toudoum chime)
+4. `goto_target(pose_roll20, duration=0.2 s)` — where `pose_roll20` = `INIT_HEAD_POSE` with roll +20° (xyz euler) — head leans briefly to the left
+5. `goto_target(INIT_HEAD_POSE, duration=0.2 s)` — back to the neutral pose
+
+End-state of the `wake_up` sequence is `INIT_HEAD_POSE` + `INIT_ANTENNAS_JOINT_POSITIONS`.
+
+#### `goto_sleep` trajectory
+
+From `ReachyMini.goto_sleep()` (`reachy_mini.py:591`):
+
+1. `get_current_joint_positions()` → distance check against the hard-coded `init_positions` (see above); if `np.linalg.norm > 0.2 rad`, then
+   `goto_target(INIT_HEAD_POSE, antennas=INIT_ANTENNAS_JOINT_POSITIONS, duration=1.0 s)` + `time.sleep(0.2)`
+2. Sound `go_sleep.wav` (a "pfiou" sigh)
+3. `goto_target(SLEEP_HEAD_POSE, antennas=SLEEP_ANTENNAS_JOINT_POSITIONS, duration=2.0 s)`
+4. `time.sleep(2)`
+
+Observation: step 1 makes the sleep path **state-dependent**. An app cannot just call `goto_sleep` and rely on a predictable 2-second motion — when the distance is large, the call takes 3.2 s or more.
+
+### Layer 4 — known conflict shapes
+
+The SDK performs **no** collision check (`collision check: false`). The following shapes are risky as best-current-knowledge; they are either accepted by the IK or rejected with a hard-to-read error, but a behavior composition is better off avoiding them up front.
+
+#### IK-error classes
+
+- **Pose outside the Stewart polytope**: extreme pitch + extreme roll simultaneously — e.g. roll +35° combined with pitch +35°. Each within the nominal ±40°, the combination often not IK-solvable. **Consequence**: `goto_target` raises a kinematics exception; on the REST path, `POST /api/move/goto` returns a 4xx status.
+- **Translation outside the reachable volume**: head-frame translation z = +50 mm combined with a pitch deflection — the effective Stewart leg length exceeds `motor_arm_length + rod_length`. Same error class.
+- **Head yaw without body compensation beyond ±65°**: only in the `automatic_body_yaw=False` path. In the default path, silently compensated by the IK.
+
+#### Mechanical conflicts (not caught by the IK)
+
+- **Antenna crossing**: both antenna joints driven into directions where their tips overlap — for example `right_antenna = +90°` and `left_antenna = −90°`. The antennas can physically touch or scrape the head shell. ⚠ TBD: validate on the device whether there is a safe "crossing-forbidden zone".
+- **Antenna stop damage**: keeping an antenna at ±180° against the stop for an extended period, with continued torque demand. The URDF effort limit (10 N·m) does not fully prevent it — the motor keeps trying. **Recommendation**: switch the antenna motors into `disabled` or `gravity_compensation` once a sleep-near pose is reached (mode names see Layer 5); `goto_sleep` currently does not.
+- **Sleep pose near a URDF limit**: `SLEEP_HEAD_JOINT_POSITIONS` contains `stewart_2 = +72.32°` and `stewart_5 = −70.84°` — both past their URDF limits (`+70°` and `−70°`). On a nominally calibrated unit the IK is likely to clip or reject. ⚠ TBD: whether the SDK constant is stale (the URDF was tightened after `SLEEP_HEAD_JOINT_POSITIONS` was set) or whether the constant is intentional and the URDF is too conservative.
+- **Camera cable in extreme pitch**: ⚠ TBD — the Pollen doc does not call out a cable path explicitly, but camera modules with a USB cable can exceed their travel under aggressive pitch.
+
+#### State conflicts
+
+- **Motor mode change during a running app**: a `POST /api/motors/set_mode/{mode}` from `enabled` to `disabled` or `gravity_compensation` mid-`set_target` stream can interrupt the current pose non-deterministically. Convention: mode switches are rare, deliberate operations — see `reachy-mini/daemon-rest-api` §"Motors". Correct mode names are documented in Layer 5.
+
+#### Phase-B live incident 2026-05-12 (self-collision recorded)
+
+While attempting to verify the polytope boundaries found in Layer 2 §"IK bisection" on the real Wireless, the Reachy ran into self-collisions at the IK-valid pitch poses: the head "slammed hard into its body" (operator observation). Sequence in order:
+
+1. `tz_pos` (target z = +23.05 mm) — Reachy actually reached only ≈ +10 mm; head_pose stayed at pitch +0.005 rad, z ≈ −145 mm (baseline −155 mm)
+2. `tz_neg` (target z = −50.78 mm) — Reachy reached ≈ −53 mm; head_pose pitch +0.093 rad, z = −208 mm
+3. `pitch_pos` (target pitch = +48°) — read pitch = +17.8°, **30° discrepancy**; the mechanical collision likely started here
+4. `pitch_neg` (target pitch = −72°) — read pitch = −15.6°, **56° discrepancy**; further collision
+
+Aftermath:
+- `head_pose` stays byte-identical at pitch ≈ +0.75 rad, z ≈ −187 mm despite `POST /api/move/goto INIT` with `duration=6.0` and `motors/set_mode/enabled`
+- `head_joints: null` in `/api/state/full` — daemon can no longer read Stewart positions
+- `backend_status.ready: false`, `backend_status.last_alive: null` — the motor backend (USB bus to the Dynamixel motors) is offline
+- `POST /api/motors/set_mode/gravity_compensation` → **500 Internal Server Error**
+- `POST /api/move/goto` → 200 OK with UUID, but **no** motion occurs
+
+Interpretation: the Dynamixel motors most likely self-protected via an overload guard or position error and dropped off the bus. Recovery probably requires a daemon restart (`POST /api/daemon/restart`) or a power-cycle of the Reachy. **A pure REST recovery from this state was not possible on 2026-05-12.**
+
+Lessons (binding):
+
+1. **Never** use IK-polytope boundary values from Layer 2 §"IK bisection" as live targets. Live motions stay within the Pollen nominal operations range (±40° pitch/roll, ±60° head-yaw).
+2. For any live sweep, pick `duration` ≥ 5.0 s so the daemon has time to react and the operator has time to abort.
+3. Pre-flight: before any motion sequence, check the app-lock state and `backend_status.ready` — if `ready != true`, **do not** start with `goto`.
+4. With `backend_status.ready: false` and `head_joints: null` the Reachy is **not** software-recoverable; a physical check plus power-cycle is needed.
+
+### Layer 5 — motor modes and backend health
+
+Correction to the `reachy-mini/control-surface` spec, which named the modes `stiff` / `compliant`: the actual daemon mode names (as of `reachy_mini==1.7.1`, verified live 2026-05-12) are:
+
+| Mode name | API behaviour | Effect |
+|---|---|---|
+| `enabled` | Default; `set_target` and `goto` are executed | Motors actively hold the setpoint pose ("stiff") |
+| `disabled` | Motors released; `goto` is accepted but does not move | Robot is freely movable by hand; gravity pulls the head down |
+| `gravity_compensation` | In theory: hold the current pose against gravity without active setpoint | ⚠ TBD: responded with `500 Internal Server Error` on 2026-05-12 when switched from `disabled`; possibly only valid when coming from `enabled` |
+
+API: `POST /api/motors/set_mode/{mode}` — the path parameter is an enum accepting only those three values; invalid names return **422 Unprocessable Entity**. `GET /api/motors/status` returns `{"mode": "<current_mode>"}`.
+
+#### Backend status — when the Reachy stops responding
+
+`GET /api/daemon/status` returns a `backend_status` object that describes the motor controller. The most important fields:
+
+| Field | Meaning | Safe value |
+|---|---|---|
+| `backend_status.ready` | `true` when the motor controller maintains the Dynamixel bus connection | `true` |
+| `backend_status.last_alive` | Last heartbeat timestamp | non-null |
+| `backend_status.motor_control_mode` | Mirrors `GET /api/motors/status`-mode | `enabled` / `disabled` / `gravity_compensation` |
+| `backend_status.control_loop_stats.mean_control_loop_frequency` | Nominal ≈ 50 Hz (measured 49.7 Hz) | > 40 Hz |
+| `backend_status.control_loop_stats.nb_error` | Motor-controller error counter | 0 |
+| `backend_status.error` | Last daemon-side error string | `null` |
+
+A live `goto` motion **MUST** first check `backend_status.ready == true`. If `false`, `head_joints` in `/api/state/full` is typically `null` and the `goto` API accepts motions silently (200 with UUID) without executing them. In this state, stop live tests immediately and triage via daemon restart or power-cycle.
+
+## Acceptance Criteria
+
+- [ ] Spec exists at `spec/reachy-mini/motor-positions/de.md` (canonical) and `spec/reachy-mini/motor-positions/en.md` (translation)
+- [ ] Every active joint from the live URDF is listed in Layer 1 with exact values (rad + deg)
+- [ ] Stewart asymmetry is presented as a pair pattern (A, B, C-1, C-2)
+- [ ] The discrepancy between the URDF limit and the `kinematics_data.json` limit is explicitly named; URDF is authoritative
+- [ ] IK parameters (motor_arm_length, rod_length, head_z_offset) and safety thresholds (`max_relative_yaw`, `max_body_yaw`) are listed
+- [ ] Canonical poses `INIT_HEAD_POSE`, `INIT_ANTENNAS_JOINT_POSITIONS`, `SLEEP_HEAD_POSE`, `SLEEP_ANTENNAS_JOINT_POSITIONS` are mirrored verbatim from the SDK source as matrices or vectors
+- [ ] Hard-coded Stewart joint vectors for init and sleep poses are listed in rad and deg, anti-symmetry is named
+- [ ] `wake_up` and `goto_sleep` trajectories are documented step by step with duration and sound asset
+- [ ] `collision check: false` is flagged as a central SDK statement in multiple places
+- [ ] The discrepancy between `SLEEP_HEAD_JOINT_POSITIONS` and the URDF limits (stewart_2, stewart_5) is flagged as ⚠ TBD, not glossed over
+- [ ] Known conflict shapes (antenna crossing, antenna stop, IK polytope violation) are listed, with a clear split into "caught by the IK" vs. "ignored by the IK"
+- [ ] The IK-bisection table (Phase A) lists all 12 extreme poses + URDF-limit-triggering joints, clearly marked "not mechanically safe"
+- [ ] "Three layers of validity" (IK polytope, URDF limits, Pollen nominal range) are documented as a binding check order
+- [ ] The Phase-B incident from 2026-05-12 is documented as a self-collision warning with sequence and aftermath (`backend_status.ready: false`, `head_joints: null`)
+- [ ] Motor mode names are correctly named: `enabled` / `disabled` / `gravity_compensation`, not `stiff` / `compliant`
+- [ ] The `backend_status.ready` check is named as a mandatory pre-flight before any live motion
+- [ ] DE and EN versions are structurally in sync
+- [ ] Every concrete number carries a source attribution (URDF, `analytical_kinematics.py`, `reachy_mini.py`, `kinematics_data.json`, Pollen datasheet, Phase-A IK sweep)
+
+## References
+
+- Live source for joint limits: `http://<daemon-host>:8000/api/kinematics/urdf` (see [`spec/reachy-mini/daemon-rest-api/`](../daemon-rest-api/en.md))
+- URDF source: [`src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/descriptions/reachy_mini/urdf/robot.urdf)
+- Kinematics constants and solver: [`src/reachy_mini/kinematics/analytical_kinematics.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/kinematics/analytical_kinematics.py)
+- Kinematics geometry: [`src/reachy_mini/assets/kinematics_data.json`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/assets/kinematics_data.json)
+- Canonical poses + `wake_up`/`goto_sleep`: [`src/reachy_mini/reachy_mini.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/reachy_mini.py)
+- Pollen hardware datasheet (nominal operations range, DOF table): <https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/hardware>
+- Related specs in this repo: [`reachy-mini/control-surface`](../control-surface/en.md) (inventory + motion design), [`reachy-mini/daemon-rest-api`](../daemon-rest-api/en.md) (REST endpoints), [`reachy-mini/motions/`](../motions/) (concrete motion sequences)
+- Consuming skills: [`reachy-mini-sdk`](../../claude/reachy-mini-sdk/en.md), [`reachy-mini-inspect`](../../claude/reachy-mini-inspect/en.md), [`dance-choreography`](../../claude/dance-choreography/en.md), [`app-scaffold`](../../claude/app-scaffold/en.md)
+
+## Open Questions
+
+- Are the Stewart joint values from `SLEEP_HEAD_JOINT_POSITIONS` (`stewart_2 = +72.32°`, `stewart_5 = −70.84°`) consistent with the tighter URDF limits (`+70°` and `−70°`)? If not, is the SDK constant stale, is the URDF limit too conservative, or is the sleep pose intentionally placed at the polytope edge? Clarify on the real device and possibly with Pollen
+- How large is the real workspace for head translations x, y, z within the IK-reachable polytope? A short sweep script on the real device can pin the ⚠ TBD values in Layer 2
+- Is there a geometric "crossing-forbidden zone" for the antennas where the left and right antenna touch mechanically? Measure
+- Should `goto_sleep` switch the antenna motors into `compliant` at the end to avoid drift at the end-stop? Suggestion for Pollen, or a workaround in our `reachy-mini-inspect`/`reachy-mini-start` path? Document here, do not decide
+- Are the `max_relative_yaw=65°` and `max_body_yaw=160°` constants stable in future SDK versions, or will they become configurable? If they bump, the spec needs to be re-verified
+- What velocity and acceleration profiles does `goto_target` use by default? The URDF only names velocity = 8 rad/s as a hard cap, but the real profile generator likely smooths. Document in a follow-up spec if needed
+- Should this spec point at a drift-check script (e.g. `scripts/check-motor-positions-spec.py`), analogous to the `daemon-rest-api` spec? Worth it once the URDF is changed by an SDK version bump
