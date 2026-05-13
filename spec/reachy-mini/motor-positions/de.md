@@ -362,12 +362,54 @@ Plus: drei nacheinander folgende `GET /api/state/full`-Lesungen liefern **byte-i
 
 Wenn auch nach Power-Cycle + Service-Restart das „silent dead"-Muster anhält, sind diese Pfade in Reihenfolge zu prüfen — sie alle erfordern physikalischen Zugriff zum Reachy:
 
-1. **Daemon-Stack-Dump per `py-spy`** (falls auf dem Reachy installiert): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon)` liefert den aktuellen Python-Stack des hängenden Threads und zeigt, **welche Funktion** den Init-Schritt blockiert
-2. **Daemon-Logs für nicht-RuntimeError-Exceptions** durchsuchen: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — Exceptions außerhalb des Loop-Try/Catch werden zwar geloggt, killen aber nur den Backend-Thread und kommen nicht in `backend_status.error` an
-3. **Dynamixel-Wizard (Robotis)** über UART/USB-Adapter an den Motoren-Bus: jeden Motor (IDs 10–18) einzeln pingen und das Hardware-Error-Register prüfen; ein verbleibender Position-Error im EEPROM wird durch Hardware-Reboot **nicht** zwangsläufig gelöscht — er braucht einen expliziten `Reboot`-Befehl pro Motor oder ein EEPROM-Reset
-4. **Pollen Robotics Support kontaktieren** — eine durch Selbstkollision induzierte persistente Backend-Lock-Lage, die nach Power-Cycle und Service-Restart fortbesteht, ist plausibler Garantie-Fall. Beim Support-Ticket angeben: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, plus die Kollisions-Sequenz aus Schicht 4 §"Phase-B-Live-Vorfall 2026-05-12"
+1. **Thread-Wait-Points über `/proc/$PID/task/*/wchan`** — Stufe-3-Diagnose ersten Ranges. `pgrep -f reachy_mini.daemon.app.main` liefert die Daemon-PID; danach:
 
-Diese vier Pfade sind **diagnostisch**, nicht garantiert wirksam. Wenn (4) auch nichts bringt, ist mit hoher Wahrscheinlichkeit ein Hardware-Tausch nötig.
+   ```bash
+   ps -L -p <PID> -o tid,pcpu,stat,wchan:30,comm
+   for t in /proc/<PID>/task/*/; do
+     echo "tid=$(basename $t) wchan=$(cat $t/wchan) comm=$(cat $t/comm)"
+   done
+   ```
+
+   Das `wchan`-Feld nennt die Kernel-Funktion, in der der Thread wartet. Die Diagnose hat zwei klar unterscheidbare Hauptfälle:
+
+   - **`wchan=bcm2835_i2c_xfer` mit Thread im `D`-State und nicht-null CPU%** → **IMU-Hang auf I²C-Bus 4**. Der BMI088-Chip antwortet noch auf `i2cdetect -y 4` (Adressen `0x18` Accel + `0x69` Gyro), aber jeder Sensor-Read (`read_accelerometer` / `read_gyroscope` / `get_quat` / `read_temperature` in `backend.py:486–496`) blockiert den Loop. Erfasst 2026-05-13 nach dem Phase-B-Vorfall; vermutete Ursache: durch Kollision induzierter Clock-Stretching-Hang oder Lötstellen-Schaden am IMU. Recovery-Optionen siehe unten.
+   - **`wchan` mit UART-/Serial-Treiber-Bezug** (z. B. `serial8250_tx_chars`, `uart_*`, `tty_*`) → **Motor-Bus-Hang auf `/dev/ttyAMA3`**. Recovery-Pfad ist Dynamixel-Wizard.
+
+   Beide Sub-Pfade führen zum gleichen REST-Symptom (`silent dead`); nur der Wait-Point unterscheidet sie. **Ohne diese Diagnose ist die Stage-3-Behandlung Raten.**
+
+2. **IMU-Pfad-Workaround — Daemon ohne IMU starten**, wenn `wchan=bcm2835_i2c_xfer` der Befund ist. Die `bmi088`-Initialisierung in `backend.py:128–136` ist an `wireless_version=True` gebunden; mit `wireless_version=False` ist `self.bmi088 = None` und der Loop-Block bei Zeile 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) wird übersprungen. Konkrete Override-Konfiguration (geprüft 2026-05-13, Reachy-Wireless v1.7.1):
+
+   ```
+   /etc/systemd/system/reachy-mini-daemon.service.d/no-imu.conf
+   ---
+   [Service]
+   ExecStart=
+   ExecStart=/venvs/mini_daemon/bin/python -u -m reachy_mini.daemon.app.main --serialport /dev/ttyAMA3 --no-wake-up-on-start
+   ```
+
+   Dann `sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon`. **Wichtig:** das `--serialport /dev/ttyAMA3` muss explizit gesetzt sein, weil die `serialport=auto`-Detection an `wireless_version=True` gekoppelt ist (Boot-Log-Fehler beim 2026-05-13-Versuch: *"No Reachy Mini serial port found"*). Nebeneffekt der Override: keine Wifi-/Update-/Battery-Telemetrie über die wireless-Router; reversibel durch Entfernen der Drop-in-Datei.
+
+3. **BMI088-Soft-Reset per I²C** vor (2) versuchen, falls der Chip noch reagiert:
+
+   ```bash
+   sudo systemctl stop reachy-mini-daemon
+   sudo i2cset -y 4 0x18 0x7E 0xB6   # BMI088 accel soft reset
+   sudo i2cset -y 4 0x69 0x14 0xB6   # BMI088 gyro soft reset
+   sudo systemctl start reachy-mini-daemon
+   ```
+
+   ⚠ Diese Calls können ebenfalls am hängenden Bus hängen — der `i2cset`-Befehl nutzt den gleichen Treiber. Mit Timeout (`timeout 5 sudo i2cset ...`) abfangen.
+
+4. **Daemon-Stack-Dump per `py-spy`** als Fall-back zur `wchan`-Diagnose (falls auf dem Reachy installiert): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon.app.main)` liefert den Python-Stack des hängenden Threads. Auf einem 2026-05-13-Reachy-Wireless v1.7.1 war `py-spy` **nicht** vorinstalliert; muss bei Bedarf via `pip` ins Daemon-venv nachgezogen werden.
+
+5. **Daemon-Logs für nicht-RuntimeError-Exceptions** durchsuchen: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — Exceptions außerhalb des Loop-Try/Catch werden zwar geloggt, killen aber nur den Backend-Thread und kommen nicht in `backend_status.error` an.
+
+6. **Dynamixel-Wizard (Robotis)** über UART/USB-Adapter an den Motoren-Bus — nur sinnvoll bei UART-Wait-Point, **nicht** beim IMU-Hang. Jeden Motor (IDs 10–18) einzeln pingen und das Hardware-Error-Register prüfen; ein verbleibender Position-Error im EEPROM wird durch Hardware-Reboot **nicht** zwangsläufig gelöscht — er braucht einen expliziten `Reboot`-Befehl pro Motor oder ein EEPROM-Reset.
+
+7. **Pollen Robotics Support kontaktieren** — eine durch Selbstkollision induzierte persistente Backend-Lock-Lage, die nach Power-Cycle und Service-Restart fortbesteht, ist plausibler Garantie-Fall. Beim Support-Ticket angeben: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, das exakte `wchan` aus (1), plus die Kollisions-Sequenz aus Schicht 4 §"Phase-B-Live-Vorfall 2026-05-12".
+
+Diese sieben Pfade sind **diagnostisch oder reversibel umgehbar**. Nur (6) und (7) erfordern Hardware-Service außerhalb der eigenen Reichweite.
 
 ### Schicht 6 — Live-Verifikations-Methodik
 

@@ -362,12 +362,54 @@ Plus: three back-to-back `GET /api/state/full` reads return **byte-identical** `
 
 When the "silent dead" pattern persists after a power-cycle plus service restart, walk these paths in order — all require physical access to the Reachy:
 
-1. **Daemon stack dump via `py-spy`** (if installed on the Reachy): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon)` yields the current Python stack of the hanging thread and reveals **which function** is blocking the init step
-2. **Search the daemon logs for non-RuntimeError exceptions**: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — exceptions outside the loop's try/except are logged but only kill the backend thread; they never reach `backend_status.error`
-3. **Dynamixel Wizard (Robotis)** over a UART/USB adapter to the motor bus: ping every motor (IDs 10–18) individually and read the hardware-error register; a residual position error in EEPROM is **not** always cleared by a hardware reboot — it needs an explicit `Reboot` command per motor, or an EEPROM reset
-4. **Contact Pollen Robotics support** — a backend lock that persists through power-cycle and service restart after self-collision is a plausible warranty case. Include in the ticket: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, plus the collision sequence from Layer 4 §"Phase-B live incident 2026-05-12"
+1. **Thread wait points via `/proc/$PID/task/*/wchan`** — the first-rank Stage-3 diagnostic. `pgrep -f reachy_mini.daemon.app.main` yields the daemon PID; then:
 
-These four paths are **diagnostic**, not guaranteed remedies. If (4) also yields nothing, a hardware swap is likely required.
+   ```bash
+   ps -L -p <PID> -o tid,pcpu,stat,wchan:30,comm
+   for t in /proc/<PID>/task/*/; do
+     echo "tid=$(basename $t) wchan=$(cat $t/wchan) comm=$(cat $t/comm)"
+   done
+   ```
+
+   The `wchan` field names the kernel function the thread is waiting in. The diagnosis has two clearly distinguishable main cases:
+
+   - **`wchan=bcm2835_i2c_xfer` with the thread in `D` state and non-zero CPU%** → **IMU hang on I²C bus 4**. The BMI088 chip still responds to `i2cdetect -y 4` (addresses `0x18` accel + `0x69` gyro), but every sensor read (`read_accelerometer` / `read_gyroscope` / `get_quat` / `read_temperature` in `backend.py:486–496`) blocks the loop. Captured on 2026-05-13 after the Phase-B incident; suspected cause: collision-induced clock-stretching hang or solder-joint damage on the IMU. Recovery options below.
+   - **`wchan` with UART / serial driver names** (e.g. `serial8250_tx_chars`, `uart_*`, `tty_*`) → **motor bus hang on `/dev/ttyAMA3`**. Recovery path is Dynamixel Wizard.
+
+   Both sub-paths produce the same REST symptom (`silent dead`); only the wait point separates them. **Without this diagnostic, Stage-3 treatment is guesswork.**
+
+2. **IMU-path workaround — start the daemon without the IMU** when `wchan=bcm2835_i2c_xfer` is the finding. The `bmi088` initialisation in `backend.py:128–136` is gated on `wireless_version=True`; with `wireless_version=False`, `self.bmi088 = None` and the loop block at line 258 (`if self.imu_publisher is not None and self.bmi088 is not None:`) is skipped. Concrete override config (verified 2026-05-13, Reachy Wireless v1.7.1):
+
+   ```
+   /etc/systemd/system/reachy-mini-daemon.service.d/no-imu.conf
+   ---
+   [Service]
+   ExecStart=
+   ExecStart=/venvs/mini_daemon/bin/python -u -m reachy_mini.daemon.app.main --serialport /dev/ttyAMA3 --no-wake-up-on-start
+   ```
+
+   Then `sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon`. **Important:** the `--serialport /dev/ttyAMA3` must be explicit because `serialport=auto` detection is wired to `wireless_version=True` (boot-log error on the 2026-05-13 attempt: *"No Reachy Mini serial port found"*). Side effect of the override: no Wifi / update / battery telemetry through the wireless routers; reversible by deleting the drop-in file.
+
+3. **BMI088 soft-reset via I²C** before (2), if the chip still reacts:
+
+   ```bash
+   sudo systemctl stop reachy-mini-daemon
+   sudo i2cset -y 4 0x18 0x7E 0xB6   # BMI088 accel soft reset
+   sudo i2cset -y 4 0x69 0x14 0xB6   # BMI088 gyro soft reset
+   sudo systemctl start reachy-mini-daemon
+   ```
+
+   ⚠ These calls can themselves hang on the stuck bus — `i2cset` uses the same driver. Wrap with `timeout` (e.g. `timeout 5 sudo i2cset ...`).
+
+4. **Daemon stack dump via `py-spy`** as a fallback to the `wchan` diagnosis (if installed on the Reachy): `sudo py-spy dump --pid $(pgrep -f reachy_mini.daemon.app.main)` yields the Python stack of the hanging thread. On a 2026-05-13 Reachy Wireless v1.7.1, `py-spy` was **not** pre-installed; pull it into the daemon venv via `pip` when needed.
+
+5. **Search the daemon logs for non-RuntimeError exceptions**: `journalctl -u reachy-mini-daemon -b | grep -iE "traceback|exception|panic|fatal"` — exceptions outside the loop's try/except are logged but only kill the backend thread; they never reach `backend_status.error`.
+
+6. **Dynamixel Wizard (Robotis)** over a UART/USB adapter to the motor bus — only useful with a UART wait point, **not** with the IMU hang. Ping every motor (IDs 10–18) individually and read the hardware-error register; a residual position error in EEPROM is **not** always cleared by a hardware reboot — it needs an explicit `Reboot` command per motor, or an EEPROM reset.
+
+7. **Contact Pollen Robotics support** — a backend lock that persists through power-cycle and service restart after self-collision is a plausible warranty case. Include in the ticket: `reachy_mini==1.7.1`, `kinematics_engine=AnalyticalKinematics`, `backend_status.ready=false / last_alive=null / nb_error=0 / mean_freq≈50Hz / head_joints=null`, the exact `wchan` from (1), plus the collision sequence from Layer 4 §"Phase-B live incident 2026-05-12".
+
+These seven paths are **diagnostic or reversibly workable**. Only (6) and (7) require hardware service outside one's own reach.
 
 ### Layer 6 — live verification methodology
 
