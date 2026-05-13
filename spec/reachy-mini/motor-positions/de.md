@@ -320,6 +320,86 @@ API: `POST /api/motors/set_mode/{mode}` — der Pfad-Parameter ist eine Enum, di
 
 Eine Live-`goto`-Bewegung **MUSS** vorab `backend_status.ready == true` prüfen. Wenn `false`, ist `head_joints` in `/api/state/full` typischerweise `null` und die `goto`-API akzeptiert Bewegungen still (200 mit UUID), ohne sie auszuführen. In diesem Zustand stoppt man Live-Tests sofort und triagiert per Daemon-Restart oder Power-Cycle.
 
+#### Wann Daemon-Restart reicht und wann nicht
+
+Geprüft 2026-05-13 nach dem Phase-B-Vorfall: `POST /api/daemon/restart` startet den Daemon-Service sauber neu (REST-Antwort innerhalb < 3 s, neue `job_id`), reaktiviert aber **nicht** ein durch Overload-Protect oder Position-Error gelocktes Dynamixel-Motor-Backend. Nach dem Restart blieb `backend_status.ready: false` und `head_joints: null` für 60 s+ unverändert; einzig `motor_control_mode` wurde auf `disabled` zurückgesetzt und die `head_pose`-Lesung lieferte einen anderen, ebenfalls stale Wert.
+
+**Konsequenz für die Recovery-Triage:**
+
+- Daemon-Restart **MUSS** als erste Stufe versucht werden — er behebt reine Software-Hänger (z. B. nach Connection-Drop, USB-Reconnect-Glitch)
+- Wenn `backend_status.ready` 60 s nach dem Restart immer noch `false` ist, liegt ein **Hardware-Lock der Dynamixel-Motoren** vor; dann **MUSS** ein Power-Cycle des Reachy folgen
+- Eine zweite Restart-Iteration **DARF NICHT** automatisch erfolgen — sie würde den Hardware-Lock nicht lösen, sondern nur Zeit verbrauchen
+
+### Schicht 6 — Live-Verifikations-Methodik
+
+Für jede Live-Verifikation der in den vorherigen Schichten gepinnten Werte gilt die hier dokumentierte Methodik. Sie ist die direkte Konsequenz aus dem 2026-05-12-Selbstkollisions-Vorfall (Schicht 4) und bindet jede zukünftige Live-Sitzung.
+
+#### Hard-Pre-Flight (vier Bedingungen, vor JEDER Einzelbewegung neu prüfen)
+
+Alle vier müssen `true` sein, sonst Abbruch der Session:
+
+1. `daemon/status.backend_status.ready == true`
+2. `state/full.head_joints` ist **nicht** `null` (Stewart-Lesen funktioniert)
+3. `robot-app-lock-status.state == "free"`
+4. `motors/status.mode == "enabled"`
+
+Eine einzige rote Bedingung ist ein Stop — keine Live-Bewegungen, kein „mal probieren".
+
+#### Test-Set — Pollen-Nominal-Range mit Sicherheitsmarge
+
+Verbindliches Test-Set, alle Werte innerhalb Pollen-Nominal-Range (Schicht 2) mit 5–15° / 8–15 mm Marge zum Nominal-Limit. **Niemals** IK-Polytop-Grenzwerte aus Schicht 2 §"IK-Bisection" verwenden.
+
+| Test | Achse | Ziel | Pollen-Nominal-Limit | Marge | Vergleich Phase-A-IK-Grenze |
+|---|---|---|---|---|---|
+| T1 | Pitch up | **+30°** (+0.524 rad) | +40° | 10° | weit unter +48° |
+| T2 | Pitch down | **−30°** (−0.524 rad) | −40° | 10° | weit unter −72° |
+| T3 | Roll left | **+25°** (+0.436 rad) | +40° | 15° | weit unter +48° |
+| T4 | Roll right | **−25°** (−0.436 rad) | −40° | 15° | weit unter −48° |
+| T5 | Heave up | **+15 mm** (+0.015 m) | IK-Max +23 mm | 8 mm | sicher unter +23 mm |
+| T6 | Heave down | **−35 mm** (−0.035 m) | IK-Max −51 mm | 15 mm | sicher unter −51 mm |
+| T7 | Head-Yaw | **+45°** (+0.785 rad) | +60° relativ | 15° | weit unter ±65° relativ |
+| T8 | Body-Yaw | **+90°** (+1.571 rad) | ±155° | 65° | weit unter ±160° |
+
+Erweiterung des Sets ist **DARF NICHT** ohne explizite Operator-Freigabe und nicht über die in Schicht 2 §"Drei Schichten der Validität" definierte innerste Schicht (Pollen-Nominal) hinaus.
+
+#### Bewegungs-Profil
+
+- `duration = 6.0 s` pro Einzelbewegung (langsam, jederzeit per `POST /api/motors/set_mode/disabled` abbrechbar)
+- Zwischen jedem Test: zurück zu `INIT_HEAD_POSE` mit `duration = 6.0 s`, dann **2 s Stillstand**
+- Antennen bleiben durchgehend auf `INIT_ANTENNAS_JOINT_POSITIONS = [-10°, +10°]`; **keine** Antennen-Sweeps in dieser Phase
+- `body_yaw` nur in T8 angefasst; in T1–T7 = 0
+- Vor jeder Bewegung 4-Punkt-Pre-Flight neu lesen — bei Abweichung **sofort Stop**
+- Pro Bewegung: nach 6.5 s `state/full` lesen; vor Recenter ein zweites Mal lesen (Steady-State)
+
+#### Verifikations-Logik — drei Werte pro Test
+
+Pro Test wird ein Tupel protokolliert:
+
+1. **Soll** — die `head_pose`-Komponente, die der API mitgegeben wurde
+2. **IK-Prediction** — die lokale `analytical_kinematics.ik(soll)`-Joint-Lösung
+3. **Real** — die nach 6.5 s gemessene `state/full.head_pose`, plus die daraus per lokaler IK rückwärts gerechnete Joint-Lösung
+
+Zwei Abgleiche:
+
+- **Pose-Diskrepanz** = Soll − Real (Norm im 6D-Pose-Raum); klein bedeutet die Hardware folgt der Soll-Pose
+- **Joint-Diskrepanz** = IK-Prediction − IK-aus-Real; klein bedeutet die IK ist intern konsistent
+
+#### Abbruch-Kriterien während der Session
+
+Die Session wird **sofort** abgebrochen, wenn eines der Folgenden eintritt:
+
+- Operator-Beobachtung „der Reachy berührt sich selbst" oder ein ungewöhnliches mechanisches Geräusch
+- `backend_status.ready` wechselt zu `false`
+- `head_joints` wird `null`
+- `backend.error` oder `daemon.error` werden non-null
+- `goto` liefert non-200 oder die Pose-Diskrepanz übersteigt 0.2 rad / 30 mm zwischen Soll und Real
+
+Bei Abbruch: `POST /api/motors/set_mode/disabled` (entlastet sofort), Operator informieren, **NICHT** automatisch wieder fahren.
+
+#### Aufnahme der Ergebnisse in die Spec
+
+Sobald T1–T8 erfolgreich gelaufen sind und die Diskrepanzen vermessen sind, wird Schicht 2 §"IK-Bisection" um eine Spalte „Live-Real-Wert" pro Achse erweitert, und Schicht 3 §"Init-Pose" bekommt einen Vermerk, falls die Identity-IK-Lösung am Gerät anders ausfällt als die lokale `analytical_kinematics.ik(np.eye(4))`-Vorhersage. Die Diskrepanzen-Magnitude wird als Tabelle eingetragen, mit ISO-Datum der Messung.
+
 ## Akzeptanzkriterien
 
 - [ ] Spec existiert unter `spec/reachy-mini/motor-positions/de.md` (kanonisch) und `spec/reachy-mini/motor-positions/en.md` (Übersetzung)
@@ -338,6 +418,10 @@ Eine Live-`goto`-Bewegung **MUSS** vorab `backend_status.ready == true` prüfen.
 - [ ] Phase-B-Vorfall vom 2026-05-12 ist als Selbstkollisions-Warnung mit Sequenz und Folgezustand (`backend_status.ready: false`, `head_joints: null`) dokumentiert
 - [ ] Motor-Mode-Namen sind korrekt benannt: `enabled` / `disabled` / `gravity_compensation`, nicht `stiff` / `compliant`
 - [ ] `backend_status.ready`-Check ist als Pre-Flight-Pflicht vor jeder Live-Bewegung benannt
+- [ ] Daemon-Restart vs. Power-Cycle als zwei-stufige Recovery-Triage ist beschrieben (Daemon-Restart zuerst, Power-Cycle bei nicht-reaktivem Backend nach 60 s)
+- [ ] Schicht 6 §"Live-Verifikations-Methodik" enthält das verbindliche Test-Set T1–T8 mit Sicherheitsmargen zu Pollen-Nominal-Range
+- [ ] Schicht 6 nennt vier Pre-Flight-Gates (`backend.ready`, `head_joints`, `app-lock`, `motors.mode`) und Abbruch-Kriterien
+- [ ] Schicht 6 verbietet explizit IK-Polytop-Grenzwerte als Live-Targets
 - [ ] DE- und EN-Version sind strukturell synchron
 - [ ] Jede konkrete Zahl trägt eine Quelle (URDF, `analytical_kinematics.py`, `reachy_mini.py`, `kinematics_data.json`, Pollen-Datasheet, Phase-A-IK-Sweep)
 
