@@ -80,6 +80,12 @@ Sehr leise Atemgeräusche oder Gähnen-Sample (≤ 1,2 s), gestartet etwa mit Ph
 - Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin-Referenzen
+
+- Pose-Werte, Joint-Limits und kanonische Posen (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/de.md)
+- Pose-Komposition, IK-vs-mechanische-Sicherheit, Pitch-Bleed bei Roll/Heave-up → [`reachy-mini/control-surface`](../../control-surface/de.md) §"Mechanische und elektrische Limitationen"
+- Motion enthält Roll- oder Heave-up-Komponenten? Pitch in der Ziel-Pose explizit kompensieren (Stewart-Geometrie-Kopplung, live verifiziert 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Offene Fragen
 - Soll der Body-Yaw überhaupt mitschaukeln, oder ist das zu „instabil"? Erste Annahme: ja, sehr leicht. Empirisch zu kalibrieren.
 - Wie viele Nicker sind ideal — zwei oder drei? Drei wäre dramatischer, aber verlängert die Sequenz auf > 6 s.

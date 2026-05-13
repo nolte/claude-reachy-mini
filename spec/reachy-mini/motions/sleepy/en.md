@@ -80,6 +80,12 @@ Very quiet breathing or yawn sample (≤ 1.2 s), started around phase 2. Volume 
 - Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin references
+
+- Pose values, joint limits, canonical poses (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/en.md)
+- Pose composition, IK-vs-mechanical-safety, pitch bleed on roll / heave-up → [`reachy-mini/control-surface`](../../control-surface/en.md) §"Mechanical and electrical limitations"
+- Motion contains roll or heave-up components? Compensate pitch explicitly in the target pose (Stewart geometry coupling, live-verified 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Open Questions
 - Should body yaw sway at all, or is that "too unstable"? First assumption: yes, very slightly. Calibrate empirically.
 - How many bobs are ideal — two or three? Three would be more dramatic but pushes the sequence past 6 s.
