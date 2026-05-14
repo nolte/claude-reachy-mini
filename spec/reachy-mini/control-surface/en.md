@@ -230,12 +230,14 @@ Requirements:
 - **Current draw** — many simultaneous motions (head full + both antennas + body) can briefly drop the voltage on battery operation; depending on battery state the system reacts with brown-out protection
 - **Thermal budget** — sustained motion at high frequency generates heat; the SDK may expose temperature telemetry (`> ⚠ TBD`)
 - **Collisions** — antennas collide with the head at extreme angles; motion must not target such pose combinations (`> ⚠ TBD` which combinations exactly are forbidden)
+- **Antenna deadband around 0°** — each antenna servo exhibits a ~±0.5° peak-to-peak micro-oscillation when its setpoint sits inside a small deadband near `0°`. The deadband is per-antenna and sign-asymmetric (one antenna may be stable at exactly `0°` while the other wobbles, and vice-versa for negative setpoints in the same magnitude region). Verified empirically on a Wireless / firmware 1.7.1 unit (May 2026): setpoints at `|x| ≥ 15°` held perfectly steady (stdev=0.000° over multi-second observation). The SDK's own `INIT_ANTENNAS_JOINT_POSITIONS` (~10° offset per antenna) is an implicit acknowledgement of the same property — pure `0°` is not the SDK's idle target either
 
 Requirements:
 
 - **MUST** check the combinatorial collision prohibitions before issuing a motion if the SDK doesn't enforce them itself
 - **MUST** avoid current spikes by not driving every actuator at maximum speed simultaneously
 - **SHOULD** consume temperature telemetry once the SDK exposes it — pause for a cool-down on threshold breach
+- **SHOULD** keep antenna rest setpoints at `|setpoint| ≥ 5°` (preferably `≥ 10°`, matching `INIT_ANTENNAS_JOINT_POSITIONS`) so the servo escapes the per-antenna deadband around `0°`; **SHOULD NOT** ease out to all-zero antennas if the robot then sits idle, because at least one antenna will visibly wobble
 
 ### Safety limits
 

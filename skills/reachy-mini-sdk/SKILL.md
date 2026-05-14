@@ -68,6 +68,8 @@ Hard-coded SDK ranges that every code snippet must respect. Source of truth is [
 
 Snippets that target the head MUST guard the value range with assertions before issuing pose commands. Do not rely on the daemon to clamp — it raises rather than clips.
 
+**Antenna rest-pose caveat**: each antenna servo has a per-antenna, sign-asymmetric deadband around `0°` that produces a visible ~±0.5° micro-wobble when the setpoint lands inside it. **SHOULD** keep antenna rest setpoints at `|setpoint| ≥ 5°` (preferably `≥ 10°` to match `INIT_ANTENNAS_JOINT_POSITIONS`); **SHOULD NOT** ease out to all-zero antennas if the robot then sits idle. Full empirical observation matrix + mitigation guidance in [`spec/reachy-mini/control-surface`](../../spec/reachy-mini/control-surface/en.md#mechanical-and-electrical-limitations).
+
 ## API reference (with direct doc / source links)
 
 ### Construction & lifecycle
