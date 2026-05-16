@@ -144,6 +144,7 @@ Target config file:
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
 Snippet (mode=stdio, the most common case):
+
 ```json
 {
   "mcpServers": {
@@ -173,6 +174,7 @@ Snippet schema mirrors Claude Desktop (`command` + `args` for stdio, `url` for h
 ### `generic`
 
 For any other MCP-capable client (`stdio`-mode snippet, with a one-line comment explaining the schema):
+
 ```json
 {
   "command": "reachy-mini-mcp-server",
