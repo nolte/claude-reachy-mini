@@ -102,12 +102,12 @@ This concern is modelled as an **agent** rather than a skill because several rat
 - Pollen contract validator (used in pre-flight): `reachy-mini-app-assistant check <path>` (shipped with the `reachy-mini` package)
 - App lifecycle contract (`stop_event`, `wrapped_run`, app manager): <https://github.com/pollen-robotics/reachy_mini/blob/main/src/reachy_mini/apps/manager.py>
 - Daemon REST surface (busy-check endpoints, installed-apps listing): <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/daemon>
+- Authoritative REST schema: `http://<daemon-host>:8000/openapi.json` (live). Verified against a Wireless daemon: app listing is `GET /api/apps/list-available` (all) and `GET /api/apps/list-available/{source_kind}` (e.g. `source_kind=installed`). This endpoint family is diagnostic only — the canonical post-install verify in this agent uses the Python-side `entry_points(group='reachy_mini_apps')` query, not the REST listing.
 - Pollen `AGENTS.md` (entry-point group, app conventions): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 - Sibling agent for live trial runs: `agents/reachy-mini-on-device.md`
 - Sibling skill for starting the deployed app: `skills/reachy-mini-start/SKILL.md`
 
 ## Open Questions
-- Which exact REST endpoint lists the apps the daemon currently sees registered? Confirm `/api/apps/installed` (or the actual path) on first hardware contact and pin in the agent body
 - What is the canonical deploy target on Wireless — `~/apps/<name>/` under the `pollen` user, or a daemon-managed location? Confirm and pin
 - Does the Pollen daemon refresh its `entry_points(group='reachy_mini_apps')` view automatically after a `pip install`, or is a daemon SIGHUP / restart needed for the new entry-point to surface? If a daemon restart is required, this agent must not perform it; the user (or `reachy-mini-start`) does
 - Does Pollen's daemon-installation expose a stable env var or path file for the venv, or must we always probe? Probing is the safe default; an env var would simplify the report
