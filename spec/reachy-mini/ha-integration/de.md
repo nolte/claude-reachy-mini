@@ -75,6 +75,16 @@ Diese Trennung ist Pflicht: Voice-Pipeline-Änderungen (z. B. neuer Wake-Word-En
 - **MUSS [MUST]** alle Entities mit korrektem `device_class` und `state_class` anlegen, damit Long-Term-Statistics in HA funktionieren
 - **SOLLTE [SHOULD]** Plattform-Profile berücksichtigen: IMU- und Akku-Sensoren erscheinen nicht auf Lite oder Simulation
 
+### Number-Entity-Setpoint-Semantik
+
+HA-Slider (NumberEntity) folgen einem **Setpoint-Modell**, nicht einem Hardware-Position-Modell: der angezeigte Slider-Wert spiegelt den **User-Intent** wider, nicht die zur Lese-Zeit aktuelle Servo-Position. Wer das missachtet, baut sich einen sichtbaren Off-by-one-Echo-Bug in den Slider, weil HA nach jedem Push den State zur Validierung abfragt und den zurückgemeldeten Wert dem Slider zuweist.
+
+- **MUSS [MUST]** der Setter einer Number-Entity (Antennen, Head-X/Y/Z, Head-Roll/Pitch/Yaw, Body-Yaw und alle weiteren Pose-Achsen) den App-internen State-Setpoint **synchron im selben Tick** schreiben, in dem die Setter-Funktion läuft. Wenn die App-Architektur den eigentlichen Hardware-Befehl asynchron über eine Command-Queue an einen Control-Loop delegiert, **MUSS** der State zusätzlich synchron geschrieben werden, bevor der Setter zurückkehrt — nicht erst beim nächsten Queue-Drain
+- **MUSS [MUST]** der Getter derselben Number-Entity den **App-State-Setpoint** zurückgeben, **nicht** die live aus dem Daemon gelesene Hardware-Joint-Position; die Hardware lagt durch Servo-Kinematik typischerweise um Hunderte Millisekunden hinter dem Setpoint, der State-Read ist immer schneller als die physische Bewegung. Der Slider zeigt den User-Intent, nicht den Servo-Lag
+- **MUSS [MUST]** für die identische Achse Setter-Schreib-Feld und Getter-Lese-Feld dieselbe State-Variable referenzieren — Asymmetrie zwischen den beiden (Setter schreibt App-State, Getter liest Hardware) erzeugt das Off-by-one-Echo-Symptom
+- **DARF NICHT [MUST NOT]** in der NumberEntity-Implementierung im selben handle-Block eines `NumberCommandRequest` der State-Echo-Response vor der State-Aktualisierung yieldet werden; die Reihenfolge muss zuerst-schreiben-dann-yielden sein
+- **SOLLTE [SHOULD]** das Pattern in der App-Code-Basis als Helper / Mixin gekapselt werden, sodass alle Pose-Achsen (Antennen, Head-Achsen, Body-Yaw) demselben synchronen Setter/Getter-Schema folgen. Sonst ist das Pattern für jede neue Pose-Achse erneut latent zu reparieren
+
 ### Custom Services
 - **MUSS [MUST]** folgende Services exponieren:
   - `reachy_mini.play_behavior(behavior: str, speed: float = 1.0)` — startet eines der 29 Motion-Specs

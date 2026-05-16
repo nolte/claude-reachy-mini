@@ -75,6 +75,16 @@ This separation is mandatory: voice-pipeline changes (e.g. a new wake-word engin
 - **MUST** create every entity with the correct `device_class` and `state_class` so long-term statistics work in HA
 - **SHOULD** honour platform profiles: IMU and battery sensors do not appear on Lite or Simulation
 
+### Number-entity setpoint semantics
+
+HA sliders (NumberEntity) follow a **setpoint model**, not a hardware-position model: the slider value reflects the **user intent**, not the live servo reading. Ignoring this builds a visible off-by-one echo bug into the slider, because HA polls the entity state for validation right after every push and writes the returned value back into the slider.
+
+- **MUST** the setter of a number entity (antennas, head-x/y/z, head-roll/pitch/yaw, body-yaw and any other pose axis) write the app-side state setpoint **synchronously, in the same tick** the setter runs in. If the app's architecture delegates the actual hardware command asynchronously through a command queue to a control loop, the state **MUST** still be written synchronously before the setter returns — not only on the next queue drain
+- **MUST** the getter of the same number entity return the **app-side state setpoint**, **not** the live hardware joint position read back from the daemon; the hardware lags the setpoint by hundreds of milliseconds because of servo kinematics, while the state read is always faster than the physical motion. The slider shows user intent, not servo lag
+- **MUST** for the same axis, the setter's write target and the getter's read source reference the same state field — asymmetry between the two (setter writes app state, getter reads hardware) produces the off-by-one echo symptom
+- **MUST NOT** the NumberEntity implementation, in the same handle block of a `NumberCommandRequest`, yield the state echo response before the state has been updated; the order must be write-first, yield-second
+- **SHOULD** the pattern be encapsulated in a helper / mixin in the app code base so every pose axis (antennas, head axes, body yaw) follows the same synchronous setter/getter scheme. Otherwise the pattern is latently broken again for every new pose axis
+
 ### Custom services
 - **MUST** expose the following services:
   - `reachy_mini.play_behavior(behavior: str, speed: float = 1.0)` — start one of the 29 motion specs

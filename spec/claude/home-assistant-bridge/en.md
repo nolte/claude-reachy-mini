@@ -45,6 +45,7 @@ Reachy Mini is meant to be a co-resident in a smart-home setup: Home Assistant (
 - **MUST** show the "Reachy → HA" pattern: a Reachy behavior calls an HA service (e.g. `light.turn_on`, `notify.send_message`) via REST or WebSocket; example with token handling and error path
 - **SHOULD** give a long-running-connection pattern: the WebSocket stays open while Reachy plays multiple behaviors
 - **MAY** include patterns for state consolidation (multiple HA entities trigger one Reachy behavior)
+- **MUST** name the "off-by-one echo on NumberEntity sliders" anti-pattern and document the fix scheme: a NumberEntity setter that only writes the pose value asynchronously into a command queue plus a NumberEntity getter that reads the hardware joint position produces a visible slider lag (the slider snaps back one step on every push while the antenna / joint follows correctly). Fix: the setter writes the app-side state synchronously in the same tick, the getter reads the same app-side state (not the hardware position). Cross-reference to [`reachy-mini/ha-integration`](../../reachy-mini/ha-integration/en.md) § number-entity setpoint semantics as the normative source
 
 ### HTTP and WebSocket client recommendations
 - **MUST** recommend `httpx` as the default for REST calls (async-capable, modern API); REST examples use `httpx.AsyncClient`

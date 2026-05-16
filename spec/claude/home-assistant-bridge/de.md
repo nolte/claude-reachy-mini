@@ -45,6 +45,7 @@ Reachy Mini soll im Smart-Home-Kontext ein Co-Bewohner sein: Home Assistant (HA)
 - **MUSS [MUST]** das Pattern „Reachy → HA" zeigen: Reachy-Behavior ruft einen HA-Service (z. B. `light.turn_on`, `notify.send_message`) über REST oder WebSocket; Beispiel mit Token-Handling und Fehler-Pfad
 - **SOLLTE [SHOULD]** ein Pattern für Long-Running-Connections geben: WebSocket bleibt offen, während Reachy mehrere Behaviors abspielt
 - **KANN [MAY]** Patterns für State-Konsolidierung enthalten (mehrere HA-Entities lösen ein Reachy-Behavior aus)
+- **MUSS [MUST]** das Anti-Pattern „Off-by-one-Echo bei NumberEntity-Slidern" benennen und das Fix-Schema dokumentieren: NumberEntity-Setter, der den Pose-Wert nur asynchron in eine Command-Queue schreibt, plus NumberEntity-Getter, der die Hardware-Joint-Position liest, ergibt einen sichtbaren Slider-Versatz (Slider springt nach jedem Push um einen Schritt zurück, während die Antenne / das Gelenk korrekt folgt). Fix: Setter schreibt den App-State synchron im selben Tick, Getter liest denselben App-State (nicht die Hardware-Position). Querverweis auf [`reachy-mini/ha-integration`](../../reachy-mini/ha-integration/de.md) § Number-Entity-Setpoint-Semantik für die normative Quelle
 
 ### HTTP- und WebSocket-Client-Empfehlungen
 - **MUSS [MUST]** `httpx` als Default für REST-Calls empfehlen (async-fähig, moderne API); Beispiele für REST nutzen `httpx.AsyncClient`
