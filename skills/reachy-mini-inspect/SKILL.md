@@ -22,7 +22,7 @@ tags: [reachy-mini, inspect]
 
 Spec: <https://github.com/nolte/claude-reachy-mini/blob/develop/spec/claude/reachy-mini-inspect/de.md> (DE canonical) / [`en.md`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/claude/reachy-mini-inspect/en.md).
 
-Authoritative endpoint inventory: [`spec/reachy-mini/daemon-rest-api/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/daemon-rest-api/de.md). Complementary distribution for LLM frontends outside Claude Code: [`spec/reachy-mini/mcp-server/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/mcp-server/de.md).
+Authoritative endpoint inventory: [`spec/reachy-mini/daemon-rest-api/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/daemon-rest-api/de.md). Joint-limit and recovery details (incl. the daemon `_status.ready` bug, the IMU/I²C `silent dead` pattern, and Stage-3 recovery paths) live in [`spec/reachy-mini/motor-positions/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md). Complementary distribution for LLM frontends outside Claude Code: [`spec/reachy-mini/mcp-server/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/mcp-server/de.md).
 
 ## Skill-vs-Agent rationale
 
@@ -84,7 +84,7 @@ Issue these reads and aggregate them into a Markdown table:
 
 In addition to the three `quick` GETs, fan out these reads in parallel:
 
-- `GET /api/state/full` — head pose, body yaw, antenna joint positions, DoA
+- `GET /api/state/full?with_head_joints=true` — head pose, **Stewart joint vector `[body, s1..s6]`**, body yaw, antenna joint positions, DoA. **The `with_head_joints=true` query parameter is mandatory:** without it the daemon returns `head_joints: null` even in a healthy state. Verified live 2026-05-13.
 - `GET /api/media/status` — audio subsystem status
 - `GET /api/volume/current` — speaker volume
 - `GET /api/volume/microphone/current` — microphone volume
@@ -98,7 +98,8 @@ Issue exactly one `GET` against `<daemon_host><endpoint>` and emit the response 
 
 1. Resolve the daemon endpoint from `daemon_host` (default localhost). On Wireless with mDNS, the first call can be noticeably slower than steady-state — accept that.
 2. Issue `GET /api/daemon/status` as the reachability check. On connection refused / DNS failure / timeout, abort with a single line: `daemon unreachable at <daemon_host>: <connection_error>`. No stacktrace.
-3. For `raw` mode only, validate `endpoint` against the daemon-rest-api inventory before issuing the call. Reject silently is forbidden; report `endpoint <path> is not in spec/reachy-mini/daemon-rest-api/ — refusing to call`.
+3. **Backend liveness — read with care.** `backend_status.ready` and `backend_status.last_alive` in the status response are **not authoritative on their own**: the daemon (`reachy_mini==1.7.1`, source `backend/robot/backend.py`) sets a `self.ready` `threading.Event` but never propagates it into `self._status.ready`, and `_status.last_alive` is similarly de-synced from the loop's `self.last_alive`. Treat them as "best signal" but cross-check with one of: (a) `mean_control_loop_frequency > 40 Hz` plus `nb_error == 0`, (b) `head_joints` is a list (after appending `?with_head_joints=true`), (c) two consecutive `state/full` reads show micro-drift in pose components. If all three confirm liveness, the loop is alive even when `backend_status.ready=false`. If none confirm liveness, the daemon is in the "silent dead" pattern — see [`spec/reachy-mini/motor-positions/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) §"Stage-3 recovery paths" for the diagnosis flow.
+4. For `raw` mode only, validate `endpoint` against the daemon-rest-api inventory before issuing the call. Reject silently is forbidden; report `endpoint <path> is not in spec/reachy-mini/daemon-rest-api/ — refusing to call`.
 
 ## Output format
 
@@ -126,6 +127,8 @@ When a Pollen app is running, the daemon's state endpoints still answer — they
 - **HTTP 200 with an empty body is not success.** The daemon occasionally returns a 200 with `{}` while it warms up. The skill maps that to `unknown` in the table, with a hint to retry once.
 - **The `raw` mode is not a backdoor to mutation.** Even when the daemon-rest-api inventory documents an endpoint that supports POST or DELETE, this skill only invokes the GET variant. A path that exists exclusively under a non-GET method is rejected at validation time.
 - **Output is for humans first.** The skill is primarily a conversational tool. A `--json` machine-readable shape is intentionally out of scope; programmatic consumers should hit the REST API directly using the inventory in `spec/reachy-mini/daemon-rest-api/`.
+- **`backend_status.ready=false` is not a definitive stop.** Verified live 2026-05-13: the daemon-side `_status.ready` flag is never set to `true` in the polling loop — it stays `false` even when the bus is healthy and the loop is running at ~50 Hz. The skill therefore does **not** route `backend.ready=false` to a Stage-3 alert by itself; cross-checks per Pre-flight §3 (mean_freq, `head_joints` populated, pose micro-drift) decide.
+- **"Silent dead" pattern — escalate, do not retry.** When all three Pre-flight §3 cross-checks fail (no joints, no mean-freq, no drift), the backend bus is genuinely hung. Surface that fact to the user with the suspected wait-point (e.g. `wchan=bcm2835_i2c_xfer` → BMI088 IMU on I²C bus 4, see [`spec/reachy-mini/motor-positions/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) §"Stage-3 recovery paths"). **Do not** auto-issue `POST /api/daemon/restart` or `POST /api/motors/set_mode/*` from this skill — those are mutations and belong to recovery skills, not to a read-only inspector.
 
 ## Boundaries to neighbouring artifacts
 
@@ -135,4 +138,4 @@ When a Pollen app is running, the daemon's state endpoints still answer — they
 - Log analysis after a failure → `app-log-triage` (skill)
 - MCP-server distribution for LLM frontends → `mcp-server-bootstrap` (skill); reachy-mini-inspect is the parallel plugin-skill distribution of the same Tier-1 reads, never a duplicate of mcp-server tools
 
-> ⚠ TBD: validate against real hardware — every concrete REST endpoint and aggregated-response field above is a best-effort design until verified on a physical Reachy. The endpoint paths are confirmed present in the live `openapi.json` (see `spec/reachy-mini/daemon-rest-api/`), but response shapes and edge-case behaviour (empty body, timeout under load, mDNS cold-start) need first-contact verification on both Wireless and Lite.
+Most concrete REST behaviour was verified live on a Reachy Wireless v1.7.1 (2026-05-13): the eight T1–T8 motion targets from [`spec/reachy-mini/motor-positions/`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) §"T1–T8 live verification" ran with pose-diff norms ≤ 0.08 rad, the `with_head_joints=true` parameter is mandatory for live joints, the `_status.ready`/`last_alive` desync is recorded as a daemon bug, and the IMU/I²C `silent dead` pattern plus Stage-3 recovery paths are documented in motor-positions Layer 5. Edge cases still requiring verification: empty-body 200s under load, mDNS cold-start latency on a freshly booted Wireless, and Lite (USB-host-driven) behaviour — those remain ⚠ TBD until first contact with those configurations.

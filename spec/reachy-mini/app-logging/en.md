@@ -122,6 +122,8 @@ Pollen's [`skills/debugging.md`](https://github.com/pollen-robotics/reachy_mini/
 | Import error at app start | `ModuleNotFoundError: reachy_mini` in the app subprocess stderr → surfaces as `runner.error` in the daemon log | is `reachy-mini` pinned as a dependency in the app's `pyproject.toml`? venv active? `uv pip install -e .` in the app directory |
 | Audio playback failed | `Failed to initialize media server` in the daemon logger; possibly a GStreamer warning | check the platform (Lite has an audio backend, sim often does not); Pollen's debugging.md § "Sim vs Physical"; SDK parameter `media_backend="gstreamer_no_video"` as a fallback |
 | "Motors in different states" | sporadic effort / position out-of-range warnings in the daemon logger | recovery pattern from Pollen's [`skills/safe-torque.md`](https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md): goto SLEEP_HEAD_POSE → `disable_motors()` |
+| Daemon stale state after multiple app stop/start cycles | the app starts with `ConnectionError: Could not connect to daemon on localhost. Is the Reachy Mini daemon running?` from `reachy_mini.reachy_mini._initialize_client`, **even though** `systemctl is-active reachy-mini-daemon.service` still reports `active`; the previously listening port 6053 (app-owned ESPHome server, when applicable) no longer listens and `_esphomelib._tcp` is no longer advertised on mDNS | hardware-daemon restart, see the recovery table row "Daemon stale-state recovery" |
+| Sanity check fails on a missing GStreamer WebRTC plugin (direct mode) | `RuntimeError: Failed to create webrtcsrc element. Is the GStreamer webrtc rust plugin installed?` raised directly inside `ReachyMini.__init__`, before any app logic runs; affects only **direct mode**, not daemon-hosting mode, where the daemon owns the GStreamer pipeline build | not an app problem — the verify-basics-first heuristic § setup prerequisites applies; fall back to a **daemon-hosted sanity app** (a small custom skeleton with `wake_up()` + `goto_sleep()`), or install `gst-plugin-webrtc-rust` into a GStreamer plugin path that the venv actually sees |
 
 - **MUST** every newly observed failure class be reconciled against this table before any spec update; if nothing fits, it is an Open Question, not a silent addition
 - **SHOULD** the app developer first check the column "Expected log pattern" for any new failure class before testing on new code paths — when the expected pattern is missing, the problem belongs to a different class than initially assumed
@@ -133,6 +135,8 @@ Pollen's [`skills/debugging.md`](https://github.com/pollen-robotics/reachy_mini/
 - **MUST** before diagnosing any app-specific failure class, [`examples/minimal_demo.py`](https://github.com/pollen-robotics/reachy_mini/blob/main/examples/minimal_demo.py) be run against the **same daemon, in the same run mode** — if it fails, the failure class is connectivity / daemon / hardware-related, not app-related
 - **MUST** the result of this sanity check be documented in the triage report (failure reproduced? green run?) so downstream reviewers can follow the classification
 - **MUST NOT** any app-code change be started while the sanity check is still red — that would be symptom fighting in the wrong place
+- **MUST** be observed for the direct-mode sanity check that `ReachyMini()` itself builds the GStreamer / WebRTC pipeline and requires `gst-plugin-webrtc-rust` in a GStreamer plugin path the venv can actually see; in **daemon hosting** mode the daemon owns this initialization. If the sanity check dies with `RuntimeError: Failed to create webrtcsrc element`, this is **not an app bug** but a setup gap of the direct-mode environment — the triage class is `webrtc-plugin-missing` from the Common Issues catalog, not an app-specific class. In this state the sanity probe is not informative; an alternative is a custom minimal app skeleton (wake-up + sleep) launched in daemon-hosting mode
+- **SHOULD** the run mode for the sanity check be chosen deliberately: for an app that runs in daemon hosting in production, a daemon-hosted sanity app is more informative than a direct-mode script; for an app developed via `pytest`, direct mode is the natural match
 
 ### Recovery actions
 
@@ -140,10 +144,13 @@ Pollen's [`skills/debugging.md`](https://github.com/pollen-robotics/reachy_mini/
 |---|---|---|---|
 | Daemon restart | Wireless | `ssh pollen@reachy-mini.local "sudo systemctl restart reachy-mini-daemon.service"` | terminates all app locks, kills active apps, starts the daemon process clean |
 | Daemon restart | Lite | Ctrl-C in the daemon terminal, then `reachy-mini-daemon` (or `--verbose` / `--sim`) again | as above, manual |
+| Daemon stale-state recovery (after multiple app stop/start cycles) | Wireless / Lite | same as daemon restart, but applied as a targeted reaction to the Common Issues class `daemon-stale-state` — not as routine | clears the hardware daemon's internal stuck WebSocket connection manager; HA reconnects automatically via mDNS once port 6053 (app-owned ESPHome server, when applicable) is in LISTEN state again |
 | Motor recovery | Wireless / Lite | Pollen's safe-torque pattern: `mini.goto_target(head=SLEEP_HEAD_POSE); mini.disable_motors()` (source: [`skills/safe-torque.md`](https://github.com/pollen-robotics/reachy_mini/blob/main/skills/safe-torque.md)) | anti-jerk before disable, then mechanically safe |
 | App-lock force-release | Wireless / Lite | not officially supported — daemon restart is the supported path | see daemon restart |
 
 - **MUST NOT** a daemon restart be wired into a CI / test run as a routine step — it would mask failure classes that should be solved by clean lock / lifecycle logic instead
+- **SHOULD** during active diagnostic sessions that trigger several app stop/start cycles in quick succession (hot-patch iteration, multiple `reachy-mini-start` calls), a cooldown of around 30 s be observed between cycles to avoid daemon stale state; alternatively keep the daemon stale-state recovery command at hand
+- **SHOULD** when daemon stale state is suspected, first check `ss -tln | grep ":6053"` (Wireless) or an equivalent listen probe — if the port stays silent despite `systemctl is-active=active`, the class `daemon-stale-state` is confirmed
 
 ## Acceptance Criteria
 
