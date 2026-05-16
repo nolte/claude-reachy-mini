@@ -19,13 +19,16 @@ tags: [reachy-mini, sdk, python, robotics]
 
 # Reachy Mini SDK
 
-Pinned SDK version: **`reachy_mini==<TBD>`** — set this on the first hardware contact and update through a deliberate spec revision afterward.
+Pinned SDK version: **`reachy_mini==1.7.1`** (daemon on a verified Reachy Wireless, 2026-05-13) / **`reachy_mini==1.7.2`** (locally installed in the plugin's IK-helper venv). Update through a deliberate spec revision when Pollen bumps either.
 
 ## Source of truth (in order, on conflict)
 
 1. **Hosted SDK docs** — <https://huggingface.co/docs/reachy_mini/>
 2. **SDK source code** — <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
-3. **Plugin's own normative reference** — <https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md>
+3. **Plugin's own normative references** —
+   - [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md) (high-level control architecture and motion composition)
+   - [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) (per-joint URDF limits, IK polytope, canonical poses verbatim from the SDK source, T1–T8 live-verified targets, recovery triage)
+   - [`reachy-mini/daemon-rest-api`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/daemon-rest-api/de.md) (REST surface for non-Python clients)
 4. **This skill** — curated summary; loses to the sources above on conflict
 
 Before producing API-shaped code, **open the relevant doc page or source module** and confirm the exact signature. Do not paste signatures from memory.
@@ -54,9 +57,9 @@ Before producing API-shaped code, **open the relevant doc page or source module*
 
 Docs: [Wireless](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/get_started) · [Lite](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini_lite/get_started) · [Simulation](https://huggingface.co/docs/reachy_mini/platforms/simulation/get_started)
 
-## Safety limits (canonical in `reachy-mini/control-surface`)
+## Safety limits (canonical in `reachy-mini/control-surface` + `reachy-mini/motor-positions`)
 
-Hard-coded SDK ranges that every code snippet must respect. Source of truth is [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md); the table here mirrors the values for quick orientation.
+Hard-coded SDK ranges that every code snippet must respect. The high-level table here is for quick orientation; per-joint URDF limits, the IK-polytope vs. mechanical-safety distinction, and live-verified extreme poses live in [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md). The motion-composition narrative (frames, easing, anticipation) lives in [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md).
 
 | Axis | Min | Max | SDK source |
 |---|---|---|---|
@@ -66,7 +69,9 @@ Hard-coded SDK ranges that every code snippet must respect. Source of truth is [
 | Body yaw | −155° | +155° | `max_body_yaw=np.deg2rad(160)` |
 | Antenna (each) | −180° | +180° | URDF |
 
-Snippets that target the head MUST guard the value range with assertions before issuing pose commands. Do not rely on the daemon to clamp — it raises rather than clips.
+**Validity layering — only the innermost layer is binding for live motion:** IK polytope (the analytical solver accepts paths up to ±π per Stewart actuator, since it only honours the `kinematics_data.json` software bound) ⊋ URDF mechanical limits (the asymmetric per-actuator ranges in `robot.urdf`, e.g. stewart_1 −48°/+80°) ⊋ Pollen nominal operations range (±40° pitch/roll above). The full layering and the rationale for why the inner layer is mandatory live in motor-positions Layer 2 §"Three layers of validity". A snippet that targets the head **MUST** guard against the Pollen nominal range, not against the IK polytope — the latter has caused real self-collision on a Reachy Wireless (motor-positions Layer 4 §"Phase-B live incident 2026-05-12"). Do not rely on the daemon to clamp — it raises rather than clips.
+
+**Cross-axis coupling — pitch bleed:** Stewart-platform geometry couples roll and heave-up into pitch. Live-verified 2026-05-13: a pure `roll = +25°` command bleeds **−3.8°** into pitch; a pure `z = +15 mm` command bleeds **+2.4°** into pitch. A motion that needs an isolated roll or heave must compensate the pitch component explicitly in the target pose. Pure pitch, pure yaw, and pure heave-down (T6) do not exhibit measurable bleed. Source: motor-positions Layer 2 §"T1–T8 live verification".
 
 **Antenna rest-pose caveat**: each antenna servo has a per-antenna, sign-asymmetric deadband around `0°` that produces a visible ~±0.5° micro-wobble when the setpoint lands inside it. **SHOULD** keep antenna rest setpoints at `|setpoint| ≥ 5°` (preferably `≥ 10°` to match `INIT_ANTENNAS_JOINT_POSITIONS`); **SHOULD NOT** ease out to all-zero antennas if the robot then sits idle. Full empirical observation matrix + mitigation guidance in [`spec/reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md#mechanische-und-elektrische-limitationen).
 
@@ -193,9 +198,18 @@ mini.media.audio.play(...)
 For non-Python clients or remote control:
 
 - REST API page — <https://huggingface.co/docs/reachy_mini/API/rest-api>
-- OpenAPI schema — <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/API/openapi.json>
+- OpenAPI schema (Pollen, may lag) — <https://github.com/pollen-robotics/reachy_mini/blob/main/docs/source/API/openapi.json>
 - Daemon API — <https://huggingface.co/docs/reachy_mini/API/daemon>
 - JS SDK — <https://huggingface.co/docs/reachy_mini/SDK/javascript-sdk>
+- **Live, authoritative endpoint inventory** — `http://<daemon-host>:8000/openapi.json` (the running daemon), mirrored as a flat existence table in [`reachy-mini/daemon-rest-api`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/daemon-rest-api/de.md). The Pollen-hosted OpenAPI link above can lag the live schema by several point releases — when scripting REST calls, cross-check against the live source.
+
+### Reading live state with the `head_joints` vector
+
+`GET /api/state/full` returns a sparse view by default; to receive the Stewart-joint vector `[body_yaw, stewart_1..stewart_6]`, append `?with_head_joints=true`. Verified live 2026-05-13 on a Reachy Wireless v1.7.1: without that query parameter, `head_joints` comes back as `null` even when the daemon backend is fully alive. The pattern is the same for `with_target_head_pose`, `with_target_head_joints`, `with_target_body_yaw`, `with_target_antenna_positions`, `with_passive_joints`, and `with_doa` — each is opt-in.
+
+### Daemon liveness — what `backend_status.ready` does and does not tell
+
+`GET /api/daemon/status.backend_status.ready` and `.last_alive` are **not synced** to the actual polling-loop progress in `reachy_mini==1.7.1`. The daemon's `self.ready` (a `threading.Event`) is set inside the loop, but never propagated to the JSON-serialised `_status.ready` field. The same desync affects `_status.last_alive`. Authoritative liveness signals are: (1) `mean_control_loop_frequency > 40 Hz` with `nb_error == 0`, (2) `head_joints` populated when requested with `?with_head_joints=true`, and (3) `head_pose` components micro-drift between successive reads. When all three fail, the bus is genuinely hung — see [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) §"Stage-3 recovery paths" for the diagnosis flow (`/proc/<pid>/task/*/wchan`, IMU/I²C bypass override, `i2cset` soft-reset, Dynamixel Wizard, Pollen support).
 
 ## Method choice — `goto_target` vs. `set_target`
 
@@ -227,6 +241,7 @@ Source: Pollen `safe-torque.md`.
 - bidirectional **Home Assistant** wiring → `home-assistant-bridge`
 - audio **beat / tempo detection** for dance behaviors → `audio-beat-tracking`
 - live **on-device test / deploy** of a behavior → agent `reachy-mini-on-device`
+- **read-only state inspection** of a running daemon (one-shot REST snapshot, recovery diagnosis) → `reachy-mini-inspect`
 
 ## Hard rules
 
