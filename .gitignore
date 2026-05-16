@@ -32,6 +32,10 @@ env/
 # Audits — local-only, findings convert to issues/PRs
 .audits/
 
+# Spec authoring work-notes — local-only scratch material from
+# hardware-empirics sessions; final content flows into the spec itself.
+**/.work-notes/
+
 # Choreography drafts — authored output of the dance-choreography skill;
 # belongs in the consuming reachy-mini-show app repo, not this plugin.
 /choreographies/
