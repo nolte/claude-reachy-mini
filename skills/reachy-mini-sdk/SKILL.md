@@ -73,6 +73,8 @@ Hard-coded SDK ranges that every code snippet must respect. The high-level table
 
 **Cross-axis coupling — pitch bleed:** Stewart-platform geometry couples roll and heave-up into pitch. Live-verified 2026-05-13: a pure `roll = +25°` command bleeds **−3.8°** into pitch; a pure `z = +15 mm` command bleeds **+2.4°** into pitch. A motion that needs an isolated roll or heave must compensate the pitch component explicitly in the target pose. Pure pitch, pure yaw, and pure heave-down (T6) do not exhibit measurable bleed. Source: motor-positions Layer 2 §"T1–T8 live verification".
 
+**Antenna rest-pose caveat**: each antenna servo has a per-antenna, sign-asymmetric deadband around `0°` that produces a visible ~±0.5° micro-wobble when the setpoint lands inside it. **SHOULD** keep antenna rest setpoints at `|setpoint| ≥ 5°` (preferably `≥ 10°` to match `INIT_ANTENNAS_JOINT_POSITIONS`); **SHOULD NOT** ease out to all-zero antennas if the robot then sits idle. Full empirical observation matrix + mitigation guidance in [`spec/reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md#mechanische-und-elektrische-limitationen).
+
 ## API reference (with direct doc / source links)
 
 ### Construction & lifecycle
