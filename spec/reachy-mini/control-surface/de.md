@@ -230,12 +230,14 @@ Anforderungen:
 - **Stromaufnahme** — viele simultane Bewegungen (Kopf voll + beide Antennen + Body) können bei Akku-Betrieb die Spannung kurzzeitig drücken; je nach Akku-Stand reagiert das System mit Brown-out-Schutz
 - **Thermisches Budget** — Dauer-Bewegung auf hoher Frequenz erzeugt Wärme; SDK liefert ggf. Temperatur-Telemetrie (`> ⚠ TBD`)
 - **Kollisionen** — Antennen kollidieren bei extremen Winkeln mit Kopf; Bewegung darf solche Posen-Kombinationen nicht ansteuern (`> ⚠ TBD` welche Kombinationen exakt verboten sind)
+- **Antennen-Totband um 0°** — jeder Antennen-Servo zeigt eine ~±0,5° Peak-to-Peak Mikro-Oszillation, wenn sein Soll-Wert in einem kleinen Totband um `0°` liegt. Das Totband ist je Antenne unterschiedlich und vorzeichen-asymmetrisch (eine Antenne kann bei exakt `0°` stabil sein, während die andere wackelt, und umgekehrt bei negativen Soll-Werten im gleichen Betragsbereich). Empirisch verifiziert auf einer Wireless-Einheit mit Firmware 1.7.1 (Mai 2026): Soll-Werte ab `|x| ≥ 15°` hielten felsenfest (stdev=0,000° über mehrere Sekunden Beobachtung). Die SDK-eigene Konstante `INIT_ANTENNAS_JOINT_POSITIONS` (~10° Offset je Antenne) ist eine implizite Anerkennung derselben Eigenschaft — reines `0°` ist auch nicht das Idle-Ziel des SDK
 
 Anforderungen:
 
 - **MUSS [MUST]** vor einer Bewegung die kombinatorischen Kollisions-Verbote prüfen, falls das SDK sie nicht selbst erzwingt
 - **MUSS [MUST]** Stromaufnahme-Spitzen vermeiden, indem nicht alle Aktuatoren gleichzeitig auf Maximalgeschwindigkeit laufen
 - **SOLLTE [SHOULD]** Temperatur-Telemetrie auswerten, sobald das SDK sie ausweist — bei Schwellen-Überschreitung Cool-down-Pause einlegen
+- **SOLLTE [SHOULD]** Antennen-Ruhe-Soll-Werte bei `|setpoint| ≥ 5°` halten (idealerweise `≥ 10°`, passend zu `INIT_ANTENNAS_JOINT_POSITIONS`), damit der Servo das Antennen-Totband um `0°` verlässt; **SOLLTE NICHT [SHOULD NOT]** am Ende einer Bewegung in eine Allnull-Antennen-Pose easen, wenn der Roboter danach im Idle steht — mindestens eine Antenne wackelt dann sichtbar
 
 ### Sicherheits-Limits
 
