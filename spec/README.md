@@ -26,6 +26,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`reachy-mini/ha-integration`](reachy-mini/ha-integration/de.md) | Home-Assistant-Integration: Architektur | Home Assistant Integration: Architecture | draft | 2026-05-05 |
 | [`reachy-mini/host-provisioning`](reachy-mini/host-provisioning/de.md) | Host-Provisioning: WiFi, Filesystem-Layout und App-Distribution | Host Provisioning: WiFi, Filesystem Layout, and App Distribution | draft | unversioned |
 | [`reachy-mini/mcp-server`](reachy-mini/mcp-server/de.md) | MCP-Server für Reachy Mini | MCP Server for Reachy Mini | draft | unversioned |
+| [`reachy-mini/motion-anomaly-detection`](reachy-mini/motion-anomaly-detection/de.md) | Erkennung untypischer Bewegungsmuster am Reachy Mini | Detecting atypical motion patterns on the Reachy Mini | draft | unversioned |
 | [`reachy-mini/motor-positions`](reachy-mini/motor-positions/de.md) | Motor-Positionen, Limits und kanonische Posen des Reachy Mini | Reachy Mini motor positions, limits, and canonical poses | draft | unversioned |
 | [`reachy-mini/motions/agreeing-nod`](reachy-mini/motions/agreeing-nod/de.md) | Bewegungsablauf: Zustimmen / Nicken (`agreeing-nod`) | Motion Sequence: Agreeing / Nod (`agreeing-nod`) | draft | 2026-05-05 |
 | [`reachy-mini/motions/alarm`](reachy-mini/motions/alarm/de.md) | Bewegungsablauf: Alarm (`alarm`) | Motion Sequence: Alarm (`alarm`) | draft | 2026-05-05 |
