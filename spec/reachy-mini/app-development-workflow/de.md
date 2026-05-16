@@ -268,14 +268,26 @@ Der Source-Code **MUSS [MUST]** gegen den folgenden Reachy-spezifischen Sicherhe
 
 ### Phase 9 — Deploy & Start
 
+Es gibt **zwei sanktionierte Deploy-Pfade**, die sich gegenseitig nicht ersetzen:
+
+1. **Pollen-Pathway** — Apps werden in der Pollen-Daemon-Python-Umgebung verankert, erscheinen im Reachy-Dashboard und unterliegen dem Pollen-App-Lock. Geeignet für HF-Spaces-Veröffentlichung und Single-App-Betrieb. Owner: [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)-Agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/de.md)-Skill.
+2. **Self-Hosted-Pathway** — Apps leben unter `/opt/reachy-apps/<slug>/` mit eigenem `uv venv`, laufen als `reachy-app@<slug>.service` über systemd und werden durch einen autonomen 5-Minuten-Pull-Timer aktuell gehalten. Geeignet für mehrere parallele Apps, fest verdrahtete Konfiguration, Heim-Setup ohne HF-Push. Owner: [`reachy-mini/host-provisioning`](../host-provisioning/de.md) (Implementation derzeit offen).
+
+Anforderungen für den Pollen-Pathway:
+
 - **Deploy** **MUSS [MUST]** über den [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)-Agent erfolgen — er prüft Pollen-Vertrag, synct den Code, verankert die Installation in der Daemon-Umgebung
 - **Start** **MUSS [MUST]** über den [`claude/reachy-mini-start`](../../claude/reachy-mini-start/de.md)-Skill erfolgen — er respektiert App-Locks und prüft den Entry-Point-Katalog
 - **DARF NICHT [MUST NOT]** der Deploy-Agent zum reinen Run-Zweck eingesetzt werden — Live-Trial ist Phase 8, Run-Start ist `reachy-mini-start`
 
+Anforderungen für den Self-Hosted-Pathway:
+
+- **MUSS [MUST]** dem Filesystem-Layout, dem systemd-Service-Vertrag und dem Pull-Pfad aus [`reachy-mini/host-provisioning`](../host-provisioning/de.md) folgen
+- **DARF NICHT [MUST NOT]** zeitgleich mit einer aktiven Pollen-Pathway-App auf demselben Roboter laufen — beide würden um die Hardware-Verbindung konkurrieren (siehe `host-provisioning` §Konfliktfreiheit mit Pollens Shared-venv-Pfad)
+
 **Inputs:** App-Repo mit bestandenem On-Device-Test
 **Outputs:** Auf dem Gerät installierte und gestartete App
-**Owner:** [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)-Agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/de.md)-Skill
-**Referenzen:** [`reachy-mini/app-architecture`](../app-architecture/de.md)
+**Owner:** Pollen-Pathway: [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/de.md)-Agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/de.md)-Skill · Self-Hosted-Pathway: [`reachy-mini/host-provisioning`](../host-provisioning/de.md) (Implementation derzeit offen)
+**Referenzen:** [`reachy-mini/app-architecture`](../app-architecture/de.md), [`reachy-mini/host-provisioning`](../host-provisioning/de.md)
 
 ### Phase 10 — Publikation
 

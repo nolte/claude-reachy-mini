@@ -268,14 +268,26 @@ The source code **MUST** be reviewed against the following Reachy-specific secur
 
 ### Phase 9 — Deploy & start
 
+There are **two sanctioned deploy paths** that do not replace each other:
+
+1. **Pollen pathway** — apps are anchored in the Pollen daemon's Python environment, appear in the Reachy dashboard, and are subject to the Pollen app lock. Suited for HF Spaces publication and single-app operation. Owner: [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/en.md) agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/en.md) skill.
+2. **Self-hosted pathway** — apps live under `/opt/reachy-apps/<slug>/` with their own `uv venv`, run as `reachy-app@<slug>.service` via systemd, and are kept up to date by an autonomous 5-minute pull timer. Suited for multiple parallel apps, hard-wired configuration, and home setups without HF push. Owner: [`reachy-mini/host-provisioning`](../host-provisioning/en.md) (implementation currently open).
+
+Requirements for the Pollen pathway:
+
 - **Deploy** **MUST** go through the [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/en.md) agent — it checks the Pollen contract, syncs the code, and anchors the install in the daemon environment
 - **Start** **MUST** go through the [`claude/reachy-mini-start`](../../claude/reachy-mini-start/en.md) skill — it respects app locks and verifies the entry-point catalogue
 - The deploy agent **MUST NOT** be used for pure-run purposes — live trial is phase 8, run-start is `reachy-mini-start`
 
+Requirements for the self-hosted pathway:
+
+- **MUST** follow the filesystem layout, the systemd service contract, and the pull path from [`reachy-mini/host-provisioning`](../host-provisioning/en.md)
+- **MUST NOT** run concurrently with an active Pollen-pathway app on the same robot — both would compete for the hardware connection (see `host-provisioning` § Coexistence with Pollen's Shared-Venv Path)
+
 **Inputs:** app repo with passed on-device test
 **Outputs:** app installed and started on the device
-**Owner:** [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/en.md) agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/en.md) skill
-**References:** [`reachy-mini/app-architecture`](../app-architecture/en.md)
+**Owner:** Pollen pathway: [`claude/reachy-mini-deploy`](../../claude/reachy-mini-deploy/en.md) agent + [`claude/reachy-mini-start`](../../claude/reachy-mini-start/en.md) skill · self-hosted pathway: [`reachy-mini/host-provisioning`](../host-provisioning/en.md) (implementation currently open)
+**References:** [`reachy-mini/app-architecture`](../app-architecture/en.md), [`reachy-mini/host-provisioning`](../host-provisioning/en.md)
 
 ### Phase 10 — Publication
 
