@@ -71,6 +71,12 @@ Deep, slow sinusoidal modulation on `z` (amplitude 2 mm, frequency 0.15 Hz — o
 - Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin references
+
+- Pose values, joint limits, canonical poses (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/en.md)
+- Pose composition, IK-vs-mechanical-safety, pitch bleed on roll / heave-up → [`reachy-mini/control-surface`](../../control-surface/en.md) §"Mechanical and electrical limitations"
+- Motion contains roll or heave-up components? Compensate pitch explicitly in the target pose (Stewart geometry coupling, live-verified 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Open Questions
 - Which audio file serves as a reference for the sigh? Proposal: a short descending sine or a generic "aw" sample.
 - How deep can the pitch droop without breaking the read? Test pitch in the -25° to -30° range empirically.

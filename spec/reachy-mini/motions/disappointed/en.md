@@ -67,6 +67,12 @@ Very light sinusoidal modulation on `z` (amplitude 1 mm, frequency 0.3 Hz) and `
 - Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin references
+
+- Pose values, joint limits, canonical poses (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/en.md)
+- Pose composition, IK-vs-mechanical-safety, pitch bleed on roll / heave-up → [`reachy-mini/control-surface`](../../control-surface/en.md) §"Mechanical and electrical limitations"
+- Motion contains roll or heave-up components? Compensate pitch explicitly in the target pose (Stewart geometry coupling, live-verified 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Open Questions
 - Should body yaw drift at all, or stay strictly centred? A small turn-away makes the affect more human, but staying centred would be cleaner.
 - Which audio file fits? Proposal: a short falling tone, quieter than `sad`.

@@ -72,6 +72,12 @@ Sehr langsame Sinus-Mod auf `yaw` (Amplitude 5°, Frequenz 0,3 Hz) — eine frag
 - Aktuator-Set, Pose-Konstanten, IO-Befehle: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Plattform-Profile (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin-Referenzen
+
+- Pose-Werte, Joint-Limits und kanonische Posen (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/de.md)
+- Pose-Komposition, IK-vs-mechanische-Sicherheit, Pitch-Bleed bei Roll/Heave-up → [`reachy-mini/control-surface`](../../control-surface/de.md) §"Mechanische und elektrische Limitationen"
+- Motion enthält Roll- oder Heave-up-Komponenten? Pitch in der Ziel-Pose explizit kompensieren (Stewart-Geometrie-Kopplung, live verifiziert 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Offene Fragen
 - Sollen es vier Tilts sein, oder reichen drei? Vier ist verwirrter, drei ist eleganter — empirisch zu wählen.
 - Soll `confused` einen kurzen Audio-Sting bekommen, oder ganz auf Sound verzichten? Beides möglich.

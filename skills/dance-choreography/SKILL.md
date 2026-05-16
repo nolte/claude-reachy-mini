@@ -25,11 +25,20 @@ This skill produces an **authoring artifact**, not robot code. The output is a M
 ## Source of truth (in order, on conflict)
 
 1. **Motion catalog** — `spec/reachy-mini/motions/<slug>/de.md` (canonical) and `en.md` (translation). Every slug used in a choreography MUST exist here.
-2. **Control surface** — `spec/reachy-mini/control-surface/de.md` for hardware limits, BPM ranges, easing modes, brown-out and servo-heat constraints.
-3. **App architecture** — `spec/reachy-mini/app-architecture/de.md` for the WebSocket protocol version, slug registry conventions, and platform profiles.
-4. **This skill** — curated workflow; loses to the sources above on conflict.
+2. **Motor positions** — `spec/reachy-mini/motor-positions/de.md` for per-joint URDF limits, T1–T8 live-verified targets, three-layer validity model, and **pitch-bleed coupling on roll / heave-up**.
+3. **Control surface** — `spec/reachy-mini/control-surface/de.md` for hardware limits, BPM ranges, easing modes, brown-out and servo-heat constraints.
+4. **App architecture** — `spec/reachy-mini/app-architecture/de.md` for the WebSocket protocol version, slug registry conventions, and platform profiles.
+5. **This skill** — curated workflow; loses to the sources above on conflict.
 
 Before writing a choreography, **open the relevant motion specs** and confirm BPM range, beat structure, and platform profile.
+
+### Pose-composition constraints (live-verified)
+
+When composing dance blocks, three platform constraints from the 2026-05-13 live verification of motor-positions apply directly. Carry them as comments / `mood_notes` on every section that triggers them.
+
+- **Pitch bleed.** A pure-roll command bleeds **−3.8°** of pitch for every +25° of roll (T3 measurement), and a pure heave-up command bleeds **+2.4°** of pitch for every +15 mm of z (T5). Choreographies that stack roll-driven sway (`sway-side`, `headbang-soft` with roll) with intentional pitch motion (`groove-bob`, `agreeing-nod`) **MUST** account for the bleed: either reduce the pitch amplitude, or accept the visible coupling and label it in the choreography document. Pure-pitch, pure-yaw, and pure heave-down sections show no measurable bleed.
+- **Pollen nominal operations range is the only binding layer.** The IK accepts pose targets up to ±π per Stewart joint (kinematics-data.json software default), but only the Pollen nominal range (±40° pitch/roll, ±60° head-yaw, ±155° body-yaw) is mechanically safe. The 2026-05-12 Phase-B self-collision incident is the canonical precedent. A choreography **MUST NOT** quote pose values outside the Pollen nominal range, even if a motion spec lists them as IK-feasible.
+- **Body-yaw clip at ±65° relative to head.** A `head_yaw=0, body_yaw=+90°` request is silently clipped to `body_yaw ≈ +65°` by `max_relative_yaw=65°` in the IK solver. Spin moves like `spin-look-around` that exceed ±65° relative yaw will not deliver the value they request — split the rotation across `head_yaw` + `body_yaw` explicitly, or accept the soft clip.
 
 ## When this skill activates
 

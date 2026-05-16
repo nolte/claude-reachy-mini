@@ -73,6 +73,12 @@ Either — body yaw stays a constant 0°.
 - Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin references
+
+- Pose values, joint limits, canonical poses (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/en.md)
+- Pose composition, IK-vs-mechanical-safety, pitch bleed on roll / heave-up → [`reachy-mini/control-surface`](../../control-surface/en.md) §"Mechanical and electrical limitations"
+- Motion contains roll or heave-up components? Compensate pitch explicitly in the target pose (Stewart geometry coupling, live-verified 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Open Questions
 - Should the breath frequency drift slowly (e.g. 0.2–0.3 Hz instead of a fixed 0.25 Hz) so the idle does not feel mechanical? "Timing variation" pattern from `control-surface`.
 - How does `waiting-idle` integrate with `mini.disable_motors()` for power saving? Proposal: after 5 min idle, automatically transition into `goto_sleep()`.

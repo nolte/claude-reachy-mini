@@ -72,6 +72,12 @@ Very slow sinusoidal modulation on `yaw` (amplitude 5°, frequency 0.3 Hz) — a
 - Actuator set, pose constants, IO commands: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini>
 - Platform profiles (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 
+## Plugin references
+
+- Pose values, joint limits, canonical poses (INIT/SLEEP) → [`reachy-mini/motor-positions`](../../motor-positions/en.md)
+- Pose composition, IK-vs-mechanical-safety, pitch bleed on roll / heave-up → [`reachy-mini/control-surface`](../../control-surface/en.md) §"Mechanical and electrical limitations"
+- Motion contains roll or heave-up components? Compensate pitch explicitly in the target pose (Stewart geometry coupling, live-verified 2026-05-13: roll +25° → −3.8° pitch; z +15 mm → +2.4° pitch)
+
 ## Open Questions
 - Should there be four tilts or three? Four reads as more confused, three as more elegant — empirically chosen.
 - Should `confused` get a brief audio sting, or no sound at all? Either is fine.
