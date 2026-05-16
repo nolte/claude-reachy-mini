@@ -86,9 +86,9 @@ Verification basis: Reachy Mini Wireless, firmware 1.7.1, live-verified on **202
 
 | Phase | Signal | Cost disposition |
 |---|---|---|
-| Pre-flight | Antenna setpoint in the rest frame with `|x| < 5°` ⇒ warning; `|x| < 2°` ⇒ rejection | trivial, static |
+| Pre-flight | Antenna setpoint in the rest frame with `\|x\| < 5°` ⇒ warning; `\|x\| < 2°` ⇒ rejection | trivial, static |
 | Live | Standard deviation of antenna joint reads over a 2-second rolling window > 0.2° despite a stable setpoint ⇒ antenna in deadband | polling cost; needs telemetry buffer |
-| Post-hoc | Telemetry replay: per antenna the fraction of samples with `|setpoint| < 5°`; stdev per setpoint bin | replay-capable |
+| Post-hoc | Telemetry replay: per antenna the fraction of samples with `\|setpoint\| < 5°`; stdev per setpoint bin | replay-capable |
 
 **Recovery.** Class C damages nothing and blocks no follow-up motion. It is primarily a quality finding ("looks nervous even though the robot is still"). Correction: set antenna rest poses to `≥ 10°`.
 

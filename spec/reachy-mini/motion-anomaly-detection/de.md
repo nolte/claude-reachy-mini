@@ -86,9 +86,9 @@ Verifikations-Basis: Reachy Mini Wireless, Firmware 1.7.1, live verifiziert am *
 
 | Phase | Signal | Kostendisposition |
 |---|---|---|
-| Pre-Flight | Antennen-Setpoint im Rest-Frame mit `|x| < 5°` ⇒ Warnung; `|x| < 2°` ⇒ Ablehnung | trivial, statisch |
+| Pre-Flight | Antennen-Setpoint im Rest-Frame mit `\|x\| < 5°` ⇒ Warnung; `\|x\| < 2°` ⇒ Ablehnung | trivial, statisch |
 | Live | Standard-Abweichung der Antennen-Joint-Reads über ein 2-Sekunden-Rolling-Window > 0,2° trotz stabilem Soll-Wert ⇒ Antenne im Totband | Polling-Kost; braucht Telemetrie-Buffer |
-| Post-hoc | Telemetrie-Replay: pro Antenne der Anteil der Samples mit `|setpoint| < 5°`; Stdev pro Setpoint-Bin | Replay-Tauglich |
+| Post-hoc | Telemetrie-Replay: pro Antenne der Anteil der Samples mit `\|setpoint\| < 5°`; Stdev pro Setpoint-Bin | Replay-Tauglich |
 
 **Recovery.** Class C beschädigt nichts und blockiert keine Folge-Bewegung. Sie ist primär ein Qualitäts-Befund („das wirkt nervös, obwohl der Roboter steht"). Korrektur: Antennen-Ruhe-Posen auf `≥ 10°` setzen.
 
