@@ -12,6 +12,7 @@ Quelle der Wahrheit hinter den Skills und Agents dieses Plugins. Specs sind zwei
 | [`claude/dance-choreography`](claude/dance-choreography/de.md) | Dance-Choreography-Skill | Dance Choreography Skill | draft | 2026-05-06 |
 | [`claude/home-assistant-bridge`](claude/home-assistant-bridge/de.md) | Home-Assistant-Bridge-Skill | Home Assistant Bridge Skill | draft | 2026-05-05 |
 | [`claude/mcp-server-bootstrap`](claude/mcp-server-bootstrap/de.md) | MCP-Server-Bootstrap-Skill | MCP Server Bootstrap Skill | draft | unversioned |
+| [`claude/motion-monitor`](claude/motion-monitor/de.md) | Motion-Monitor-Agent für Reachy Mini | Motion Monitor Agent for Reachy Mini | draft | unversioned |
 | [`claude/reachy-app-publish-hf`](claude/reachy-app-publish-hf/de.md) | Reachy-App-Publish-HF-Skill | Reachy App Publish HF Skill | draft | unversioned |
 | [`claude/reachy-mini-deploy`](claude/reachy-mini-deploy/de.md) | Deploy-Agent für Reachy-Mini-Apps | Deploy Agent for Reachy Mini Apps | draft | 2026-05-06 |
 | [`claude/reachy-mini-inspect`](claude/reachy-mini-inspect/de.md) | Read-Only-Inspect-Skill für den Reachy-Mini-Daemon | Read-only inspect skill for the Reachy Mini daemon | draft | unversioned |
