@@ -114,6 +114,10 @@ Hard-coded Werte aus dem SDK, die in jedem Code-Snippet einzuhalten sind:
 - Plattform-Profile-Doku (Wireless / Lite / Simulation): <https://github.com/pollen-robotics/reachy_mini/tree/main/docs/source/platforms>
 - Pollens `AGENTS.md` (Einstiegspunkt für AI-Agents in den Pollen-Workflow): <https://github.com/pollen-robotics/reachy_mini/blob/main/AGENTS.md>
 
+Plugin-interne Wissens-Specs (kanonische Quelle für Cross-Phase-Konventionen):
+
+- Anomalie-Klassen und verbindliches Event-Record-Schema (dieser Skill ist **Pre-Flight-Konsument** für Klasse A Pose-Range, Klasse B Pose-Delta/dt, Klasse D lokaler IK-Check): [`reachy-mini/motion-anomaly-detection`](../../reachy-mini/motion-anomaly-detection/de.md)
+
 Pollens parallele Authoring-Skills (jeder ist Quelle für einen bestimmten Aspekt der Wissensbasis und wird im Drift-Check abgeglichen):
 
 - `motion-philosophy.md` — `goto_target` vs. `set_target`, Methoden-Wahl: <https://github.com/pollen-robotics/reachy_mini/blob/main/skills/motion-philosophy.md>

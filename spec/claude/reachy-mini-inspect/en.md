@@ -92,6 +92,8 @@ What's missing is a **skill distribution inside Claude Code** for the same read 
 - Live source of endpoint truth: `http://<daemon-host>:8000/openapi.json` — typical hosts: `http://reachy-mini.local:8000` (Wireless), `http://127.0.0.1:8000` (Lite or sim)
 - Skill-vs-agent heuristic: [`spec/claude/skill-vs-agent/`](https://github.com/nolte/claude-shared/blob/develop/spec/claude/skill-vs-agent/) (in the claude-shared plugin)
 - Platform limits and hardware inventory as reading context: [`spec/reachy-mini/control-surface/`](../../reachy-mini/control-surface/en.md)
+- Anomaly classes and the binding event-record schema (this skill is the **live consumer** for Class A via the three-way liveness cross-check in `full` mode): [`spec/reachy-mini/motion-anomaly-detection/`](../../reachy-mini/motion-anomaly-detection/en.md)
+- Sibling agent for bounded sessions with audit-log output (same Tier-1 reads, different output format): [`spec/claude/motion-monitor/`](../motion-monitor/en.md)
 
 ## Open Questions
 
