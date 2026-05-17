@@ -92,6 +92,8 @@ Was fehlt, ist eine **Skill-Distribution innerhalb von Claude Code** desselben L
 - Live-Quelle der Endpoint-Wahrheit: `http://<daemon-host>:8000/openapi.json` — typische Hosts: `http://reachy-mini.local:8000` (Wireless), `http://127.0.0.1:8000` (Lite oder Sim)
 - Skill-vs-Agent-Heuristik: [`spec/claude/skill-vs-agent/`](https://github.com/nolte/claude-shared/blob/develop/spec/claude/skill-vs-agent/) (im claude-shared-Plugin)
 - Plattform-Limits und Hardware-Inventar als Lese-Kontext: [`spec/reachy-mini/control-surface/`](../../reachy-mini/control-surface/de.md)
+- Anomalie-Klassen und verbindliches Event-Record-Schema (dieser Skill ist **Live-Konsument** für Klasse A via Drei-Wege-Liveness-Cross-Check im `full`-Modus): [`spec/reachy-mini/motion-anomaly-detection/`](../../reachy-mini/motion-anomaly-detection/de.md)
+- Schwester-Agent für bounded Sessions mit Audit-Log-Output (gleiche Tier-1-Reads, anderes Output-Format): [`spec/claude/motion-monitor/`](../motion-monitor/de.md)
 
 ## Offene Fragen
 

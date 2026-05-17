@@ -163,6 +163,7 @@ Die App `reachy-mini-show` (siehe `reachy-mini/app-architecture`) liefert vier B
 - [ ] Hardware-spezifische Werte, die in `control-surface` TBD sind, sind auch in der Choreographie als `> ⚠ TBD: validate against real hardware` markiert
 
 ## Quellen
+- Anomalie-Klassen und verbindliches Event-Record-Schema (dieser Skill ist **Kompositions-Zeit-Pre-Flight-Konsument**: Klassen A/B/C werden vor dem Lock einer Choreographie-Sektion erzwungen): [`reachy-mini/motion-anomaly-detection`](../../reachy-mini/motion-anomaly-detection/de.md)
 - Upstream-SDK-Repo (Quelle der `Move`-Subklasse, Easing-Modi, Pose-Konstanten, gegen die die Choreographie übersetzt wird): <https://github.com/pollen-robotics/reachy_mini>
 - `Move`-ABC, `goto`-Pfad, `recorded_move`: <https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/motion>
 - Beispiel-Move-Sequenzen (kanonische Vorlage für die Übersetzung der Frontmatter in Code): <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/sequence.py> und <https://github.com/pollen-robotics/reachy_mini/blob/main/examples/recorded_moves.py>

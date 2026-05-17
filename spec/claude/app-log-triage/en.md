@@ -118,6 +118,7 @@ Term clarification: "triage" here means **fast classification of an observed fai
 > Cross-refs to internal knowledge specs are linked; Pollen code-source anchors, when used, are verified against `pollen-robotics/reachy_mini@main` — convention from [`reachy-mini/app-logging`](../../reachy-mini/app-logging/en.md) § References.
 
 - Knowledge spec (canonical source for the platform table, Common Issues catalog, verify-basics-first, PII clause): [`reachy-mini/app-logging`](../../reachy-mini/app-logging/en.md)
+- Anomaly classes and the binding event-record schema (this skill is the **post-hoc consumer**: `connection-refused` + `ConnectionError` traceback → Class A, `kinematics` traceback → Class D): [`reachy-mini/motion-anomaly-detection`](../../reachy-mini/motion-anomaly-detection/en.md)
 - On-device test agent (responsible for device-side bulk triage and the test lifecycle): [`claude/reachy-mini-on-device`](../reachy-mini-on-device/en.md)
 - SDK knowledge base (idiomatic SDK use, `deep-dive-docs` MUST): [`claude/reachy-mini-sdk`](../reachy-mini-sdk/en.md)
 - Production logging on provisioned hosts (clear demarcation): [`reachy-mini/host-provisioning`](../../reachy-mini/host-provisioning/en.md)
