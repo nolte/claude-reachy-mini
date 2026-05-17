@@ -96,10 +96,12 @@ Validate the platform at session start via `GET /api/daemon/status.wireless_vers
 2. **Session start**:
    - generate `session-id = <YYYY-MM-DDTHH-MM-SS>_<random6>`
    - write the session header to `<audit_log_dir>/<session-id>.jsonl`:
+
      ```jsonc
      {"event":"session-start","session_id":"...","platform":"...","daemon_url":"...",
       "config":{...},"verification_basis":"Reachy Mini <platform> firmware <version>, <date>"}
      ```
+
    - start the `journalctl --follow` subprocess (skipped on `simulation`)
 3. **Poll loop** (every `poll_interval_ms` until `duration_seconds` elapses):
    - read `/api/daemon/status` and `/api/state/full?with_head_joints=true` in parallel
@@ -116,11 +118,13 @@ Validate the platform at session start via `GET /api/daemon/status.wireless_vers
    - terminate the `journalctl` subprocess cleanly (SIGTERM, 2 s wait, SIGKILL only as last resort)
    - flush any pending log lines into the audit log
    - write the session footer:
+
      ```jsonc
      {"event":"session-end","session_id":"...","result":"pass|warn|fail|aborted",
       "actual_seconds":...,"counts":{"A":...,"B":...,"C":...,"D":...},
       "aborted_reason":null|"..."}
      ```
+
 6. **Report** (returned to the caller):
    - the Markdown summary (see Output Schema below)
    - the absolute path to the audit-log file
