@@ -26,9 +26,10 @@ This skill produces an **authoring artifact**, not robot code. The output is a M
 
 1. **Motion catalog** — `spec/reachy-mini/motions/<slug>/de.md` (canonical) and `en.md` (translation). Every slug used in a choreography MUST exist here.
 2. **Motor positions** — `spec/reachy-mini/motor-positions/de.md` for per-joint URDF limits, T1–T8 live-verified targets, three-layer validity model, and **pitch-bleed coupling on roll / heave-up**.
-3. **Control surface** — `spec/reachy-mini/control-surface/de.md` for hardware limits, BPM ranges, easing modes, brown-out and servo-heat constraints.
-4. **App architecture** — `spec/reachy-mini/app-architecture/de.md` for the WebSocket protocol version, slug registry conventions, and platform profiles.
-5. **This skill** — curated workflow; loses to the sources above on conflict.
+3. **Motion-anomaly detection** — `spec/reachy-mini/motion-anomaly-detection/de.md` for the four anomaly classes with binding rules and the unified anomaly-event-record schema. This skill is the **composition-time pre-flight consumer**: enforce Class A (pose target within Pollen nominal range), Class B (pose-delta/dt below `0.16 rad/sample` warning, `0.30 rad/sample` hard reject), Class C (antenna rest-setpoint `|x| ≥ 5°`) before a choreography section is allowed to lock.
+4. **Control surface** — `spec/reachy-mini/control-surface/de.md` for hardware limits, BPM ranges, easing modes, brown-out and servo-heat constraints.
+5. **App architecture** — `spec/reachy-mini/app-architecture/de.md` for the WebSocket protocol version, slug registry conventions, and platform profiles.
+6. **This skill** — curated workflow; loses to the sources above on conflict.
 
 Before writing a choreography, **open the relevant motion specs** and confirm BPM range, beat structure, and platform profile.
 

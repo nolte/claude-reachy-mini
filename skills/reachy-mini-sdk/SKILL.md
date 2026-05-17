@@ -28,6 +28,7 @@ Pinned SDK version: **`reachy_mini==1.7.1`** (daemon on a verified Reachy Wirele
 3. **Plugin's own normative references** —
    - [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md) (high-level control architecture and motion composition)
    - [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md) (per-joint URDF limits, IK polytope, canonical poses verbatim from the SDK source, T1–T8 live-verified targets, recovery triage)
+   - [`reachy-mini/motion-anomaly-detection`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motion-anomaly-detection/de.md) (four anomaly classes with binding rules, pre-flight / live / post-hoc detect signals, unified anomaly-event-record schema — this skill is the **pre-flight consumer**: Class A pose-range, Class B pose-delta/dt, Class D local-IK check)
    - [`reachy-mini/daemon-rest-api`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/daemon-rest-api/de.md) (REST surface for non-Python clients)
 4. **This skill** — curated summary; loses to the sources above on conflict
 
@@ -59,7 +60,7 @@ Docs: [Wireless](https://huggingface.co/docs/reachy_mini/platforms/reachy_mini/g
 
 ## Safety limits (canonical in `reachy-mini/control-surface` + `reachy-mini/motor-positions`)
 
-Hard-coded SDK ranges that every code snippet must respect. The high-level table here is for quick orientation; per-joint URDF limits, the IK-polytope vs. mechanical-safety distinction, and live-verified extreme poses live in [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md). The motion-composition narrative (frames, easing, anticipation) lives in [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md).
+Hard-coded SDK ranges that every code snippet must respect. The high-level table here is for quick orientation; per-joint URDF limits, the IK-polytope vs. mechanical-safety distinction, and live-verified extreme poses live in [`reachy-mini/motor-positions`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motor-positions/de.md). The motion-composition narrative (frames, easing, anticipation) lives in [`reachy-mini/control-surface`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/control-surface/de.md). The four-class detection methodology — pre-flight pose-range check (Class A), pose-delta/dt jerk threshold of `0.16 rad/sample` (Class B), antenna-rest-pose deadband (Class C), and local-IK check against URDF limits (Class D) — lives in [`reachy-mini/motion-anomaly-detection`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motion-anomaly-detection/de.md); snippets that drive the head **MUST** apply at least the Class A pre-flight check (Pollen nominal range as binding layer, not the IK polytope).
 
 | Axis | Min | Max | SDK source |
 |---|---|---|---|

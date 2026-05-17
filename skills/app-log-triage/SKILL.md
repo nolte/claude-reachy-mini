@@ -83,6 +83,8 @@ Match against the canonical Common Issues classes from [`reachy-mini/app-logging
 
 When several classes match, return the most specific one with the highest confidence and list the alternatives as `candidates` with lower confidence. On no match, return the pseudo class `unclassified` and propose the sanity check (next section).
 
+**Motion-anomaly cross-classification.** When the triage class points at motion-side root causes (`jerky-motion`, `motors-different-states`, or a `connection-refused` after a previous `start-app`), the report **SHOULD** also map the symptom to one of the four canonical motion-anomaly classes from [`reachy-mini/motion-anomaly-detection`](https://github.com/nolte/claude-reachy-mini/blob/develop/spec/reachy-mini/motion-anomaly-detection/de.md) — this skill is the **post-hoc consumer** of that spec. Concretely: `connection-refused` after `start-app` plus a `ConnectionError: Could not connect to daemon on localhost` traceback in the app log is the post-hoc fingerprint of **Class A** (head-against-body self-collision); a `kinematics` exception traceback is **Class D** (Stewart-limit / IK-unsolvable). The skill emits the anomaly-event-record in the binding shape (`class`, `phase=post-hoc`, `severity`, `detected_at`, `verification_basis`) alongside the standard triage classification.
+
 ## Verify-basics-first heuristic
 
 On class `unclassified`, the first recovery step in the report is always Pollen's verify-basics-first heuristic — run `examples/minimal_demo.py` against the same daemon, in the same run mode. The skill **recommends**; the developer **executes**. If the sanity check fails too, the failure belongs to a different class than the original symptom suggested.
