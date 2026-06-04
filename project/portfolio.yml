@@ -1,0 +1,18 @@
+# Portfolio manifest for nolte/claude-reachy-mini.
+# Schema: spec/portfolio/portfolio-management/ §Capability inventory per repository
+# Audience references resolve against AUDIENCES.md at the repo root.
+
+capabilities:
+  - name: claude-code-skills-and-agents-for-reachy-mini
+    description: >-
+      A Claude Code plugin bundling skills and agents for Reachy Mini robot
+      development — dance-to-music behaviours and Home Assistant integration —
+      so the operator builds Reachy Mini apps with consistent, spec-grounded
+      tooling.
+    audience:
+      - "Plugin-Autor beim Dogfooding in diesem Repo (nolte)"
+      - "Spätere öffentliche Nutzer (Reachy-Mini-Hobby- und Maker-Community)"
+    status: active
+    rationale: >-
+      This repository owns the Reachy-Mini-development Claude Code skill and
+      agent set in the portfolio.
