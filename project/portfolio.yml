@@ -16,3 +16,7 @@ capabilities:
     rationale: >-
       This repository owns the Reachy-Mini-development Claude Code skill and
       agent set in the portfolio.
+
+    peers:
+      - "reachy-mini-app:reachy-mini-behavior-app"
+      - "reachy-mini-mcp:reachy-mini-mcp-server"
