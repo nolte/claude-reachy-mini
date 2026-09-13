@@ -21,14 +21,10 @@ repository:
   description: Claude Code skills and agents for efficient development with the Reachy Mini robot — dance-to-music behaviors and Home Assistant integration.
   homepage: https://nolte.github.io/claude-reachy-mini
   default_branch: develop
-  topics:
-    - claude-code
-    - claude-code-plugin
-    - skills
-    - agents
-    - reachy-mini
-    - pollen-robotics
-    - home-assistant
+  # A comma-separated string, never a YAML list: probot/settings calls .split() on
+  # topics, and a list throws after the repository PATCH, which silently skips the
+  # branches block (nolte/gh-plumbing#416).
+  topics: claude-code, claude-code-plugin, skills, agents, reachy-mini, pollen-robotics, home-assistant
   allow_squash_merge: true
   allow_merge_commit: false
   allow_rebase_merge: false
